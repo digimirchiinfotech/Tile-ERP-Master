@@ -1,0 +1,142 @@
+/* Sales Analytics Container */
+.analytics-container {
+  width: 100%;
+}
+
+/* Chart Containers */
+.chart-container {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+/* Legend Styling */
+.legend-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0;
+  margin: 0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.legend-color-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.legend-label {
+  flex: 1;
+  color: #1e293b;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.legend-value {
+  color: #64748b;
+  font-weight: 600;
+  min-width: 50px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Stat Cards */
+.stat-card-colored {
+  background: linear-gradient(135deg, var(--bs-primary, #0d6efd) 0%, rgba(13, 110, 253, 0.8) 100%) !important;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.stat-card-colored.bg-primary {
+  background: linear-gradient(135deg, #0088FE 0%, #0066cc 100%) !important;
+}
+
+.stat-card-colored.bg-success {
+  background: linear-gradient(135deg, #00C49F 0%, #00a080 100%) !important;
+}
+
+.stat-card-colored.bg-info {
+  background: linear-gradient(135deg, #29b6f6 0%, #0288d1 100%) !important;
+}
+
+.stat-card-colored.bg-warning {
+  background: linear-gradient(135deg, #FFBB28 0%, #ffa000 100%) !important;
+}
+
+.stat-card-colored:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+.stat-card-colored h5 {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+
+.stat-card-colored h3 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .legend-item {
+    padding: 6px 0;
+    gap: 10px;
+    font-size: 12px;
+  }
+
+  .legend-label {
+    font-size: 12px;
+  }
+
+  .legend-value {
+    font-size: 12px;
+    min-width: 45px;
+  }
+}
+
+@media (max-width: 576px) {
+  .legend-item {
+    padding: 5px 0;
+    gap: 8px;
+    font-size: 11px;
+  }
+
+  .legend-label {
+    font-size: 11px;
+  }
+
+  .legend-value {
+    font-size: 11px;
+    min-width: 40px;
+  }
+
+  .stat-card-colored h3 {
+    font-size: 20px;
+  }
+
+  .stat-card-colored h5 {
+    font-size: 11px;
+  }
+}

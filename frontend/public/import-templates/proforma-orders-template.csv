@@ -1,0 +1,2 @@
+orderNo,date,piReference,supplierName,country,currency,amount,status,qcStatus
+string,date,string,string,string,string,number,string,string

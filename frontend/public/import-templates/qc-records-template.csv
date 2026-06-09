@@ -1,0 +1,2 @@
+qcId,orderNumber,clientName,productName,qcStatus,qcDate,dimensionalCheck,surfaceQuality,colorConsistency,packagingCondition,overallGrade,notes
+string,string,string,string,string,date,string,string,string,string,string,text

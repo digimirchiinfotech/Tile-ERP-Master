@@ -1,0 +1,295 @@
+/* Master Data Management Styling */
+
+.master-data-management {
+  width: 100%;
+}
+
+/* Categories Sidebar */
+.master-data-management .list-group-item {
+  border: none;
+  padding: 12px 16px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.master-data-management .list-group-item:hover {
+  background-color: #f1f5f9;
+  color: #1e293b;
+}
+
+.master-data-management .list-group-item.active {
+  background-color: #0d6efd;
+  color: white;
+  border-left-color: #0d6efd;
+}
+
+/* Product Cards Grid */
+.master-data-management .row>.col-md-6 {
+  display: flex;
+  flex-direction: column;
+}
+
+.master-data-management .row>.col-md-6>.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.master-data-management .card {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+}
+
+.master-data-management .card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+/* Card Headers */
+.master-data-management .card-header {
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 14px 16px;
+}
+
+.master-data-management .card-header h6 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.master-data-management .card-header h5 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+/* Card Bodies */
+.master-data-management .card-body {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.master-data-management .card-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.master-data-management .card-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.master-data-management .card-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.master-data-management .card-body::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Tables in Cards */
+.master-data-management table {
+  margin: 0;
+  font-size: 14px;
+}
+
+.master-data-management table td {
+  padding: 10px 12px;
+  vertical-align: middle;
+  border-color: #f1f5f9;
+  text-align: left;
+}
+
+.master-data-management table td:first-child {
+  padding-left: 16px;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.master-data-management table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Action Buttons */
+.master-data-management .btn-link {
+  color: #0d6efd;
+  text-decoration: none;
+  padding: 0 !important;
+  height: auto;
+  font-size: 14px;
+}
+
+.master-data-management .btn-link:hover {
+  color: #0b5ed7;
+  text-decoration: none;
+}
+
+.master-data-management .btn-link.text-danger {
+  color: #dc3545 !important;
+}
+
+.master-data-management .btn-link.text-danger:hover {
+  color: #c82333 !important;
+}
+
+/* Add/Plus Button */
+.master-data-management .btn-outline {
+  border: 1px solid #cbd5e1;
+  color: #0d6efd;
+  padding: 5px 8px;
+  font-size: 13px;
+  border-radius: 5px;
+  transition: all 0.2s ease;
+}
+
+.master-data-management .btn-outline:hover {
+  background-color: #e8f1fe;
+  border-color: #0d6efd;
+}
+
+/* Empty State Message */
+.master-data-management p.text-muted {
+  font-size: 14px;
+  color: #94a3b8 !important;
+}
+
+/* Modal Styling */
+.master-data-management .modal-header {
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.master-data-management .modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.master-data-management .form-control {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.master-data-management .form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+}
+
+.master-data-management .form-control.is-invalid {
+  border-color: #dc3545;
+}
+
+.master-data-management .form-control.is-invalid:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+/* Validation Alert */
+.master-data-management .alert {
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+
+.master-data-management .alert-danger {
+  background-color: #fee2e2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.master-data-management .alert-danger svg {
+  flex-shrink: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .master-data-management .card-header {
+    padding: 12px 14px;
+  }
+
+  .master-data-management .card-header h6,
+  .master-data-management .card-header h5 {
+    font-size: 14px;
+  }
+
+  .master-data-management table {
+    font-size: 13px;
+  }
+
+  .master-data-management table td {
+    padding: 8px 10px;
+  }
+}
+
+@media (max-width: 576px) {
+  .master-data-management .row>[class*='col-'] {
+    margin-bottom: 20px;
+  }
+
+  .master-data-management .card-header {
+    padding: 10px 12px;
+  }
+
+  .master-data-management .card-header h5 {
+    font-size: 13px;
+  }
+
+  .master-data-management table {
+    font-size: 12px;
+  }
+
+  .master-data-management table td {
+    padding: 6px 8px;
+  }
+}
+
+/* Mobile Master Data Cards Premium */
+.master-mobile-card-premium {
+  transition: all 0.2s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.master-mobile-card-premium:active {
+  transform: scale(0.98);
+  background-color: #f8fafc !important;
+}
+
+.btn-action-mobile {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  padding: 0;
+}
+
+.extra-small {
+  font-size: 0.65rem;
+}
+
+.fw-800 {
+  font-weight: 800;
+}
+
+.btn-header-action {
+  width: auto !important;
+  min-width: unset !important;
+  margin-bottom: 0 !important;
+  padding: 0.25rem 0.75rem !important;
+}
+
+.italic {
+  font-style: italic;
+}

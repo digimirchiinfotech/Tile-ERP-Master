@@ -1,0 +1,248 @@
+/* Professional Export Document Print Stylesheet */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --print-border-color: #000000;
+  --print-text-color: #000000;
+  --print-bg-header: #f8f9fa;
+  --print-font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+@page {
+  size: A4;
+  margin: 15mm;
+}
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html,
+  body {
+    width: 210mm;
+    height: 297mm;
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+    color: var(--print-text-color);
+    font-family: var(--print-font-body);
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  /* Force display table headers and footers on every page */
+  thead {
+    display: table-header-group;
+  }
+
+  tfoot {
+    display: table-footer-group;
+  }
+
+  tr {
+    page-break-inside: avoid;
+  }
+
+  table {
+    page-break-inside: auto;
+  }
+}
+
+/* Global Print Container */
+.print-container {
+  width: 180mm;
+  margin: 0;
+  background: white;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Document Box - The outer border for ERP style docs */
+.doc-box {
+  border: 1px solid var(--print-border-color);
+  width: 100%;
+  min-height: 275mm;
+  /* Leave room for margins */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Typography */
+.print-h1 {
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin: 0;
+  text-align: center;
+}
+
+.print-h2 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.print-body {
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.print-small {
+  font-size: 8px;
+  line-height: 1.2;
+}
+
+.print-bold {
+  font-weight: 700;
+}
+
+/* Grid Layouts */
+.print-row {
+  display: flex;
+  width: 100%;
+  border-bottom: 1px solid var(--print-border-color);
+}
+
+.print-col {
+  flex: 1;
+  padding: 1px 6px;
+  border-right: 1px solid var(--print-border-color);
+}
+
+.print-col:last-child {
+  border-right: none;
+}
+
+/* Labels and Values */
+.print-label {
+  font-size: 7.5pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #333;
+  display: block;
+  margin-bottom: 0px;
+}
+
+.print-value {
+  font-size: 9pt;
+  color: #000;
+  min-height: 1em;
+  word-wrap: break-word;
+}
+
+/* Tables */
+.print-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.print-table th,
+.print-table td {
+  border: 1px solid var(--print-border-color);
+  padding: 4px 6px;
+  font-size: 9px;
+  word-wrap: break-word;
+}
+
+.print-table th {
+  background-color: var(--print-bg-header);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 8px;
+  text-align: center;
+}
+
+.print-table td {
+  vertical-align: middle;
+}
+
+/* Signatures */
+.signature-block {
+  margin-top: auto;
+  border-top: 1px solid var(--print-border-color);
+  display: flex;
+}
+
+.signature-box {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  min-height: 25mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Helpers */
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.border-none {
+  border: none !important;
+}
+
+.p-0 {
+  padding: 0 !important;
+}
+
+/* Pagination Helpers */
+.avoid-break {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.page-break {
+  page-break-after: always;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.bold {
+  font-weight: 700;
+}
+
+.uppercase {
+  text-transform: uppercase;
+}
+
+.small {
+  font-size: 7.5pt;
+}
+
+.border-top-none {
+  border-top: none !important;
+}
+
+.border-bottom-none {
+  border-bottom: none !important;
+}
+
+/* Page Breaking Control */
+.avoid-break {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.page-break {
+  page-break-after: always;
+}

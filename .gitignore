@@ -1,0 +1,58 @@
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDEs
+.vscode/
+.idea/
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+
+# Node dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# Builds and production
+dist/
+build/
+out/
+.next/
+
+# Logs
+logs/
+*.log
+
+# Project specific
+backend/uploads/
+backend/temp/
+scratch/
+artifacts/
+*.db
+
+# Local IDE / session artifacts
+*.session.sql
+
+# Ad-hoc debug scripts (use npm run migrate / npm run seed instead)
+backend/test_*.js
+backend/check_*.js
+backend/fix_*.js
+backend/backfill_*.js
+backend/apply_indexes.js
+backend/run_migration.js
+backend/scratch_*.js
+backend/migrate_*.js
+backend/drop_*.js
+backend/find_and_drop_*.js
+backend/replace-*.js
+backend/fix-db.js
+backend/seed_txn.js
+backend/seed_subs.js

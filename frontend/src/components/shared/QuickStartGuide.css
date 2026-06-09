@@ -1,0 +1,139 @@
+.quick-start-guide-wrapper {
+  margin-bottom: 1.5rem;
+  padding: 0;
+}
+
+.qs-header {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.qs-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.25rem;
+}
+
+.qs-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  background: #f8fafc;
+  padding: 0.4rem 1rem;
+  border-radius: 30px;
+  border: 1px solid #e2e8f0;
+}
+
+.qs-step-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1rem 1.25rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column; /* Fixed from flex-column */
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.qs-step-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.qs-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+  transition: all 0.3s ease;
+  font-size: 1.25rem;
+}
+
+.qs-step-card:hover .qs-icon-wrapper {
+  transform: scale(1.1) rotate(8deg);
+}
+
+.qs-icon-blue { background: rgba(59, 130, 246, 0.1); color: #2563eb; }
+.qs-icon-green { background: rgba(34, 197, 94, 0.1); color: #16a34a; }
+.qs-icon-info { background: rgba(6, 182, 212, 0.1); color: #0891b2; }
+.qs-icon-purple { background: rgba(168, 85, 247, 0.1); color: #9333ea; }
+
+.qs-step-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+.qs-step-desc {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #64748b;
+  margin-bottom: 0.75rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.qs-action-btn {
+  margin-top: auto;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: inherit; /* Use the color set on the card */
+  padding: 0.5rem 0;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
+  border: none;
+  background: none;
+  width: fit-content;
+}
+
+.qs-action-btn .arrow-icon {
+  margin-left: 0.5rem;
+  transition: transform 0.3s ease;
+}
+
+.qs-action-btn:hover .arrow-icon {
+  transform: translateX(6px);
+}
+
+/* Glassmorphism accent */
+.qs-step-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+.qs-step-card::after {
+  content: '';
+  position: absolute;
+  bottom: -30px;
+  right: -30px;
+  width: 100px;
+  height: 100px;
+  background: currentColor;
+  opacity: 0.03;
+  border-radius: 50%;
+  filter: blur(20px);
+}

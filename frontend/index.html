@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script>
+      // CRITICAL: Polyfill for crypto.randomUUID for non-secure contexts (http/ip access)
+      // Must run before any other modules load
+      (function() {
+        try {
+          const polyfill = function() {
+            return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, function(c) {
+              const cryptoObj = (typeof window !== 'undefined' ? (window.crypto || window.msCrypto) : null) || (typeof self !== 'undefined' ? self.crypto : null);
+              const randomByte = (cryptoObj && cryptoObj.getRandomValues) 
+                ? cryptoObj.getRandomValues(new Uint8Array(1))[0] 
+                : Math.floor(Math.random() * 256);
+              return (c ^ randomByte & 15 >> c / 4).toString(16);
+            });
+          };
+
+          // 1. Try to polyfill the prototype for wide coverage
+          if (typeof Crypto !== 'undefined' && Crypto.prototype && !Crypto.prototype.randomUUID) {
+            try {
+              Object.defineProperty(Crypto.prototype, 'randomUUID', { value: polyfill, writable: true, configurable: true });
+            } catch (e) {
+              Crypto.prototype.randomUUID = polyfill;
+            }
+          }
+
+          // 2. Polyfill specific global targets
+          const targets = [
+            typeof window !== 'undefined' ? window : null,
+            typeof self !== 'undefined' ? self : null,
+            typeof globalThis !== 'undefined' ? globalThis : null
+          ].filter(Boolean);
+
+          targets.forEach(target => {
+            try {
+              if (!target.crypto) {
+                target.crypto = {};
+              }
+              if (!target.crypto.randomUUID) {
+                try {
+                  Object.defineProperty(target.crypto, 'randomUUID', { value: polyfill, writable: true, configurable: true });
+                } catch (e) {
+                  target.crypto.randomUUID = polyfill;
+                }
+              }
+            } catch (e) {}
+          });
+          console.log('✅ crypto.randomUUID polyfilled (Prototype + Targets)');
+        } catch (e) {
+          console.error('Failed to polyfill crypto.randomUUID:', e);
+        }
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    
+    <!-- Responsive Viewport Configuration -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+    
+    <!-- PWA & Mobile Configuration -->
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Tile Exporter Solution" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    
+    <!-- SEO & Description -->
+    <meta name="description" content="Tile Exporter Solution - Comprehensive Export Management System for Tiles, Sanitaryware & Faucets. Fully responsive for mobile, tablet, and desktop." />
+    <meta name="keywords" content="Export Management, Tiles, Sanitaryware, Faucets, Mobile ERP, Responsive Dashboard" />
+    
+    <!-- PWA Manifest & Icons -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/pwa-icons/icon-192x192.png" />
+    
+    <!-- Preconnect for Performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet" />
+    
+    <style>
+      /* Desktop Table View */
+      .responsive-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      /* Mobile Card View (default hidden) */
+      .mobile-table-cards {
+        display: none;
+      }
+      @media (max-width: 768px) {
+        .responsive-table-wrapper table {
+          display: none;
+        }
+        .mobile-table-cards {
+          display: block;
+        }
+      }
+    </style>
+    <title>Tile Exporter ERP - Advanced Export Management</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

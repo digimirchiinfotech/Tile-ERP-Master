@@ -1,0 +1,2 @@
+invoiceNo,date,clientName,country,consignee,buyer,portOfLoading,portOfDischarge,finalDestination,tariffCode,currency,palletType,tilesBack,boxesMarking,boxType,fumigation,legalisation,otherInstructions,amount,status
+string,date,string,string,text,text,string,string,string,string,string,string,string,string,string,string,string,text,number,string

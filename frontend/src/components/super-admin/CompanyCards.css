@@ -1,0 +1,238 @@
+/* Company Cards Grid Layout */
+
+.company-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+}
+
+.company-card-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main Card Container */
+.company-card {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.company-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  border-color: #cbd5e1;
+}
+
+/* Left Section - Content Area */
+.card-left-section {
+  flex: 1;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 8px;
+  border-right: 1px solid #f1f5f9;
+}
+
+/* Company Header */
+.company-header {
+  display: flex;
+  align-items: flex-start;
+}
+
+.company-name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.3;
+}
+
+/* Industry */
+.company-industry {
+  display: flex;
+  align-items: center;
+}
+
+.company-industry small {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* Plan Section */
+.company-plan-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.company-plan-section .badge {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-weight: 600;
+}
+
+/* Revenue */
+.company-revenue {
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.company-revenue small {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Status Section */
+.company-status-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.company-status-section .badge {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-weight: 600;
+}
+
+/* Users Count */
+.company-users {
+  display: flex;
+  align-items: center;
+}
+
+.company-users small {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* Last Login */
+.company-login {
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.company-login small {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* Right Section - Actions */
+.card-right-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 12px;
+  background: #f8fafc;
+  min-width: 80px;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: auto;
+  align-items: center;
+}
+
+.action-btn {
+  padding: 0;
+  font-size: 14px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .company-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 16px;
+  }
+
+  .company-name {
+    font-size: 14px;
+  }
+
+  .card-left-section {
+    padding: 14px 16px;
+    gap: 6px;
+  }
+
+  .card-right-section {
+    padding: 10px 10px;
+    min-width: 140px;
+  }
+
+  .action-btn {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 576px) {
+  .company-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .company-card {
+    flex-direction: column;
+  }
+
+  .card-left-section {
+    border-right: none;
+    border-bottom: 1px solid #f1f5f9;
+    padding: 12px 14px;
+  }
+
+  .card-right-section {
+    padding: 12px 12px;
+    min-width: 100%;
+    flex-direction: row;
+  }
+
+  .action-buttons {
+    flex-direction: row;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .action-btn {
+    width: auto;
+    flex: 1;
+    min-width: 44px;
+  }
+
+  .company-name {
+    font-size: 13px;
+  }
+}

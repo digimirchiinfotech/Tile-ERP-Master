@@ -1,0 +1,2 @@
+type,partyName,amount,invoiceNo,status,dueDate,paymentMode,date,remarks
+string,string,number,string,string,date,string,date,text

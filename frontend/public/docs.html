@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise ERP System Manual & Architecture Guide | Tile Exporter</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --primary-light: rgba(37, 99, 235, 0.06);
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --border-color: #e2e8f0;
+            --sidebar-width: 310px;
+        }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--light);
+            color: #334155;
+            line-height: 1.6;
+            scroll-behavior: smooth;
+        }
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: #fff;
+            border-right: 1px solid var(--border-color);
+            padding: 2rem 1.25rem;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 4rem 3rem;
+            max-width: 1200px;
+        }
+        .nav-link {
+            color: #64748b;
+            padding: 0.6rem 1rem;
+            font-weight: 500;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .nav-link:hover, .nav-link.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 600;
+        }
+        .guide-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-bottom: 2.5rem;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.01), 0 2px 4px -1px rgba(0,0,0,0.01);
+        }
+        .module-badge {
+            display: inline-block;
+            background: #eef2ff;
+            color: #4f46e5;
+            font-weight: 700;
+            font-size: 0.725rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 6px;
+            text-transform: uppercase;
+            margin-bottom: 1.25rem;
+            letter-spacing: 0.04em;
+        }
+        .step-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        .step-item {
+            display: flex;
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+        .step-num {
+            flex-shrink: 0;
+            width: 26px;
+            height: 26px;
+            background: var(--primary);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-top: 3px;
+        }
+        .tip-box {
+            background: #f0f7ff;
+            border-left: 4px solid var(--primary);
+            padding: 1.25rem 1.5rem;
+            border-radius: 0 12px 12px 0;
+            font-size: 0.925rem;
+            margin: 1.5rem 0;
+            color: #1e40af;
+        }
+        .warning-box {
+            background: #fff5f5;
+            border-left: 4px solid var(--danger);
+            padding: 1.25rem 1.5rem;
+            border-radius: 0 12px 12px 0;
+            font-size: 0.925rem;
+            margin: 1.5rem 0;
+            color: #991b1b;
+        }
+        .success-box {
+            background: #f0fdf4;
+            border-left: 4px solid var(--success);
+            padding: 1.25rem 1.5rem;
+            border-radius: 0 12px 12px 0;
+            font-size: 0.925rem;
+            margin: 1.5rem 0;
+            color: #065f46;
+        }
+        .toc-title {
+            font-size: 0.725rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin: 1.75rem 0 0.5rem 1rem;
+            letter-spacing: 0.08em;
+        }
+        h2 { font-weight: 800; color: var(--dark); margin-bottom: 1rem; }
+        h4 { font-weight: 700; margin-top: 1.75rem; margin-bottom: 0.85rem; color: #1e293b; }
+        .math-block, .code-block {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            font-family: monospace;
+            font-size: 0.875rem;
+            margin: 1.25rem 0;
+            width: 100%;
+            overflow-x: auto;
+        }
+        .code-block {
+            color: #0f172a;
+        }
+        .feature-table {
+            font-size: 0.875rem;
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .feature-table th {
+            background: #f8fafc !important;
+            font-weight: 700;
+            color: #475569;
+        }
+        @media (max-width: 992px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; padding: 2rem 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="mb-4 px-3">
+            <a href="/" class="btn btn-dark w-100 mb-3 py-2 rounded-3 fw-bold d-flex align-items-center justify-content-center gap-2" style="font-size: 0.85rem;">
+                <span>←</span> Back to System
+            </a>
+            <h4 class="fw-bold text-primary mb-0">ERP Manual</h4>
+            <p class="text-muted small mb-0">Enterprise Admin Guide</p>
+        </div>
+
+        <nav class="nav flex-column">
+            <a class="nav-link active" href="#intro">🏠 Introduction</a>
+            
+            <div class="toc-title">Core Modules</div>
+            <a class="nav-link" href="#dashboard">📊 Dashboard & Insights</a>
+            <a class="nav-link" href="#leads">💡 Lead Management</a>
+            <a class="nav-link" href="#products">📦 Product & Catalogue</a>
+            <a class="nav-link" href="#clients">🤝 Client Management</a>
+            <a class="nav-link" href="#suppliers">🏭 Supplier Master</a>
+            
+            <div class="toc-title">Export Documentation</div>
+            <a class="nav-link" href="#proforma">📝 Proforma Invoice</a>
+            <a class="nav-link" href="#export-invoice">📄 Export Invoice</a>
+            <a class="nav-link" href="#packing-list">📦 Packing List (PL)</a>
+            <a class="nav-link" href="#annexure">🖇️ Annexure & Backside</a>
+            <a class="nav-link" href="#vgm">⚖️ VGM Certificate</a>
+            <a class="nav-link" href="#si">🚢 Shipping Instructions</a>
+            <a class="nav-link" href="#bl">📋 Bill of Lading (BL)</a>
+
+            <div class="toc-title">Operations & Infrastructure</div>
+            <a class="nav-link" href="#qc">✅ Quality Control (QC)</a>
+            <a class="nav-link" href="#finance">💰 Accounts & Finance</a>
+            <a class="nav-link" href="#backup">🛡️ Backups & Security</a>
+            <a class="nav-link" href="#masters">⚙️ Settings & Masters</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <section id="intro" class="guide-card">
+            <h1 class="display-5 fw-extrabold mb-3">Enterprise ERP Architecture & User Manual</h1>
+            <p class="lead text-muted">A technical mapping of standard enterprise parameters, database replication architectures, automated data integrity pipelines, and operational gateways built inside the isolated multi-tenant Tile Exporter SaaS framework.</p>
+            
+            <div class="success-box">
+                <strong>Platform Consistency Update:</strong> All mandatory input fields across **Proforma Orders, Invoices, Clients, and Users** now feature standard dark theme headers (black text) to align with standard high-density ERP layouts (SAP, Oracle Cloud). Validation errors remain visually distinct in pure warning states.
+            </div>
+        </section>
+
+        <!-- DASHBOARD -->
+        <section id="dashboard" class="guide-card">
+            <span class="module-badge">Operations Cockpit</span>
+            <h2>Dashboard & Insights</h2>
+            <p>Your central workstation containing role-isolated KPI analytics and workflow action buffers.</p>
+            <div class="step-list">
+                <div class="step-item">
+                    <div class="step-num">1</div>
+                    <div><strong>Performance KPIs:</strong> Summarizes total containers shipped, active client pipelines, financial receivables, and QC pass statistics.</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">2</div>
+                    <div><strong>Action Center:</strong> Dynamically loads high-priority support tickets, pending document approvals, and critical database notifications.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- LEADS -->
+        <section id="leads" class="guide-card">
+            <span class="module-badge">Sales</span>
+            <h2>Lead Management</h2>
+            <p>Pre-sales client tracking and margin estimation module.</p>
+            <ul>
+                <li><strong>Interactive Pipeline:</strong> Record customer interest, specify destination ports, and maintain historical pricing notes.</li>
+                <li><strong>Convert to Customer:</strong> With a single action, mirror the entire lead history, contact details, and requirements directly into the core CRM database.</li>
+            </ul>
+        </section>
+
+        <!-- PRODUCT MASTER -->
+        <section id="products" class="guide-card">
+            <span class="module-badge">Inventory Engine</span>
+            <h2>Product & Catalogue Management</h2>
+            <p>Maintain sizing, material weights, box margins, and custom classifications for international borders.</p>
+            <h4>Key Data Attributes & Math Bindings:</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered feature-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Description</th>
+                            <th>Downstream Influence</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Pallet Configuration</strong></td>
+                            <td>Number of boxes packed per wooden pallet structure.</td>
+                            <td>Packing List aggregate volume math.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Unit Tare Weights</strong></td>
+                            <td>Weight of raw packing cartons + pallets.</td>
+                            <td>Used in SOLAS-compliant VGM certificates.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>HSN Code</strong></td>
+                            <td>Harmonized System Nomenclature code for custom tariff classification.</td>
+                            <td>Import/Export commercial billing and customs clearances.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- CLIENT MASTER -->
+        <section id="clients" class="guide-card">
+            <span class="module-badge">CRM</span>
+            <h2>Client Management</h2>
+            <p>Centralized register of foreign importers, local consignees, and third-party notify parties.</p>
+            <ul>
+                <li><strong>Isolated Shipping Profiles:</strong> Define independent loading target ports, specific payment lines, and regional custom rules.</li>
+                <li><strong>Compliance Mapping:</strong> Store localized VAT/GST IDs and international tax registers to automatically apply appropriate shipping document formats.</li>
+            </ul>
+        </section>
+
+        <!-- SUPPLIER MASTER -->
+        <section id="suppliers" class="guide-card">
+            <span class="module-badge">Procurement</span>
+            <h2>Supplier & Factory Master</h2>
+            <p>Manage raw supply networks, manufacturing locations, and baseline purchasing costs.</p>
+            <ul>
+                <li><strong>Factory Dispatch Nodes:</strong> Maps factory warehouse yards to calculate accurate transport times to ports of loading.</li>
+                <li><strong>Unit Buying Rates:</strong> Record contract rates to live-track margins and generate direct profitability comparisons.</li>
+            </ul>
+        </section>
+
+        <!-- PROFORMA INVOICE -->
+        <section id="proforma" class="guide-card">
+            <span class="module-badge">Financial Agreement</span>
+            <h2>Proforma Invoice (PI)</h2>
+            <p>The core financial contract that launches the physical export process.</p>
+            
+            <div class="tip-box">
+                <strong>Mandatory Field Styling:</strong> Mandatory fields (like *PI Reference*, *Supplier*, and *Currency*) are rendered with a red indicator asterisk while the text remains black, optimizing readability and reducing operator fatigue during prolonged invoice data entries.
+            </div>
+
+            <div class="step-list">
+                <div class="step-item">
+                    <div class="step-num">1</div>
+                    <div><strong>Multi-Currency Handling:</strong> Define base currencies (USD, EUR, INR) and specify live conversion rates. The system locks these values upon submission.</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">2</div>
+                    <div><strong>Constraint Relaxation:</strong> To support physically segregated multi-tenant company databases, strict relational database constraints on user contexts have been modernized. The database now performs high-performance loose logical references, fully eliminating <code>400 Validation Errors</code> when multi-region employees interact with isolated tenant tables.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- EXPORT INVOICE -->
+        <section id="export-invoice" class="guide-card">
+            <span class="module-badge">Logistics</span>
+            <h2>Export Invoice (EI)</h2>
+            <p>The definitive commercial document required for global customs border clearance.</p>
+            <ul>
+                <li><strong>Commercial Inheritance:</strong> Automatically pulls products, payment terms, and rates directly from the approved Proforma Invoice.</li>
+                <li><strong>Customs Registry:</strong> Attach custom identifiers including Shipping Bill numbers, specific Container seal tags, and voyage details once the shipping lines lock booking files.</li>
+            </ul>
+        </section>
+
+        <!-- PACKING LIST -->
+        <section id="packing-list" class="guide-card">
+            <span class="module-badge">Operations</span>
+            <h2>Packing List (PL)</h2>
+            <p>Detailed packaging specifications mapping item quantities directly to physical logistics.</p>
+            <ul>
+                <li><strong>High-Density Weight Aggregator:</strong> Instantly collapses packaging weight ratios down to strict container configurations, auto-generating exact Gross Weight / Net Weight sums.</li>
+                <li><strong>Mobile Compact Layouts:</strong> Includes CSS media-queries to ensure loading bay operators can easily review item details on compact phone screens.</li>
+            </ul>
+        </section>
+
+        <!-- ANNEXURE -->
+        <section id="annexure" class="guide-card">
+            <span class="module-badge">Compliance Docs</span>
+            <h2>Annexure & Exporter Backside</h2>
+            <p>Secondary statutory documentation required by customs authorities globally.</p>
+            <ul>
+                <li><strong>Itemized Pallet Logs:</strong> Outlines precise pallet dimensions, individual carton weights, and container positioning tags.</li>
+                <li><strong>incentive Disclaimers:</strong> Auto-populates trade promotion statements and specific trade policy declarations to print-ready A4 targets.</li>
+            </ul>
+        </section>
+
+        <!-- VGM -->
+        <section id="vgm" class="guide-card">
+            <span class="module-badge">SOLAS Compliance</span>
+            <h2>VGM Certificate</h2>
+            <p>Safety of Life at Sea (SOLAS) container weight declarations.</p>
+            <div class="math-block">
+                Verified Gross Mass (VGM) = Cargo Weight + Packaging Weight + Pallet Weight + Container Tare Weight
+            </div>
+            <p>The system inherits weights from the Packing List and merges them with the physical Container Tare registers to print legal weighbridge certificates directly.</p>
+        </section>
+
+        <!-- SHIPPING INSTRUCTIONS -->
+        <section id="si" class="guide-card">
+            <span class="module-badge">Customs Dispatch</span>
+            <h2>Shipping Instructions (SI)</h2>
+            <p>The final instructional file provided to logistics agencies to compile the Bill of Lading.</p>
+            <ul>
+                <li><strong>Synchronization Gateways:</strong> Seamlessly binds container logistics data, vessel booking parameters, and destination details.</li>
+                <li><strong>Authorized Signatures:</strong> Automatically embeds localized company logo stamps and digital signatures directly from the user's secure account configuration.</li>
+            </ul>
+        </section>
+
+        <!-- BILL OF LADING -->
+        <section id="bl" class="guide-card">
+            <span class="module-badge">Title Transfer</span>
+            <h2>Bill of Lading (BL) & Document tracking</h2>
+            <p>Registry to record final document titles and cargo delivery logs.</p>
+            <ul>
+                <li><strong>Verification Gateways:</strong> Checks issued forwarder documents against internal billing parameters to highlight anomalies before custom clearance.</li>
+                <li><strong>Tracking:</strong> Log key shipping events including Estimated Time of Arrival (ETA) updates and freight charges.</li>
+            </ul>
+        </section>
+
+        <!-- QUALITY CONTROL -->
+        <section id="qc" class="guide-card">
+            <span class="module-badge">Quality Gate</span>
+            <h2>Quality Control (QC)</h2>
+            <p>Production inspection gateway ensuring zero-defect shipments.</p>
+            <div class="step-list">
+                <div class="step-item">
+                    <div class="step-num">1</div>
+                    <div><strong>Inspection Records:</strong> Record visual shade codes, dimension tolerances, physical breakages, and water absorption logs.</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">2</div>
+                    <div><strong>Data Safety:</strong> Orphan-safeguard mechanics prevent inspections from losing context if adjacent order registers are updated or archived.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FINANCE -->
+        <section id="finance" class="guide-card">
+            <span class="module-badge">Ledger</span>
+            <h2>Accounts & Finance</h2>
+            <p>International transaction settlements and accounts receivable balances.</p>
+            <ul>
+                <li><strong>Payment Settlement:</strong> Log partial, milestone, or full payments and match them to multiple commercial invoices.</li>
+                <li><strong>Integrity Check:</strong> Core ledger validation rules enforce mathematical balance:
+                    <div class="math-block">Invoice Balance = Total Invoice Value - &Sigma; (Approved Payments)</div>
+                </li>
+            </ul>
+        </section>
+
+        <!-- BACKUP & RESTORE -->
+        <section id="backup" class="guide-card">
+            <span class="module-badge">Infrastructure & Security</span>
+            <h2>Backup & Restore Management</h2>
+            <p>An enterprise-grade disaster recovery and data archival system built strictly to ERP standards.</p>
+            
+            <div class="warning-box">
+                <strong>Administrative Restriction:</strong> Access to manual trigger commands, auto-backup settings, and restore tools is restricted strictly to users assigned to the <code>super_admin</code>, <code>company_admin</code>, or <code>company_owner</code> roles.
+            </div>
+
+            <h4>System Architecture:</h4>
+            <ul>
+                <li><strong>Manual Backup:</strong> Generates a full archive instantly, grouping a binary export of the primary SQL database (<code>pg_dump</code> format) and all stored files (company logos, product catalog images, shipping bill PDFs) in the <code>/uploads</code> directory into a single encrypted <code>.zip</code> package.</li>
+                <li><strong>Automated Weekly Scheduler:</strong> Governed by a system background daemon (<code>node-cron</code>), automated weekly snapshots are executed at 2:00 AM on Sundays. The retention mechanism automatically cleans up older records based on the configured policy count.</li>
+                <li><strong>Safe System Restore:</strong> To prevent data loss, the restore engine automatically executes an immutable safety snapshot (<code>pre_restore_snapshot</code>) before applying the selected ZIP archive, allowing database rollback in the event of an operational issue.</li>
+            </ul>
+
+            <div class="code-block">
+// Automated cron execution schedule mapping
+Daily:   "0 2 * * *"   (Executes at 2:00 AM every morning)
+Weekly:  "0 2 * * 0"   (Executes at 2:00 AM every Sunday - Default)
+Monthly: "0 2 1 * *"   (Executes at 2:00 AM on the 1st of every month)
+            </div>
+        </section>
+
+        <!-- MASTERS -->
+        <section id="masters" class="guide-card">
+            <span class="module-badge">Settings</span>
+            <h2>System Configuration & Master Data</h2>
+            <p>Manage international ports, logistics partners, and banking configurations.</p>
+            <ul>
+                <li><strong>Tenant Isolation:</strong> System parameters are strictly isolated using tenant primary keys, keeping all client databases strictly separate.</li>
+                <li><strong>Performance:</strong> Data caching strategies provide lightning-fast lookups (<b>&lt; 12ms execution</b>) for fluid document compilation.</li>
+            </ul>
+        </section>
+
+        <footer class="mt-5 pt-5 border-top text-center text-muted small">
+            <p>&copy; 2026 Tile Exporter Solution || Enterprise System Manual || DigiMirchi Infotech</p>
+        </footer>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

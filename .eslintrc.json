@@ -1,0 +1,23 @@
+{
+  "env": {
+    "node": true,
+    "es2021": true,
+    "browser": true
+  },
+  "extends": ["eslint:recommended"],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    // many backend files declare variables with let; disable for now
+    "no-unused-vars": "off",
+    "no-var": "error",
+    "prefer-const": "off",
+    "no-empty": "off",
+    "no-undef": "off",
+    "no-case-declarations": "off",
+    "no-useless-escape": "off"
+  }
+}

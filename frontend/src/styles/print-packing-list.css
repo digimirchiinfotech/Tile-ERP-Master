@@ -1,0 +1,89 @@
+.print-packing-list {
+    font-family: 'Times New Roman', serif;
+    background: #f0f0f0;
+    padding: 20px;
+    color: #000;
+}
+
+.print-packing-list.serif-font {
+    font-family: 'Times New Roman', serif !important;
+}
+
+.print-packing-list .border-outer {
+    border: 2px solid #000 !important;
+}
+
+.print-packing-list .border-bottom-heavy {
+    border-bottom: 2px solid #000 !important;
+}
+
+.print-packing-list .border-bottom-light {
+    border-bottom: 1px solid #000 !important;
+}
+
+.print-packing-list .border-end-heavy {
+    border-right: 2px solid #000 !important;
+}
+
+.print-packing-list .border-end-light {
+    border-right: 1px solid #000 !important;
+}
+
+.print-packing-list .border-top-heavy {
+    border-top: 2px solid #000 !important;
+}
+
+.print-packing-list .border-top-light {
+    border-top: 1px solid #000 !important;
+}
+
+.print-packing-list .label-tiny {
+    font-size: 9px;
+    text-transform: uppercase;
+    font-weight: bold;
+    color: #333;
+}
+
+.print-packing-list .small-text {
+    font-size: 11px;
+}
+
+.print-packing-list .pre-wrap {
+    white-space: pre-wrap;
+}
+
+.print-packing-list .bg-light-gray {
+    background-color: #f8f9fa !important;
+}
+
+.packing-table-main {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.packing-table-main th, .packing-table-main td {
+    border: 1px solid #000 !important;
+}
+
+@media print {
+    .print-packing-list {
+        background: white;
+        padding: 0;
+    }
+    body * {
+        visibility: hidden;
+    }
+    .print-packing-list, .print-packing-list * {
+        visibility: visible;
+    }
+    .print-packing-list {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+    .bg-light-gray {
+        background-color: #eee !important;
+        -webkit-print-color-adjust: exact;
+    }
+}

@@ -1,0 +1,55 @@
+/* Consistent Dashboard Button Styling */
+.dashboard-button-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.dashboard-button-group button,
+.dashboard-button-group .btn {
+  height: 40px;
+  padding: 8px 16px !important;
+  font-size: 13px;
+  white-space: nowrap;
+  line-height: 1.5;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.dashboard-button-group .dropdown-toggle {
+  height: 40px;
+  padding: 8px 16px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ensure consistent sizing for all button variants */
+.dashboard-button-group .btn-outline-primary,
+.dashboard-button-group .btn-outline {
+  min-width: 120px;
+}
+
+.dashboard-button-group .btn-primary {
+  min-width: 160px;
+}
+
+/* Icon alignment in buttons */
+.dashboard-button-group svg {
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .dashboard-button-group {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .dashboard-button-group button,
+  .dashboard-button-group .btn {
+    min-width: auto;
+    flex: 1;
+    min-width: 100px;
+  }
+}

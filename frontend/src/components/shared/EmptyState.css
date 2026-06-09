@@ -1,0 +1,74 @@
+/* EmptyState.css */
+
+.empty-state-wrapper {
+  background: var(--app-card-bg);
+  border-radius: var(--app-border-radius);
+  min-height: 350px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .empty-state-wrapper {
+  background: var(--bg-surface, #1e2124);
+}
+
+.empty-state-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  background: var(--bg-body, #f8f9fa);
+  border-radius: 50%;
+  margin: 0 auto;
+  transition: transform 0.3s ease;
+}
+
+[data-theme="dark"] .empty-state-icon-container {
+  background: var(--bg-body, #2f3136);
+}
+
+.empty-state-wrapper:hover .empty-state-icon-container {
+  transform: scale(1.05);
+}
+
+.empty-state-icon {
+  color: var(--primary-color, #0d6efd) !important;
+}
+
+.empty-state-title {
+  color: var(--text-primary, #212529);
+  letter-spacing: -0.02em;
+}
+
+[data-theme="dark"] .empty-state-title {
+  color: #fff;
+}
+
+.empty-state-desc {
+  color: var(--text-secondary, #6c757d);
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+[data-theme="dark"] .empty-state-desc {
+  color: #adb5bd;
+}
+
+.empty-state-action-btn.glow-effect {
+  position: relative;
+  font-weight: 500;
+  padding: 0.6rem 1.5rem;
+  box-shadow: 0 4px 14px 0 rgba(13, 110, 253, 0.39);
+}
+
+.empty-state-action-btn.glow-effect:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(13, 110, 253, 0.4);
+}
+
+[data-theme="dark"] .empty-state-action-btn.glow-effect {
+  box-shadow: 0 4px 14px 0 rgba(13, 110, 253, 0.2);
+}

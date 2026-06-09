@@ -1,0 +1,601 @@
+/* Professional Blue & White Theme System */
+
+/* CSS Custom Properties for Professional Theme */
+:root {
+  /* Professional Blue & White Color Palette */
+  --bs-body-bg: #ffffff;
+  --bs-body-color: #1e293b;
+  --bs-primary: #2563eb;
+  --bs-primary-rgb: 37, 99, 235;
+  --bs-secondary: #64748b;
+  --bs-success: #059669;
+  --bs-danger: #dc2626;
+  --bs-warning: #d97706;
+  --bs-info: #0891b2;
+  --bs-light: #f8fafc;
+  --bs-dark: #1e293b;
+
+  /* Typography */
+  --bs-body-font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --bs-body-font-size: 0.95rem;
+  --bs-body-font-weight: 400;
+  --bs-body-line-height: 1.6;
+
+  /* Design Tokens */
+  --app-border-radius: 12px;
+  --app-border-radius-sm: 8px;
+  --app-border-radius-lg: 16px;
+  
+  /* Professional Blue Theme Variables */
+  --app-bg-primary: #ffffff;
+  --app-bg-secondary: #f8fafc;
+  --app-bg-tertiary: #f1f5f9;
+  --app-bg-accent: #eff6ff;
+  --app-text-primary: #1e293b;
+  --app-text-secondary: #475569;
+  --app-text-muted: #64748b;
+  --app-border-color: #e2e8f0;
+  --app-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --app-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --app-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  /* Professional Blue Components */
+  --app-card-bg: #ffffff;
+  --app-card-border: #e2e8f0;
+  --app-sidebar-bg: #ffffff;
+  --app-navbar-bg: #ffffff;
+  --app-header-bg: #2563eb; /* Strong vibrant blue */
+  
+  /* Professional Interactive Elements */
+  --app-hover-bg: #f8fafc;
+  --app-active-bg: #f1f5f9;
+  --app-focus-ring: 0 0 0 4px rgba(37, 99, 235, 0.1);
+  --app-blue-50: #eff6ff;
+  --app-blue-100: #dbeafe;
+  --app-blue-500: #2563eb;
+  --app-blue-600: #1d4ed8;
+  --app-blue-700: #1e40af;
+  
+  /* Professional Chart Colors */
+  --chart-primary: #2563eb;
+  --chart-secondary: #64748b;
+  --chart-success: #059669;
+  --chart-warning: #d97706;
+  --chart-danger: #dc2626;
+  --chart-info: #0891b2;
+}
+
+
+/* Apply theme variables to components */
+body {
+  background-color: var(--app-bg-primary);
+  color: var(--app-text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Cards */
+.card {
+  background-color: var(--app-card-bg);
+  border-color: var(--app-card-border);
+  color: var(--app-text-primary);
+  border-radius: var(--app-border-radius);
+}
+
+.card-header {
+  background-color: var(--app-bg-secondary);
+  border-bottom-color: var(--app-border-color);
+}
+
+/* Navigation */
+.navbar {
+  background-color: var(--app-navbar-bg) !important;
+  border-bottom: 1px solid var(--app-border-color);
+}
+
+.nav-link {
+  color: var(--app-text-secondary) !important;
+}
+
+.nav-link:hover {
+  color: var(--app-text-primary) !important;
+  background-color: var(--app-hover-bg);
+}
+
+.nav-link.active {
+  color: var(--bs-primary) !important;
+  background-color: var(--app-active-bg);
+}
+
+/* Tables */
+.table {
+  color: var(--app-text-primary);
+}
+
+.table > :not(caption) > * > * {
+  border-bottom-color: var(--app-border-color);
+}
+
+.table-hover > tbody > tr:hover {
+  background-color: var(--app-hover-bg);
+}
+
+/* Forms */
+.form-control {
+  background-color: var(--app-card-bg);
+  border-color: var(--app-border-color);
+  color: var(--app-text-primary);
+  border-radius: var(--app-border-radius-sm);
+}
+
+.form-control:focus {
+  background-color: var(--app-card-bg);
+  border-color: var(--bs-primary);
+  box-shadow: var(--app-focus-ring);
+  color: var(--app-text-primary);
+}
+
+.form-select {
+  background-color: var(--app-card-bg);
+  border-color: var(--app-border-color);
+  color: var(--app-text-primary);
+}
+
+.form-select:focus {
+  background-color: var(--app-card-bg);
+  border-color: var(--bs-primary);
+  box-shadow: var(--app-focus-ring);
+}
+
+/* Buttons */
+.btn-outline-secondary {
+  color: var(--app-text-secondary);
+  border-color: var(--app-border-color);
+}
+
+.btn-outline-secondary:hover {
+  background-color: var(--app-text-secondary);
+  border-color: var(--app-text-secondary);
+}
+
+/* Dropdowns */
+.dropdown-menu {
+  background-color: var(--app-card-bg);
+  border-color: var(--app-border-color);
+  box-shadow: var(--app-shadow-lg);
+}
+
+.dropdown-item {
+  color: var(--app-text-primary);
+}
+
+.dropdown-item:hover {
+  background-color: var(--app-hover-bg);
+  color: var(--app-text-primary);
+}
+
+.dropdown-item:focus {
+  background-color: var(--app-hover-bg);
+  color: var(--app-text-primary);
+}
+
+.dropdown-item.active {
+  background-color: var(--bs-primary);
+  color: white;
+}
+
+/* Modals */
+.modal-content {
+  background-color: var(--app-card-bg);
+  border-color: var(--app-border-color);
+}
+
+.modal-header {
+  border-bottom-color: var(--app-border-color);
+}
+
+.modal-footer {
+  border-top-color: var(--app-border-color);
+}
+
+/* Alerts */
+.alert {
+  border-color: var(--app-border-color);
+}
+
+/* List Groups */
+.list-group-item {
+  background-color: var(--app-card-bg);
+  border-color: var(--app-border-color);
+  color: var(--app-text-primary);
+}
+
+.list-group-item:hover {
+  background-color: var(--app-hover-bg);
+}
+
+/* Progress bars */
+.progress {
+  background-color: var(--app-bg-secondary);
+}
+
+/* Custom theme toggle animation */
+.theme-toggle-btn {
+  transition: all 0.3s ease;
+}
+
+.theme-icon-container {
+  position: relative;
+  width: 16px;
+  height: 16px;
+}
+
+.theme-icon {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.theme-toggle-btn:hover .theme-icon {
+  transform: rotate(180deg);
+}
+
+/* Theme toggle dropdown */
+.theme-toggle-dropdown {
+  min-width: auto;
+}
+
+
+/* Chart theming */
+.recharts-cartesian-grid line {
+  stroke: var(--app-border-color);
+}
+
+.recharts-text {
+  fill: var(--app-text-secondary);
+}
+
+/* Professional UI Enhancements */
+
+/* Professional Buttons */
+.btn-primary {
+  background: var(--app-blue-500);
+  border-color: var(--app-blue-500);
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--app-border-radius-sm);
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.btn-primary:hover {
+  background: var(--app-blue-600);
+  border-color: var(--app-blue-600);
+  transform: translateY(-1px);
+  box-shadow: var(--app-shadow-lg);
+}
+
+.btn-outline-primary {
+  color: var(--app-blue-500);
+  border-color: var(--app-blue-500);
+  font-weight: 600;
+}
+
+.btn-outline-primary:hover {
+  background: var(--app-blue-500);
+  border-color: var(--app-blue-500);
+  transform: translateY(-1px);
+  box-shadow: var(--app-shadow);
+}
+
+/* Professional Cards */
+.card {
+  border: 1px solid var(--app-border-color);
+  border-radius: var(--app-border-radius);
+  box-shadow: var(--app-shadow);
+  background: var(--app-card-bg);
+  transition: all 0.2s ease-in-out;
+}
+
+.card:hover {
+  box-shadow: var(--app-shadow-lg);
+}
+
+.card-header {
+  background: var(--app-bg-secondary);
+  border-bottom: 1px solid var(--app-border-color);
+  border-radius: var(--app-border-radius) var(--app-border-radius) 0 0;
+  padding: 1.25rem 1.5rem;
+  font-weight: 700;
+  color: var(--app-text-primary);
+}
+
+/* Professional Forms */
+.form-control, .form-select {
+  border: 1px solid var(--app-border-color);
+  border-radius: var(--app-border-radius-sm);
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  transition: all 0.2s ease-in-out;
+  background: var(--app-card-bg);
+  color: var(--app-text-primary);
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--app-blue-500);
+  box-shadow: var(--app-focus-ring);
+  outline: none;
+}
+
+/* Professional Tables */
+.table {
+  --bs-table-bg: var(--app-card-bg);
+  --bs-table-striped-bg: var(--app-bg-secondary);
+  color: var(--app-text-primary);
+}
+
+.table > :not(caption) > * > * {
+  border-bottom-color: var(--app-border-color);
+  padding: 0.75rem;
+}
+
+.table thead th {
+  background: var(--app-bg-secondary);
+  color: var(--app-text-primary);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--app-border-color);
+}
+
+/* Professional Status Badges */
+.badge {
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.badge-primary { background: var(--app-blue-500); }
+.badge-success { background: var(--bs-success); }
+.badge-warning { background: var(--bs-warning); }
+.badge-danger { background: var(--bs-danger); }
+
+/* Professional Navigation */
+.navbar {
+  background: var(--app-navbar-bg) !important;
+  border-bottom: 1px solid var(--app-border-color);
+  box-shadow: var(--app-shadow);
+}
+
+.navbar-brand {
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: var(--app-blue-500) !important;
+}
+
+/* Professional Sidebar */
+.sidebar {
+  background: var(--app-sidebar-bg);
+  border-right: 1px solid var(--app-border-color);
+  box-shadow: var(--app-shadow-lg);
+}
+
+.nav-link {
+  color: var(--app-text-secondary);
+  font-weight: 500;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin: 0.25rem 0.5rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.nav-link:hover {
+  color: var(--app-blue-500);
+  background: var(--app-blue-50);
+  transform: translateX(4px);
+}
+
+.nav-link.active {
+  color: var(--app-blue-500);
+  background: var(--app-blue-50);
+  border-left: 3px solid var(--app-blue-500);
+}
+
+/* Professional Modals */
+.modal-content {
+  border: none;
+  border-radius: 0.75rem;
+  box-shadow: var(--app-shadow-xl);
+  background: var(--app-card-bg);
+}
+
+.modal-header {
+  background: var(--app-bg-secondary);
+  border-bottom: 1px solid var(--app-border-color);
+  border-radius: 0.75rem 0.75rem 0 0;
+  padding: 1.5rem;
+}
+
+.modal-title {
+  font-weight: 700;
+  color: var(--app-text-primary);
+}
+
+/* Professional Dropdowns */
+.dropdown-menu {
+  border: 1px solid var(--app-border-color);
+  border-radius: 0.5rem;
+  box-shadow: var(--app-shadow-lg);
+  background: var(--app-card-bg);
+  padding: 0.5rem 0;
+}
+
+.dropdown-item {
+  color: var(--app-text-primary);
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+.dropdown-item:hover {
+  background: var(--app-hover-bg);
+  color: var(--app-blue-500);
+}
+
+/* Professional Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* Smooth transitions */
+* {
+  transition: 
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+/* Professional Loading States */
+.loading-skeleton {
+  background: linear-gradient(90deg, var(--app-bg-secondary) 25%, var(--app-hover-bg) 50%, var(--app-bg-secondary) 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* High contrast mode adjustments */
+@media (prefers-contrast: high) {
+  :root {
+    --app-border-color: #000000;
+    --app-text-secondary: #000000;
+  }
+}
+
+/* Premium UI Utilities */
+.premium-header {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
+  color: white !important;
+  border-bottom: none !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.premium-header::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+  pointer-events: none;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07) !important;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.15) !important;
+  transform: translateY(-2px);
+}
+
+.action-btn {
+  height: 50px;
+  border-radius: 12px;
+  padding: 0 24px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.action-btn:active {
+  transform: scale(0.95);
+}
+
+.input-premium {
+  border: 2px solid transparent !important;
+  background: #f8fafc !important;
+  transition: all 0.2s ease !important;
+}
+
+.input-premium:focus {
+  background: #ffffff !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Form Section Labels */
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #64748b;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+/* Styles to match User Screenshot */
+.blue-ribbon {
+  background-color: #2563eb !important;
+  color: white !important;
+  padding: 10px 20px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  font-size: 0.9rem !important;
+  border-radius: 4px 4px 0 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.vgm-input-style {
+  background-color: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 6px !important;
+  padding: 8px 12px !important;
+  font-size: 0.9rem !important;
+}
+
+.vgm-label {
+  font-weight: 700 !important;
+  font-size: 0.75rem !important;
+  color: #1e293b !important;
+  text-transform: uppercase !important;
+  margin-bottom: 6px !important;
+  display: block;
+}
+
+.table-header-custom {
+  background-color: #f1f5f9 !important;
+  font-weight: 600 !important;
+  font-size: 0.8rem !important;
+  color: #64748b !important;
+  text-transform: uppercase !important;
+}

@@ -1,0 +1,38 @@
+.messages-page {
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+.messages-list {
+  max-height: 600px;
+  overflow-y: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.messages-list .list-group-item {
+  border-bottom: 1px solid #e9ecef;
+  padding: 1rem;
+}
+
+.messages-list .list-group-item:hover {
+  background-color: #f8f9fa;
+}
+
+.messages-list .list-group-item.active {
+  background-color: #e7f1ff;
+  border-left: 4px solid #0d6efd;
+  padding-left: calc(1rem - 4px);
+}
+
+.message-view,
+.message-compose {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-height: 500px;
+}
+
+.message-content {
+  font-size: 1rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}

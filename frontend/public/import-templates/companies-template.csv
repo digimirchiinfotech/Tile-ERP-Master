@@ -1,0 +1,2 @@
+name,email,industry,contactPerson,phone,country,address,website,subscriptionPlan,status,enabledModules
+string,email,string,string,phone,string,text,string,string,string,text

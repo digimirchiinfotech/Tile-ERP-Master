@@ -1,0 +1,2 @@
+packingListNo,date,piReference,poReference,clientName,supplierName,country,totalPallets,totalBoxes,totalSQM,totalWeight,portOfLoading,portOfDischarge,finalDestination,containerType,packingInstructions
+string,date,string,string,string,string,string,number,number,number,number,string,string,string,string,text

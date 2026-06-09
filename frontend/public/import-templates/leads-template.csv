@@ -1,0 +1,2 @@
+companyName,clientName,contactNumber,email,country,city,source,priority,status,leadValue,expectedCloseDate,notes
+string,string,phone,email,string,string,string,string,string,number,date,text

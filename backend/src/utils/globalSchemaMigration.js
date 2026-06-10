@@ -103,18 +103,41 @@ export const runGlobalSchemaMigration = async () => {
           ALTER TABLE companies ADD COLUMN bank_address TEXT;
         END IF;
 
-        -- Module access unique constraint (prevents insert conflicts)
+        -- Module Access Table
+        CREATE TABLE IF NOT EXISTS public.module_access (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            company_id UUID NOT NULL,
+            module_name VARCHAR(100) NOT NULL,
+            is_enabled BOOLEAN DEFAULT true,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE (company_id, module_name)
+        );
+        CREATE INDEX IF NOT EXISTS idx_module_access_company ON public.module_access (company_id);
+
+        -- Users Table: Ensure username column exists
         IF NOT EXISTS (
-          SELECT 1 FROM information_schema.table_constraints
-          WHERE table_name = 'module_access'
-            AND constraint_type = 'UNIQUE'
-            AND constraint_name LIKE '%company_id%module_name%'
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'users' AND column_name = 'username'
         ) THEN
-          BEGIN
-            ALTER TABLE module_access ADD CONSTRAINT module_access_company_module_unique UNIQUE (company_id, module_name);
-          EXCEPTION WHEN duplicate_table THEN
-            -- Already exists, ignore
-          END;
+          ALTER TABLE users ADD COLUMN username VARCHAR(100) UNIQUE;
+        END IF;
+
+        -- Subscription Plans Table: Ensure newly added columns exist
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'subscription_plans' AND column_name = 'code') THEN
+          ALTER TABLE subscription_plans ADD COLUMN code VARCHAR(50) UNIQUE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'subscription_plans' AND column_name = 'price_monthly') THEN
+          ALTER TABLE subscription_plans ADD COLUMN price_monthly NUMERIC(10,2);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'subscription_plans' AND column_name = 'max_companies') THEN
+          ALTER TABLE subscription_plans ADD COLUMN max_companies INTEGER DEFAULT 1;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'subscription_plans' AND column_name = 'duration') THEN
+          ALTER TABLE subscription_plans ADD COLUMN duration INTEGER DEFAULT 30;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'subscription_plans' AND column_name = 'duration_type') THEN
+          ALTER TABLE subscription_plans ADD COLUMN duration_type VARCHAR(20) DEFAULT 'days';
         END IF;
 
         -- Session Tracking Table

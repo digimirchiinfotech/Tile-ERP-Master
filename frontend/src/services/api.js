@@ -96,7 +96,7 @@ api.interceptors.request.use(
 
     // Multi-tenant isolation headers
     const selectedCompanyId = localStorage.getItem('selected_company_id');
-    if (selectedCompanyId) {
+    if (selectedCompanyId && selectedCompanyId !== 'null' && selectedCompanyId !== 'undefined') {
       config.headers['x-company-id'] = selectedCompanyId;
       config.headers['x-selected-company-id'] = selectedCompanyId;
     }

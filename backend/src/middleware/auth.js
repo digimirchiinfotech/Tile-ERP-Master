@@ -157,7 +157,9 @@ export const optionalAuth = async (req, res, next) => {
 
 export const filterByCompany = async (req, res, next) => {
   // MED-SEC-004 FIX: Validate company header as UUID before trusting it
-  const rawHeader = req.headers['x-company-id'] || req.headers['x-selected-company-id'] || req.query.company_id;
+  let rawHeader = req.headers['x-company-id'] || req.headers['x-selected-company-id'] || req.query.company_id;
+  if (rawHeader === 'null' || rawHeader === 'undefined') rawHeader = null;
+  
   const UUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
   const selectedCompanyHeader = rawHeader && UUID_REGEX.test(rawHeader) ? rawHeader : null;
 

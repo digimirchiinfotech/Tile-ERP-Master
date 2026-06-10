@@ -63,7 +63,7 @@ export const createPlanValidator = [
 
 export const updatePlanValidator = [
   param('id')
-    .isInt()
+    .isUUID()
     .withMessage('Invalid plan ID'),
 
   body('name')
@@ -114,13 +114,13 @@ export const updatePlanValidator = [
 
 export const getPlanValidator = [
   param('id')
-    .isInt()
+    .isUUID()
     .withMessage('Invalid plan ID')
 ];
 
 export const deletePlanValidator = [
   param('id')
-    .isInt()
+    .isUUID()
     .withMessage('Invalid plan ID')
 ];
 

@@ -123,7 +123,22 @@ export const runGlobalSchemaMigration = async () => {
           ALTER TABLE users ADD COLUMN username VARCHAR(100) UNIQUE;
         END IF;
 
-        -- Subscription Plans Table: Ensure newly added columns exist
+        -- Subscription Plans Table: Ensure table and newly added columns exist
+        CREATE TABLE IF NOT EXISTS public.subscription_plans (
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(100) NOT NULL,
+          code VARCHAR(50) UNIQUE,
+          price NUMERIC(10,2) DEFAULT 0,
+          price_monthly NUMERIC(10,2),
+          max_users INTEGER,
+          max_companies INTEGER DEFAULT 1,
+          duration INTEGER DEFAULT 30,
+          duration_type VARCHAR(20) DEFAULT 'days',
+          features JSONB,
+          status VARCHAR(20) DEFAULT 'Active',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'subscription_plans' AND column_name = 'code') THEN
           ALTER TABLE subscription_plans ADD COLUMN code VARCHAR(50) UNIQUE;
         END IF;

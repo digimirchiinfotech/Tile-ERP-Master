@@ -107,6 +107,37 @@ const app = express();
 
 app.set('trust proxy', 1);
 
+// ─── CORS ── Must be registered FIRST, before helmet and securityHeaders ───────
+// This ensures preflight OPTIONS requests are handled before any other middleware
+// can reject or modify them.
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow all origins in development
+    if (env.node_env === 'development') {
+      callback(null, true);
+    } else {
+      // In production: allow explicitly listed origins + any *.vercel.app preview URL
+      const allowedOrigins = env.frontend_url ? env.frontend_url.split(',').map(u => u.trim()) : [];
+      const isVercelPreview = origin && origin.endsWith('.vercel.app');
+
+      if (allowedOrigins.includes(origin) || isVercelPreview || !origin) {
+        callback(null, true);
+      } else {
+        console.warn(`[CORS] Blocked origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-CSRF-Token', 'x-company-id', 'x-selected-company-id'],
+  maxAge: 3600
+};
+
+// Handle preflight OPTIONS requests immediately — before any other middleware
+app.options('*', cors(corsOptions));
+app.use(cors(corsOptions));
+
 // Security & Middleware Stack
 app.use(helmet({
   contentSecurityPolicy: {
@@ -122,31 +153,7 @@ app.use(helmet({
 
 app.use(securityHeaders);
 
-// CORS configuration - allow all origins in development
-const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow all origins in development
-    if (env.node_env === 'development') {
-      callback(null, true);
-    } else {
-      // In production, restrict to specific origins and Vercel previews
-      const allowedOrigins = env.frontend_url ? env.frontend_url.split(',').map(u => u.trim()) : [];
-      const isVercelPreview = origin && origin.endsWith('.vercel.app');
-      
-      if (allowedOrigins.includes(origin) || isVercelPreview || !origin) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-CSRF-Token', 'x-company-id', 'x-selected-company-id'],
-  maxAge: 3600
-};
 
-app.use(cors(corsOptions));
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

@@ -94,20 +94,41 @@ class ModuleErrorBoundary extends React.Component {
     super(props);
     this.state = { hasError: false, errorMessage: '' };
   }
+  
+  componentDidMount() {
+    // Clear the reload flag on successful mount
+    sessionStorage.removeItem('chunk_error_reloaded');
+  }
+
   static getDerivedStateFromError(error) {
     return {
       hasError: true,
       errorMessage: error?.message || 'Unknown error',
     };
   }
+  
   componentDidCatch(error, errorInfo) {
     console.error('Module loading error:', error, errorInfo);
+    const isChunkError = /fetch|dynamically imported|Loading chunk|Failed to fetch/i.test(error?.message || '');
+    
+    if (isChunkError) {
+      const hasReloaded = sessionStorage.getItem('chunk_error_reloaded');
+      if (!hasReloaded) {
+        sessionStorage.setItem('chunk_error_reloaded', 'true');
+        // Give it a tiny delay to ensure logs are written
+        setTimeout(() => {
+          window.location.reload(true);
+        }, 500);
+      }
+    }
   }
+  
   componentDidUpdate(prevProps) {
     if (prevProps.resetKey !== this.props.resetKey && this.state.hasError) {
       this.setState({ hasError: false, errorMessage: '' });
     }
   }
+  
   render() {
     if (this.state.hasError) {
       const isChunkError = /fetch|dynamically imported|Loading chunk|Failed to fetch/i.test(this.state.errorMessage);
@@ -116,7 +137,7 @@ class ModuleErrorBoundary extends React.Component {
           <h4 className="text-danger">Failed to load module</h4>
           <p className="text-muted mb-2">
             {isChunkError
-              ? 'The page module could not be loaded. This often happens after a code update — try refreshing.'
+              ? 'The page module could not be loaded due to a recent update. Refreshing automatically...'
               : 'Something went wrong while rendering this page.'}
           </p>
           <p className="text-danger small mb-3">{this.state.errorMessage}</p>

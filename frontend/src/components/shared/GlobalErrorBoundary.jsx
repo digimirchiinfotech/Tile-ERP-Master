@@ -19,6 +19,10 @@ class GlobalErrorBoundary extends React.Component {
     this.state = { hasError: false, error: null, errorInfo: null };
   }
 
+  componentDidMount() {
+    sessionStorage.removeItem('global_chunk_error_reloaded');
+  }
+
   static getDerivedStateFromError(error) {
     return { hasError: true };
   }
@@ -26,6 +30,18 @@ class GlobalErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     // Log the error natively (could hook into Sentry/DataDog here)
     console.error("💥 Uncaught UI Error caught by GlobalErrorBoundary:", error, errorInfo);
+    
+    const isChunkError = /fetch|dynamically imported|Loading chunk|Failed to fetch/i.test(error?.message || '');
+    if (isChunkError) {
+      const hasReloaded = sessionStorage.getItem('global_chunk_error_reloaded');
+      if (!hasReloaded) {
+        sessionStorage.setItem('global_chunk_error_reloaded', 'true');
+        setTimeout(() => {
+          window.location.reload(true);
+        }, 500);
+      }
+    }
+    
     this.setState({ error, errorInfo });
   }
 

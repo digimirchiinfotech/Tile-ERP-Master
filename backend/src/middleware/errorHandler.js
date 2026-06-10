@@ -105,11 +105,11 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
-  // Standard 500 Server Error - Never expose details
+  // Standard 500 Server Error - Temporarily expose details for debugging
   if (statusCode === 500) {
     return res.status(500).json({
       success: false,
-      message: 'Something went wrong. Please contact administrator.'
+      message: 'Something went wrong. Please contact administrator. Error: ' + (error.message || err.message)
     });
   }
 

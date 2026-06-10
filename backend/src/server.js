@@ -129,11 +129,11 @@ const corsOptions = {
     if (env.node_env === 'development') {
       callback(null, true);
     } else {
-      // In production, restrict to specific origins
-      const allowedOrigins = [
-        env.frontend_url
-      ];
-      if (allowedOrigins.includes(origin) || !origin) {
+      // In production, restrict to specific origins and Vercel previews
+      const allowedOrigins = env.frontend_url ? env.frontend_url.split(',').map(u => u.trim()) : [];
+      const isVercelPreview = origin && origin.endsWith('.vercel.app');
+      
+      if (allowedOrigins.includes(origin) || isVercelPreview || !origin) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));

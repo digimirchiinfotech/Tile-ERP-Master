@@ -75,7 +75,7 @@ export const login = async (req, res, next) => {
 
     const result = await req.db.globalQuery(
       `SELECT u.id, u.company_id, u.name, u.email_id, u.password_hash, u.role, u.status, u.permissions,
-              u.must_change_password,
+              (to_jsonb(u)->>'must_change_password')::boolean as must_change_password,
               c.name as company_name, c.status as company_status,
               (SELECT json_agg(module_name) FROM module_access WHERE company_id = u.company_id AND is_enabled = true) as enabled_modules
        FROM users u LEFT JOIN companies c ON u.company_id = c.id

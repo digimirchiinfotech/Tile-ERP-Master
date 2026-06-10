@@ -113,6 +113,7 @@ export const provisionCompanyDatabase = async (company) => {
         territory VARCHAR(100),
         sales_target DECIMAL(15,2),
         commission DECIMAL(5,2),
+        must_change_password BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );      -- Clients table

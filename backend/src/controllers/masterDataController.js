@@ -445,10 +445,10 @@ export const getCitiesByCountry = async (req, res, next) => {
   try {
     const { countryCode } = req.params;
     let query = `
-      SELECT mc.id, mc.city_name, mc.state_province, mc.status, mc.zip_code,
+      SELECT mc.id, mc.city_name, mc.state_province, mc.status,
              mcn.country_name, mcn.country_code, mcn.id as country_id
       FROM master_cities mc
-      LEFT JOIN master_countries mcn ON mc.country_id = mcn.id
+      LEFT JOIN master_countries mcn ON mc.country_code = mcn.country_code
       WHERE (mcn.country_code = $1 OR mcn.iso_alpha_2 = $1)
       ORDER BY mc.city_name
       LIMIT 1000
@@ -463,10 +463,10 @@ export const getCitiesByCountry = async (req, res, next) => {
 export const getAllCities = async (req, res, next) => {
   try {
     let query = `
-      SELECT mc.id, mc.city_name, mc.state_province, mc.status, mc.zip_code,
+      SELECT mc.id, mc.city_name, mc.state_province, mc.status,
              mcn.country_name, mcn.country_code, mcn.id as country_id
       FROM master_cities mc
-      LEFT JOIN master_countries mcn ON mc.country_id = mcn.id
+      LEFT JOIN master_countries mcn ON mc.country_code = mcn.country_code
       ORDER BY mcn.country_name, mc.city_name
       LIMIT 500
     `;
@@ -481,10 +481,10 @@ export const searchCities = async (req, res, next) => {
   try {
     const { query: searchQuery } = req.query;
     let sql = `
-      SELECT mc.id, mc.city_name, mc.state_province, mc.status, mc.zip_code,
+      SELECT mc.id, mc.city_name, mc.state_province, mc.status,
              mcn.country_name, mcn.country_code, mcn.id as country_id
       FROM master_cities mc
-      LEFT JOIN master_countries mcn ON mc.country_id = mcn.id
+      LEFT JOIN master_countries mcn ON mc.country_code = mcn.country_code
       WHERE (LOWER(mc.city_name) LIKE LOWER($1) OR LOWER(COALESCE(mc.state_province,'')) LIKE LOWER($1))
       ORDER BY mcn.country_name, mc.city_name
       LIMIT 50

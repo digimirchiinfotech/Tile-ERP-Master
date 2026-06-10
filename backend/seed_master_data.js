@@ -210,9 +210,9 @@ async function seedCountriesAndCities(pool, dbName, companyId) {
     if (parseInt(ciCountRes.rows[0].count) === 0) {
       console.log(`  [SEED] Seeding master_cities (this may take a moment)...`);
       
-      const countriesRes = await pool.query(`SELECT id, country_code FROM master_countries`);
+      const countriesRes = await pool.query(`SELECT country_code FROM master_countries`);
       const countryMap = {};
-      countriesRes.rows.forEach(r => { countryMap[r.country_code] = r.id; });
+      countriesRes.rows.forEach(r => { countryMap[r.country_code] = r.country_code; });
 
       const cities = City.getAllCities();
       let values = [];
@@ -220,13 +220,13 @@ async function seedCountriesAndCities(pool, dbName, companyId) {
       let i = 1;
       let insertedCount = 0;
       for (const c of cities) {
-        const countryId = countryMap[c.countryCode];
-        if (!countryId) continue;
+        const countryCode = countryMap[c.countryCode];
+        if (!countryCode) continue;
         
         values.push(`($${i++}, $${i++}, $${i++})`);
-        params.push(c.name, countryId, c.stateCode || '');
+        params.push(c.name, countryCode, c.stateCode || '');
         if (values.length >= 2000) {
-          await pool.query(`INSERT INTO master_cities (city_name, country_id, state_province) VALUES ${values.join(',')}`, params);
+          await pool.query(`INSERT INTO master_cities (city_name, country_code, state_province) VALUES ${values.join(',')}`, params);
           insertedCount += values.length;
           values = [];
           params = [];
@@ -234,7 +234,7 @@ async function seedCountriesAndCities(pool, dbName, companyId) {
         }
       }
       if (values.length > 0) {
-        await pool.query(`INSERT INTO master_cities (city_name, country_id, state_province) VALUES ${values.join(',')}`, params);
+        await pool.query(`INSERT INTO master_cities (city_name, country_code, state_province) VALUES ${values.join(',')}`, params);
         insertedCount += values.length;
       }
       console.log(`  [OK] master_cities: +${insertedCount} new rows`);

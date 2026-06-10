@@ -16,7 +16,7 @@ import { trackError, trackSlowRequest } from '../utils/errorTracker';
 
 // Use Vite proxy in development (configured in vite.config.js)
 // In production, use relative /api path
-const API_BASE_URL = import.meta?.env?.VITE_API_BASE || (import.meta?.env?.MODE === 'development' ? '/api' : '/api');
+const API_BASE_URL = import.meta?.env?.VITE_API_BASE_URL || (import.meta?.env?.MODE === 'development' ? '/api' : '/api');
 
 
 let isRefreshing = false;

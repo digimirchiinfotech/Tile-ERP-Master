@@ -12,7 +12,7 @@
 import { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Form, Button, ListGroup, Badge, Spinner, Alert } from 'react-bootstrap';
 import { Send, MessageCircle, Trash2, Check } from 'lucide-react';
-import axios from 'axios';
+import api from '../../services/api.js';
 import './MessagesPage.css';
 
 function MessagesPage({ currentUser }) {
@@ -29,9 +29,6 @@ function MessagesPage({ currentUser }) {
     content: ''
   });
 
-  const apiUrl = import.meta.env.VITE_API_BASE_URL || '/api';
-  const accessToken = localStorage.getItem('access_token');
-
   // Fetch messages on tab change
   useEffect(() => {
     fetchMessages();
@@ -44,9 +41,7 @@ function MessagesPage({ currentUser }) {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get(`${apiUrl}/messages/recipients`, {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
+      const response = await api.get('/messages/recipients');
       if (response.data.success && response.data.data) {
         setUsers(Array.isArray(response.data.data) ? response.data.data : []);
       }
@@ -60,9 +55,7 @@ function MessagesPage({ currentUser }) {
     setError('');
     try {
       const endpoint = activeTab === 'inbox' ? '/inbox' : '/sent';
-      const response = await axios.get(`${apiUrl}/messages${endpoint}`, {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
+      const response = await api.get(`/messages${endpoint}`);
 
       if (response.data.success) {
         setMessages(response.data.data);
@@ -81,11 +74,7 @@ function MessagesPage({ currentUser }) {
     // Mark as read if in inbox
     if (activeTab === 'inbox' && !message.is_read) {
       try {
-        await axios.put(
-          `${apiUrl}/messages/${message.id}/read`,
-          {},
-          { headers: { Authorization: `Bearer ${accessToken}` } }
-        );
+        await api.put(`/messages/${message.id}/read`, {});
         // Update local state
         setMessages(messages.map(m => 
           m.id === message.id ? { ...m, is_read: true } : m
@@ -106,15 +95,11 @@ function MessagesPage({ currentUser }) {
 
     setLoading(true);
     try {
-      const response = await axios.post(
-        `${apiUrl}/messages/send`,
-        {
-          recipientId: newMessage.recipientId,
-          subject: newMessage.subject || 'No Subject',
-          content: newMessage.content
-        },
-        { headers: { Authorization: `Bearer ${accessToken}` } }
-      );
+      const response = await api.post('/messages/send', {
+        recipientId: newMessage.recipientId,
+        subject: newMessage.subject || 'No Subject',
+        content: newMessage.content
+      });
 
       if (response.data.success) {
         setNewMessage({ recipientId: '', subject: '', content: '' });
@@ -134,10 +119,7 @@ function MessagesPage({ currentUser }) {
     if (!window.confirm('Delete this message?')) return;
 
     try {
-      await axios.delete(
-        `${apiUrl}/messages/${messageId}`,
-        { headers: { Authorization: `Bearer ${accessToken}` } }
-      );
+      await api.delete(`/messages/${messageId}`);
       setMessages(messages.filter(m => m.id !== messageId));
       setSelectedMessage(null);
     } catch (err) {
@@ -303,7 +285,3 @@ function MessagesPage({ currentUser }) {
 }
 
 export default MessagesPage;
-
-
-
-

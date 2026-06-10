@@ -9,15 +9,7 @@
  * or reverse engineering of this file, via any medium, is strictly prohibited.
  */
 
-import axios from 'axios';
-import { tokenManager } from '../utils/tokenManager.js';
-
-// Use current origin to get the actual domain in Replit environment
-const API_BASE_URL = typeof window !== 'undefined' 
-  ? window.location.origin 
-  : '';
-
-const API_URL = `${API_BASE_URL}/api/products`;
+import api from './api.js';
 
 export const uploadProductImage = async (productId, file, entityType = 'products') => {
   // Validate inputs
@@ -34,21 +26,13 @@ export const uploadProductImage = async (productId, file, entityType = 'products
   formData.append('image', file);
 
   try {
-    // Get auth token
-    const token = tokenManager.getAccessToken();
-    const headers = {};
-    
-    // Add authorization header if token exists
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await axios.post(
-      `${API_BASE_URL}/api/${entityType}/${productId}/upload-image`,
+    const response = await api.post(
+      `/${entityType}/${productId}/upload-image`,
       formData,
       {
-        headers, // axios will set Content-Type: multipart/form-data automatically
-        withCredentials: true,
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       }
     );
 

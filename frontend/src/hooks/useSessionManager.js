@@ -10,7 +10,7 @@
  */
 
 import { useEffect, useRef, useCallback } from 'react';
-import axios from 'axios';
+import api from '../services/api.js';
 
 const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours
 const WARNING_TIME = 5 * 60 * 1000; // Warn at 5 minutes remaining
@@ -28,16 +28,10 @@ export function useSessionManager(userId, isAuthenticated) {
     if (!userId || !isAuthenticated) return;
 
     try {
-      const token = localStorage.getItem('access_token');
-      if (!token) return;
-
-      await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/session/save`,
+      await api.post(
+        `/session/save`,
         { state },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          timeout: 5000
-        }
+        { timeout: 5000 }
       );
     } catch (error) {
       console.warn('Failed to save session state:', error.message);
@@ -49,15 +43,9 @@ export function useSessionManager(userId, isAuthenticated) {
     if (!userId || !isAuthenticated) return null;
 
     try {
-      const token = localStorage.getItem('access_token');
-      if (!token) return null;
-
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/session/restore`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          timeout: 5000
-        }
+      const response = await api.get(
+        `/session/restore`,
+        { timeout: 5000 }
       );
 
       if (response.data.success && !response.data.data.expired) {
@@ -75,15 +63,9 @@ export function useSessionManager(userId, isAuthenticated) {
     if (!userId) return;
 
     try {
-      const token = localStorage.getItem('access_token');
-      if (!token) return;
-
-      await axios.delete(
-        `${import.meta.env.VITE_API_BASE_URL}/session/clear`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          timeout: 5000
-        }
+      await api.delete(
+        `/session/clear`,
+        { timeout: 5000 }
       );
     } catch (error) {
       console.warn('Failed to clear session state:', error.message);

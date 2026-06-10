@@ -17,7 +17,7 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Alert, Spinner, Card, Row, Col, Badge } from 'react-bootstrap';
 import { CreditCard, Wallet, Landmark, Lock, ShieldCheck, CheckCircle } from 'lucide-react';
-import axios from 'axios';
+import api from '../../services/api.js';
 
 const PaymentForm = ({ invoiceId, invoiceNo, amount, clientEmail }) => {
   const [loading, setLoading] = useState(false);
@@ -39,7 +39,7 @@ const PaymentForm = ({ invoiceId, invoiceNo, amount, clientEmail }) => {
     const createIntent = async () => {
       try {
         setLoading(true);
-        const response = await axios.post('/api/payments/create-intent', {
+        const response = await api.post('/payments/create-intent', {
           invoiceId
         });
 
@@ -68,7 +68,7 @@ const PaymentForm = ({ invoiceId, invoiceNo, amount, clientEmail }) => {
 
       // In production, use Stripe Elements library
       // For now, simulate the payment flow
-      const response = await axios.post('/api/payments/confirm', {
+      const response = await api.post('/payments/confirm', {
         paymentIntentId: clientSecret,
         invoiceId
       });
@@ -102,7 +102,7 @@ const PaymentForm = ({ invoiceId, invoiceNo, amount, clientEmail }) => {
       setLoading(true);
       setError('');
 
-      const response = await axios.post('/api/payments/paypal/create', {
+      const response = await api.post('/payments/paypal/create', {
         invoiceId
       });
 
@@ -126,7 +126,7 @@ const PaymentForm = ({ invoiceId, invoiceNo, amount, clientEmail }) => {
       setLoading(true);
       setError('');
 
-      const response = await axios.post('/api/payments/razorpay/create', {
+      const response = await api.post('/payments/razorpay/create', {
         invoiceId
       });
 
@@ -168,7 +168,7 @@ const PaymentForm = ({ invoiceId, invoiceNo, amount, clientEmail }) => {
   const handleRazorpaySuccess = async (response) => {
     try {
       // Confirm with backend
-      await axios.post('/api/payments/confirm', {
+      await api.post('/payments/confirm', {
         paymentIntentId: response.razorpay_payment_id,
         invoiceId
       });

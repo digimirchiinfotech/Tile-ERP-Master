@@ -13,7 +13,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card, Form, InputGroup, Offcanvas, ListGroup, Spinner } from 'react-bootstrap';
 import { Bot, Send, X, MessageSquare, Zap } from 'lucide-react';
 import Button from '../shared/Button.jsx';
-import axios from 'axios';
+import api from '../../services/api.js';
 
 const AIAssistant = ({ currentUser }) => {
   const [show, setShow] = useState(false);
@@ -38,12 +38,9 @@ const AIAssistant = ({ currentUser }) => {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await axios.post('/api/ai/chat', {
+      const response = await api.post('/ai/chat', {
         message: userMessage.content,
         history: chatHistory
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
 
       if (response.data.success) {
@@ -161,7 +158,3 @@ const AIAssistant = ({ currentUser }) => {
 };
 
 export default AIAssistant;
-
-
-
-

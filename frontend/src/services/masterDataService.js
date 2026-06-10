@@ -10,7 +10,6 @@
  */
 
 import api from './api';
-import axios from 'axios';
 import { tokenManager } from '../utils/tokenManager.js';
 
 // Get all countries
@@ -340,22 +339,10 @@ export const uploadMasterDataImage = async (file) => {
     const formData = new FormData();
     formData.append('image', file);
 
-    const token = tokenManager.getAccessToken();
-    const headers = {};
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
-    const selectedCompanyId = localStorage.getItem('selected_company_id');
-    if (selectedCompanyId) {
-      headers['x-company-id'] = selectedCompanyId;
-      headers['x-selected-company-id'] = selectedCompanyId;
-    }
-
-    const API_BASE = import.meta?.env?.VITE_API_BASE || '/api';
-    const response = await axios.post(`${API_BASE}/master-data/upload-image`, formData, {
-      headers,
-      withCredentials: true,
+    const response = await api.post('/master-data/upload-image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
     });
     
     return response.data.imageUrl;

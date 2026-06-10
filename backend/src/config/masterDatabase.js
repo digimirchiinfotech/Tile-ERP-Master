@@ -15,12 +15,13 @@ import env from './env.js';
 const { Pool } = pg;
 
 // Master database connection - manages all company registrations
-const masterDatabaseConfig = env.master_database_url
+const masterDatabaseConfig = process.env.DATABASE_URL
   ? {
-      connectionString: env.master_database_url,
+      connectionString: process.env.DATABASE_URL,
       max: 10,
       idleTimeoutMillis: 10000,
       connectionTimeoutMillis: 30000,
+      ssl: { rejectUnauthorized: false }
     }
   : {
       host: env.master_db_host || env.database?.host || env.db_host || 'localhost',

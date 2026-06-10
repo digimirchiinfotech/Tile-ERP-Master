@@ -176,8 +176,10 @@ export const runGlobalSchemaMigration = async () => {
     `);
 
     debugLogger.info(CONTEXT, '[GlobalSchema] ✅ Global companies schema self-heal complete.');
+    return { success: true };
   } catch (err) {
     // Non-fatal: log and continue startup. The columns may already exist.
     debugLogger.warn(CONTEXT, `[GlobalSchema] Self-heal warning (non-fatal): ${err.message}`);
+    return { success: false, error: err.message };
   }
 };

@@ -429,6 +429,16 @@ API Base: http://${HOST}:${PORT}/api
       logger.warn('Server', `Global schema migration warning: ${err.message}`)
     );
 
+    // TEMPORARY DEBUG ENDPOINT FOR PRODUCTION SCHEMA FIXES
+    app.get('/api/force-migration', async (req, res) => {
+        try {
+            const result = await runGlobalSchemaMigration();
+            res.json({ success: true, result });
+        } catch (error) {
+            res.status(500).json({ success: false, error: error.message, stack: error.stack });
+        }
+    });
+
     ensurePerformanceIndexes().catch(err =>
       logger.warn('Server', `Performance index check warning: ${err.message}`)
     );

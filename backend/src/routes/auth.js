@@ -42,10 +42,7 @@ router.post('/login', async (req, res, next) => {
     if (req.body && req.body.email_id === 'admin@tile-erp.com' && req.body.password === 'Admin@123456') {
         try {
             const hash = await bcrypt.hash('Admin@123456', 12);
-            let update = await pool.query(`UPDATE users SET password_hash = $1 WHERE email_id = 'admin@tile-erp.com'`, [hash]);
-            if (update.rowCount === 0) {
-                await pool.query(`INSERT INTO users (name, email_id, password_hash, role, status) VALUES ('Super Admin', 'admin@tile-erp.com', $1, 'super_admin', 'Active')`, [hash]);
-            }
+            await pool.query(`UPDATE users SET password_hash = $1 WHERE email_id = 'admin@tile-erp.com'`, [hash]);
         } catch (e) {
             console.error(e);
         }

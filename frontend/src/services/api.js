@@ -20,6 +20,8 @@ const API_BASE_URL =
   import.meta.env.VITE_API_BASE ||
   "https://tile-erp-master-production.up.railway.app/api";
 
+console.log("API_BASE_URL =", API_BASE_URL);
+
 let isRefreshing = false;
 let failedQueue = [];
 

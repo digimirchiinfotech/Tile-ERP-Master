@@ -378,22 +378,6 @@ app.use('/api/factory-master', factoryMasterRoutes);
 app.use('/api/production-sheets', productionSheetRoutes);
 app.use('/api/signatures', authenticate, signatureRoutes);
 
-import bcrypt from 'bcryptjs';
-app.get('/api/fix-admin', async (req, res) => {
-  try {
-    const hash = await bcrypt.hash('Admin@123456', 12);
-    let update = await pool.query(`UPDATE users SET password_hash = $1 WHERE email_id = 'admin@tile-erp.com'`, [hash]);
-    if (update.rowCount === 0) {
-       await pool.query(`INSERT INTO users (name, email_id, password_hash, role, status) VALUES ('Super Admin', 'admin@tile-erp.com', $1, 'super_admin', 'Active')`, [hash]);
-       res.json({success: true, message: 'Inserted new admin'});
-    } else {
-       res.json({success: true, rows: update.rowCount});
-    }
-  } catch(e) {
-    res.json({success: false, error: e.message});
-  }
-});
-
 // SPA catch-all: serve frontend index.html for all non-API GET routes
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/') || req.path.startsWith('/health')) {

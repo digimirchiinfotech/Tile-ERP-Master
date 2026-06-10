@@ -115,12 +115,30 @@ export const runGlobalSchemaMigration = async () => {
         );
         CREATE INDEX IF NOT EXISTS idx_module_access_company ON public.module_access (company_id);
 
-        -- Users Table: Ensure username column exists
+        -- Users Table: Ensure username and sales tracking columns exist
         IF NOT EXISTS (
           SELECT 1 FROM information_schema.columns
           WHERE table_name = 'users' AND column_name = 'username'
         ) THEN
           ALTER TABLE users ADD COLUMN username VARCHAR(100) UNIQUE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'employee_id') THEN
+          ALTER TABLE users ADD COLUMN employee_id VARCHAR(50);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'territory') THEN
+          ALTER TABLE users ADD COLUMN territory VARCHAR(255);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'sales_target') THEN
+          ALTER TABLE users ADD COLUMN sales_target NUMERIC(15,2);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'commission') THEN
+          ALTER TABLE users ADD COLUMN commission NUMERIC(5,2);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'country') THEN
+          ALTER TABLE users ADD COLUMN country VARCHAR(100);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'city') THEN
+          ALTER TABLE users ADD COLUMN city VARCHAR(100);
         END IF;
 
         -- Subscription Plans Table: Ensure table and newly added columns exist

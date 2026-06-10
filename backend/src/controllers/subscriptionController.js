@@ -92,8 +92,8 @@ export const createPlan = async (req, res, next) => {
 
     const result = await req.db.globalQuery(
       `INSERT INTO subscription_plans 
-       (id, name, code, price, duration, duration_type, features, max_users, max_companies, status, created_at)
-       VALUES ((SELECT COALESCE(MAX(id), 0) + 1 FROM subscription_plans), $1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP)
+       (name, code, price, duration, duration_type, features, max_users, max_companies, status, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP)
        RETURNING *`,
       [name, planCode, price, duration, duration_type, JSON.stringify(Array.isArray(features) ? features : []), max_users || null, max_companies, status]
     );

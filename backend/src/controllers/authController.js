@@ -79,7 +79,7 @@ export const login = async (req, res, next) => {
               c.name as company_name, c.status as company_status,
               '[]'::json as enabled_modules
        FROM users u LEFT JOIN companies c ON u.company_id = c.id
-       WHERE u.email_id = $1 OR u.username = $1`,
+       WHERE u.email_id = $1`,
       [identifier]
     );
 
@@ -316,7 +316,7 @@ export const getCurrentUser = async (req, res, next) => {
   try {
     const result = await req.db.globalQuery(
       `SELECT u.id, u.company_id, u.name, u.email_id, u.role, u.avatar_url, u.status, u.last_login, u.created_at, u.permissions, u.contact_number, u.settings, c.name as company_name,
-              (SELECT json_agg(module_name) FROM module_access WHERE company_id = u.company_id AND is_enabled = true) as enabled_modules
+              '[]'::json as enabled_modules
        FROM users u LEFT JOIN companies c ON u.company_id = c.id WHERE u.id = $1`,
       [req.user.id]
     );

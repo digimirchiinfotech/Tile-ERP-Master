@@ -288,10 +288,6 @@ export const createCompany = async (req, res, next) => {
 
     const companyId = uuidv4();
     const companySlug = name.toLowerCase().replace(/\s+/g, '_');
-    const dbName = `tile_erp_company_${companySlug}_${Date.now().toString().slice(-4)}`;
-    const dbUser = `${companySlug}_user_${Date.now().toString().slice(-4)}`;
-    const dbPassword = uuidv4();
-    const encryptedPassword = encrypt(dbPassword);
 
     const client = await req.db.getClient();
     try {
@@ -304,22 +300,20 @@ export const createCompany = async (req, res, next) => {
           bank_name, account_holder_name, account_number, ifsc_code, swift_code, branch_name, bank_address,
           lut_arn_no, lut_date, permission_no,
           subscription_plan, status, settings,
-          db_name, db_user, db_password, created_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, NOW())
+          created_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, NOW())
         RETURNING *`,
         [
           companyId, name, companySlug, industry, contact_person_name, email_id, contact_number, address, city, country,
           website, iec_no, gstn, pan, logo_url,
           bank_name, account_holder_name, account_number, ifsc_code, swift_code, branch_name, bank_address,
           lut_arn_no, lut_date, permission_no,
-          subscription_plan, status, JSON.stringify(settings),
-          dbName, dbUser, encryptedPassword
+          subscription_plan, status, JSON.stringify(settings)
         ]
       );
 
-      // Provision isolated database for company
-      // We pass the PLAIN password to the provisioner, but save the ENCRYPTED one in DB
-      await provisionCompanyDatabase({ id: companyId, name, db_name: dbName, db_user: dbUser, db_password: dbPassword });
+      // Force Hybrid Mode (Single Database) to support Railway deployment
+      // await provisionCompanyDatabase(...) is skipped.
 
       await client.query('COMMIT');
 
@@ -555,28 +549,22 @@ export const registerCompany = async (req, res, next) => {
       await client.query('BEGIN');
       const companyId = uuidv4();
       const companySlug = name.toLowerCase().replace(/\s+/g, '_');
-      const dbName = `tile_erp_company_${companySlug}_${Date.now().toString().slice(-4)}`;
-      const dbUser = `${companySlug}_user_${Date.now().toString().slice(-4)}`;
-      const dbPasswordPlain = uuidv4();
-      const encryptedPassword = encrypt(dbPasswordPlain);
 
       const companyRes = await client.query(
         `INSERT INTO companies (
           id, name, domain, industry, contact_person_name, email_id, contact_number, address, city, country, 
-          website, iec_no, gstn, pan, logo_url, subscription_plan, status,
-          db_name, db_user, db_password
+          website, iec_no, gstn, pan, logo_url, subscription_plan, status
          )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20) RETURNING *`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) RETURNING *`,
         [
           companyId, name, companySlug, industry, contact_person_name, email_id, contact_number, address, city, country,
-          website, iec_no, gstn, pan, logo_url, 'Free Trial', 'Active',
-          dbName, dbUser, encryptedPassword
+          website, iec_no, gstn, pan, logo_url, 'Free Trial', 'Active'
         ]
       );
       const company = companyRes.rows[0];
 
-      // Provision isolated database for company
-      await provisionCompanyDatabase({ id: companyId, name, db_name: dbName, db_user: dbUser, db_password: dbPasswordPlain });
+      // Force Hybrid Mode (Single Database) to support Railway deployment
+      // await provisionCompanyDatabase(...) is skipped.
 
       const passwordHash = await bcrypt.hash(admin_password, 10);
       const adminRes = await client.query(

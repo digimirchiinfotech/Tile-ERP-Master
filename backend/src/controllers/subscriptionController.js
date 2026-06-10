@@ -108,7 +108,7 @@ export const createPlan = async (req, res, next) => {
 
 export const updatePlan = async (req, res, next) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = req.params.id;
     const { name, code, price, duration, duration_type, features, max_users, max_companies, status } = req.body;
 
     debugLogger.info('[SubscriptionController] Updating plan:', id);

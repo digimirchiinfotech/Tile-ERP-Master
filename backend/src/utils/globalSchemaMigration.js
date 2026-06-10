@@ -205,6 +205,14 @@ export const runGlobalSchemaMigration = async () => {
             UNIQUE(company_id, size)
         );
 
+        -- Packing Lists missing columns fix
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'packing_lists' AND column_name = 'deleted_at'
+        ) THEN
+          ALTER TABLE packing_lists ADD COLUMN deleted_at timestamp without time zone;
+        END IF;
+
       END $$;
     `);
 

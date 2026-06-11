@@ -278,9 +278,10 @@ const multiSelect = useMultiSelect(orders);
     const columns = [
       createColumnDef('Order No', 'orderNo'),
       createColumnDef('Date', 'date'),
-      createColumnDef('Supplier Factory Name', 'supplierName'),
       createColumnDef('Pallets', 'pallets'),
-      createColumnDef('Total SQM', (item) => item.totalSQM || item.totalSqm || item.total_sqm || 0),
+      createColumnDef('Total Boxes', (item) => Array.isArray(item.productLines || item.product_lines) 
+        ? (item.productLines || item.product_lines).reduce((sum, line) => sum + (parseInt(line.totalBoxes || line.total_boxes || line.pieces || 0) || 0), 0)
+        : 0),
       createColumnDef('Amount', 'amount'),
       createColumnDef('Status', 'status'),
     ];
@@ -671,7 +672,7 @@ const multiSelect = useMultiSelect(orders);
                   <th>Supplier Factory Name</th>
                   <th>PI Reference</th>
                   <th>No. of Pallets</th>
-                  <th>Total Quantity (SQM)</th>
+                  <th>Total Boxes</th>
                   <th>Amount</th>
                   <th className="pe-4 text-end">Actions</th>
                 </tr>
@@ -714,7 +715,11 @@ const multiSelect = useMultiSelect(orders);
                       <td data-label="Supplier">{order.supplierName}</td>
                       <td data-label="PI Reference">{order.piReference || '-'}</td>
                       <td data-label="Pallets">{order.pallets}</td>
-                      <td data-label="Total SQM">{parseFloat(order.totalSQM || order.totalSqm || order.total_sqm || 0).toFixed(2)}</td>
+                      <td data-label="Total Boxes">
+                        {Array.isArray(order.productLines || order.product_lines) 
+                          ? (order.productLines || order.product_lines).reduce((sum, line) => sum + (parseInt(line.totalBoxes || line.total_boxes || line.pieces || 0) || 0), 0)
+                          : 0}
+                      </td>
                       <td data-label="Amount">{formatPrice(order.amount, 'INR')}</td>
                       <td className="text-end pe-4">
                         <div className="d-flex justify-content-end gap-1">

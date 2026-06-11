@@ -93,7 +93,7 @@ const AnalyticsDashboard = () => {
               </div>
               <div>
                 <p className="text-muted mb-1">Total Revenue</p>
-                <h4 className="mb-0">₹{(analytics.summary.totalRevenue || 0).toLocaleString()}</h4>
+                <h4 className="mb-0">${(analytics.summary.totalRevenue || 0).toLocaleString()}</h4>
               </div>
             </Card.Body>
           </Card>
@@ -165,7 +165,7 @@ const AnalyticsDashboard = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
-                    <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+                    <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
                     <Legend />
                     <Line type="monotone" dataKey="revenue" stroke="#1e3a8a" strokeWidth={2} name="Revenue" />
                   </LineChart>

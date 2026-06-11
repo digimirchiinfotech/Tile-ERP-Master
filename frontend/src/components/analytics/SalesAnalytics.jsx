@@ -57,9 +57,9 @@ const SalesAnalytics = ({ stats, financialData = [], productData = { topProducts
 
   // Helper to format currency
   const formatValue = (val) => {
-    return new Intl.NumberFormat('en-IN', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'INR',
+      currency: 'USD',
       maximumFractionDigits: 0
     }).format(val);
   };

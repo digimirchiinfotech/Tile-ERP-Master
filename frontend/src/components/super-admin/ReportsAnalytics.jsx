@@ -15,7 +15,7 @@ import {
   Download,
   Calendar,
   TrendingUp,
-  IndianRupee,
+  DollarSign,
   Award,
   AlertCircle,
   FileText,
@@ -57,7 +57,7 @@ function ReportsAnalytics({ currentUser }) {
     if (salesReports.length === 0) return alert('No sales data to export');
     const exportData = salesReports.map(r => ({
       Company: r.company,
-      'Revenue (INR)': r.revenue,
+      'Revenue (USD)': r.revenue,
       Orders: r.orders,
       Leads: r.leads,
       'Conversion Rate': `${r.conversion}%`,
@@ -149,9 +149,9 @@ function ReportsAnalytics({ currentUser }) {
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'INR',
+      currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(amount);
@@ -205,7 +205,7 @@ function ReportsAnalytics({ currentUser }) {
           className={`report-nav-btn ${activeReport === 'sales' ? 'active' : ''}`}
           onClick={() => setActiveReport('sales')}
         >
-          <IndianRupee size={18} />
+          <DollarSign size={18} />
           <span>Sales Performance</span>
         </button>
         <button
@@ -249,7 +249,7 @@ function ReportsAnalytics({ currentUser }) {
                 <thead>
                   <tr className="table-light text-muted small text-uppercase">
                     <th className="ps-4">Company</th>
-                    <th>Revenue (INR)</th>
+                    <th>Revenue (USD)</th>
                     <th>Orders</th>
                     <th>Leads</th>
                     <th>Conv. Rate</th>

@@ -4,11 +4,8 @@ const pool = new pg.Pool({ connectionString: 'postgresql://postgres:ferZHunAuPdV
 async function run() {
   const client = await pool.connect();
   try {
-    await client.query(`
-      ALTER TABLE proforma_invoices 
-      ADD COLUMN IF NOT EXISTS updated_by UUID;
-    `);
-    console.log('Successfully added updated_by column to proforma_invoices');
+    const res = await client.query("SELECT column_name FROM information_schema.columns WHERE table_name='proforma_invoices' AND column_name='updated_by'");
+    console.log(res.rows);
   } catch(e) {
     console.error('Error:', e);
   } finally {

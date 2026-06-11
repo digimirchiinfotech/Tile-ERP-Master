@@ -850,7 +850,8 @@
     "net_weight",
     "gross_weight",
     "order_id",
-    "proforma_order_id"
+    "proforma_order_id",
+    "updated_by"
   ],
   "proforma_orders": [
     "id",
@@ -891,7 +892,8 @@
     "delivery_schedule",
     "gst_rate",
     "gst_amount",
-    "currency"
+    "currency",
+    "updated_by"
   ],
   "qc_records": [
     "id",

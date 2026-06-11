@@ -1304,7 +1304,7 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
                   <Form.Control
                     value={formData.vessel_flight_no}
                     onChange={(e) => {
-                      setFormData({ ...formData, vessel_flight_no: e.target.value });
+                      setFormData({ ...formData, vessel_flight_no: e.target.value.toUpperCase() });
                       if (errors.vessel_flight_no) setErrors({...errors, vessel_flight_no: null});
                     }}
                     disabled={isFormLocked}
@@ -1369,7 +1369,7 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
                   </Form.Label>
                   <Form.Control
                     value={formData.place_of_receipt}
-                    onChange={(e) => setFormData({ ...formData, place_of_receipt: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, place_of_receipt: e.target.value.toUpperCase() })}
                     disabled={isFormLocked}
                     className={isFormLocked ? "form-control py-2 px-3 bg-light text-dark" : "form-control py-2 px-3"}
                     style={{ borderRadius: '10px', height: '48px' }}
@@ -1383,7 +1383,7 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
                   </Form.Label>
                   <Form.Control
                     value={formData.pre_carriage_by}
-                    onChange={(e) => setFormData({ ...formData, pre_carriage_by: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, pre_carriage_by: e.target.value.toUpperCase() })}
                     className="form-control py-2 px-3 text-dark"
                     style={{ borderRadius: '10px', height: '48px' }}
                   />
@@ -1409,7 +1409,7 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
                   </Form.Label>
                   <Form.Control
                     value={formData.bl_no}
-                    onChange={(e) => setFormData({ ...formData, bl_no: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, bl_no: e.target.value.toUpperCase() })}
                     className="form-control"
                   />
                 </Form.Group>
@@ -1434,7 +1434,7 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
                   </Form.Label>
                   <Form.Control
                     value={formData.shipping_bill_no}
-                    onChange={(e) => setFormData({ ...formData, shipping_bill_no: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, shipping_bill_no: e.target.value.toUpperCase() })}
                     className="form-control"
                   />
                 </Form.Group>

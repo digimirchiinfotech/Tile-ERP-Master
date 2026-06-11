@@ -339,7 +339,7 @@ export const exportMapper = {
             port_of_discharge: getVal(source, 'port_of_discharge', 'portOfDischarge') || '',
             final_destination: getVal(source, 'final_destination', 'finalDestination') || '',
             country_of_origin: getVal(source, 'country_of_origin', 'countryOfOrigin', 'INDIA') || 'INDIA',
-            country_of_final_destination: getVal(source, 'country_of_final_destination', 'country') || '',
+            country_of_final_destination: getVal(source, 'country_of_final_destination', 'final_destination', 'country', '') || '',
             material_header_description: getVal(source, 'material_header_description', 'materialDescription', 'product_description', 'productDescription', 'description', '') || '',
             total_pallets: getVal(source, 'total_pallets', 'totalPallets', 'pallets', 0) || 0,
             total_boxes: getVal(source, 'total_boxes', 'totalBoxes', 0) || 0,

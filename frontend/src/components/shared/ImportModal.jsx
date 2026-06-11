@@ -26,7 +26,7 @@ import {
 } from '../../utils/importUtils.js';
 import { exportToCSV } from '../../utils/exportUtils.js';
 import { validateFileUpload } from '../../utils/validators.js';
-import { showWarning, showError, showSuccess } from './EnhancedNotificationSystem.jsx';
+import { showWarning, showError, showSuccess } from './NotificationManager.jsx';
 import LoadingSpinner from './LoadingSpinner.jsx';
 
 /**

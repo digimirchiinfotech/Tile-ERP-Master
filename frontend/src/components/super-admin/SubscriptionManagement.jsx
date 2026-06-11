@@ -16,7 +16,7 @@ import {
 import { Plus, Edit, Trash2, Eye, IndianRupee, RefreshCw, X, Power, Download } from 'lucide-react';
 import SubscriptionPlanForm from './SubscriptionPlanForm.jsx';
 import { useSubscriptions } from '../../hooks/useSubscriptions';
-import { showSuccess, showError } from '../shared/EnhancedNotificationSystem.jsx';
+import { showSuccess, showError } from '../shared/NotificationManager.jsx';
 import './SubscriptionManagement.css';
 
 function SubscriptionManagement({ currentUser }) {

@@ -12,7 +12,7 @@
 import { useState } from 'react';
 import { Modal, Button, Table } from 'react-bootstrap';
 import { Plus, Edit, Trash2, X } from 'lucide-react';
-import { showSuccess, showError } from './EnhancedNotificationSystem.jsx';
+import { showSuccess, showError } from './NotificationManager.jsx';
 import ConfirmationModal from './ConfirmationModal.jsx';
 import { useProducts } from '../../hooks/useProducts';
 import { useMasterData } from '../../hooks/useMasterData';

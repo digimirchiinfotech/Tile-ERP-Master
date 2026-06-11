@@ -12,7 +12,7 @@
 import React, { useState } from 'react';
 import { Table, Button, Form, Card, Row, Col, Modal } from 'react-bootstrap';
 import { Plus, Trash2, Camera, Package, AlertTriangle } from 'lucide-react';
-import { showSuccess, showError, showWarning } from './EnhancedNotificationSystem.jsx';
+import { showSuccess, showError, showWarning } from './NotificationManager.jsx';
 import { formatPrice, formatWeight, formatQuantity } from '../../utils/formatters.js';
 import AddableDropdown from './AddableDropdown.jsx';
 import DoubleScrollbarWrapper from './DoubleScrollbarWrapper.jsx';

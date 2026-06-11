@@ -27,7 +27,7 @@ import ProductLineCard from './ProductLineCard.jsx';
 import ProductManagement from './ProductManagement.jsx';
 import ProductForm from '../product-management/ProductForm.jsx';
 import RateHistoryManager from './RateHistoryManager.jsx';
-import { showSuccess, showError, showWarning, showInfo } from './EnhancedNotificationSystem.jsx';
+import { showSuccess, showError, showWarning, showInfo } from './NotificationManager.jsx';
 import { formatNumber, formatPrice, formatWeight, formatQuantity, formatSQM } from '../../utils/formatters.js';
 import AddableDropdown from './AddableDropdown.jsx';
 

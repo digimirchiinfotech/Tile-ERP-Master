@@ -17,7 +17,7 @@ import CompanyForm from './CompanyForm.jsx';
 import CompanyView from './CompanyView.jsx';
 import ImportModal from '../shared/ImportModal.jsx';
 import { exportCompanies } from '../../utils/exportUtils.js';
-import { showSuccess, showError } from '../shared/EnhancedNotificationSystem.jsx';
+import { showSuccess, showError } from '../shared/NotificationManager.jsx';
 import { useCompanies } from '../../hooks/useCompanies';
 import ConfirmationModal from '../shared/ConfirmationModal.jsx';
 import { useUserContext } from '../../contexts/UserContext';

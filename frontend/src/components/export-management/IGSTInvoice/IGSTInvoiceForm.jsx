@@ -156,9 +156,19 @@ function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, current
 
   const fetchExportInvoicesList = async () => {
     try {
-      const response = await api.get('/export-invoices?limit=500');
-      const data = response.data?.data?.data || response.data?.data || response.data || [];
-      setExportInvoices(data);
+      const [eiRes, igstRes] = await Promise.all([
+        api.get('/export-invoices?limit=500'),
+        api.get('/igst-invoices?limit=500')
+      ]);
+      
+      const eiData = eiRes.data?.data?.data || eiRes.data?.data || eiRes.data || [];
+      const igstData = igstRes.data?.data?.data || igstRes.data?.data || igstRes.data || [];
+      
+      const usedIds = igstData.map(igst => igst.exportInvoiceId || igst.export_invoice_id).filter(Boolean);
+      
+      const availableEis = eiData.filter(ei => !usedIds.includes(ei.id) || ei.id === initialInvoiceId);
+      
+      setExportInvoices(availableEis);
     } catch (e) {
       console.error('Failed to load export invoices list:', e);
     }

@@ -573,7 +573,7 @@ const OrderSheetDashboard = () => {
         </div>
         
         <Card.Body className="p-0">
-          <div className="table-responsive" style={{ overflow: 'visible' }}>
+          <div className="table-responsive">
             <Table hover className="align-middle mb-0" style={{ fontSize: '0.9rem' }}>
               <thead className="bg-light text-secondary">
                 <tr>

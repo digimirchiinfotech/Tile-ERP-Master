@@ -12,6 +12,7 @@
 import path from 'path';
 import fs from 'fs';
 import { AppError } from '../middleware/errorHandler.js';
+import env from '../config/env.js';
 
 /**
  * Securely serves files from the uploads directory
@@ -96,7 +97,7 @@ export const serveFile = async (req, res, next) => {
 };
 
 const sendFileResponse = (res, filename, next) => {
-  const uploadsDir = path.resolve(process.cwd(), 'uploads');
+  const uploadsDir = path.resolve(process.cwd(), env.upload.dir || 'uploads');
   const fullPath = path.resolve(uploadsDir, filename);
 
   if (!fullPath.startsWith(uploadsDir)) {

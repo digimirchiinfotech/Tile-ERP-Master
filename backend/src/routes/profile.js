@@ -229,7 +229,7 @@ router.post('/upload-avatar', authenticate, upload.single('avatar'), async (req,
     }
 
     const userId = req.user.id;
-    const avatarUrl = `/uploads/${req.file.filename}`;
+    const avatarUrl = req.file.location || `/uploads/${req.file.filename}`;
 
     // Check if avatar_url column exists, if not it will still work
     const result = await pool.query(

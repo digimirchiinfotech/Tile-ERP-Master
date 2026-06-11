@@ -997,10 +997,7 @@ export const getProductionLogs = async (req, res, next) => {
 
 export const exportExcel = async (req, res, next) => {
   try {
-    const {
-      search, status, client_name, po_no,
-      factory_name, product, size, surface
-    } = req.query;
+    const { status, po_no, supplier_name, search, page, limit, factory_name, product, size, surface } = req.query;
     
     await ensureMasterOrderSheetSchemaExists(req.db.query, req.companyFilter);
     const companyId = req.companyFilter;
@@ -1018,7 +1015,7 @@ export const exportExcel = async (req, res, next) => {
     }
 
     if (search) {
-      conditions.push(`(os.po_no ILIKE $${paramCount} OR os.production_sheet_no ILIKE $${paramCount} OR os.client_name ILIKE $${paramCount})`);
+      conditions.push(`(os.po_no ILIKE $${paramCount} OR os.production_sheet_no ILIKE $${paramCount} OR os.supplier_name ILIKE $${paramCount})`);
       values.push(`%${search}%`);
       paramCount++;
     }
@@ -1029,9 +1026,9 @@ export const exportExcel = async (req, res, next) => {
       paramCount++;
     }
 
-    if (client_name) {
-      conditions.push(`os.client_name ILIKE $${paramCount}`);
-      values.push(`%${client_name}%`);
+    if (supplier_name) {
+      conditions.push(`os.supplier_name ILIKE $${paramCount}`);
+      values.push(`%${supplier_name}%`);
       paramCount++;
     }
 
@@ -1184,7 +1181,7 @@ export const getFilterOptions = async (req, res, next) => {
     const companyId = req.companyFilter;
     const wherePrefix = companyId ? `WHERE os.company_id = '${companyId}'` : 'WHERE os.company_id IS NULL';
 
-    const customersRes = await req.db.query(`SELECT DISTINCT client_name FROM master_order_sheets os ${wherePrefix} AND client_name IS NOT NULL`);
+    const suppliersRes = await req.db.query(`SELECT DISTINCT supplier_name FROM master_order_sheets os ${wherePrefix} AND supplier_name IS NOT NULL`);
     const poNoRes = await req.db.query(`SELECT DISTINCT po_no FROM master_order_sheets os ${wherePrefix} AND po_no IS NOT NULL`);
     
     const linesWherePrefix = companyId ? `WHERE company_id = '${companyId}'` : 'WHERE company_id IS NULL';
@@ -1192,16 +1189,16 @@ export const getFilterOptions = async (req, res, next) => {
     const sizesRes = await req.db.query(`SELECT DISTINCT size FROM master_order_sheet_lines ${linesWherePrefix} AND size IS NOT NULL`);
     const surfacesRes = await req.db.query(`SELECT DISTINCT surface FROM master_order_sheet_lines ${linesWherePrefix} AND surface IS NOT NULL`);
 
-    const customers = customersRes.rows.map(r => r.client_name).sort();
+    const suppliers = suppliersRes.rows.map(r => r.supplier_name).sort();
     const pis = poNoRes.rows.map(r => r.po_no).sort();
     const products = productsRes.rows.map(r => r.design ? `${r.product_category} - ${r.design}` : r.product_category).sort();
     const sizes = sizesRes.rows.map(r => r.size).sort();
     const surfaces = surfacesRes.rows.map(r => r.surface).sort();
 
-    return successResponse(res, { customers, pis, products, sizes, surfaces }, 'Filter options retrieved');
+    return successResponse(res, { suppliers, pis, products, sizes, surfaces }, 'Filter options retrieved');
   } catch (err) {
     if (err.code === '42P01') {
-      return successResponse(res, { customers: [], pis: [], products: [], sizes: [], surfaces: [] }, 'Order sheets table not initialized');
+      return successResponse(res, { suppliers: [], pis: [], products: [], sizes: [], surfaces: [] }, 'Order sheets table not initialized');
     }
     next(err);
   }

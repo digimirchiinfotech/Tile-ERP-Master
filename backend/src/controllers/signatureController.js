@@ -119,7 +119,7 @@ export const uploadSignature = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Please select a company context first.' });
     }
 
-    const signaturePath = `/uploads/signatures/${safeCompanyId}/${req.file.filename}`;
+    const signaturePath = req.file.location || `/uploads/signatures/${safeCompanyId}/${req.file.filename}`;
 
     await req.db.query('BEGIN');
 

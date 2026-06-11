@@ -94,7 +94,7 @@ function AccessDenied({
             )}
 
             {showHelp && (
-              <Button variant="outline">
+              <Button variant="outline-secondary">
                 <HelpCircle size={16} className="me-2" />
                 Contact Administrator
               </Button>

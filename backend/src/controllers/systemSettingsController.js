@@ -600,7 +600,7 @@ export const uploadLogo = async (req, res) => {
       });
     }
 
-    const logoUrl = `/uploads/${req.file.filename}`;
+    const logoUrl = req.file.location || `/uploads/${req.file.filename}`;
 
     await req.db.query(
       `UPDATE system_settings 
@@ -630,7 +630,7 @@ export const uploadFavicon = async (req, res) => {
       });
     }
 
-    const faviconUrl = `/uploads/${req.file.filename}`;
+    const faviconUrl = req.file.location || `/uploads/${req.file.filename}`;
 
     await req.db.query(
       `UPDATE system_settings 

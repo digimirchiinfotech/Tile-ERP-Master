@@ -59,7 +59,7 @@ const QCPrintView = ({ qcData }) => {
             <div className="fw-semibold text-dark">{qcData.orderNumber || 'N/A'}</div>
           </div>
           <div className="mb-3">
-            <label className="text-muted small fw-bold text-uppercase d-block mb-1">Client Firm Name</label>
+            <label className="text-muted small fw-bold text-uppercase d-block mb-1">Supplier Name</label>
             <div className="text-dark">{qcData.clientName || 'N/A'}</div>
           </div>
         </Col>

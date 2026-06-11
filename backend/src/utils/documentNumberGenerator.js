@@ -30,26 +30,22 @@ export const previewDocumentNumber = async (documentType, companyId, db, date = 
   const year = String(date.getFullYear()).slice(-2);
   const dateKey = isExportStandard ? 'ALL_TIME' : `${month}/${year}`;
 
-  try {
-    const result = await db.query(
-      `SELECT counter FROM id_counters WHERE company_id = $1 AND prefix = $2 AND date_key = $3`,
-      [companyId, documentType, dateKey]
-    );
+  const result = await db.query(
+    `SELECT counter FROM id_counters WHERE company_id = $1 AND prefix = $2 AND date_key = $3`,
+    [companyId, documentType, dateKey]
+  );
 
-    const nextCounter = result.rows.length > 0 ? parseInt(result.rows[0].counter) + 1 : 1;
-    const serialNumber = String(nextCounter).padStart(3, '0');
-    const baseNumber = isExportStandard ? `${documentType}/${serialNumber}` : `${documentType}/${month}/${year}/${serialNumber}`;
+  const nextCounter = result.rows.length > 0 ? parseInt(result.rows[0].counter) + 1 : 1;
+  const serialNumber = String(nextCounter).padStart(3, '0');
+  const baseNumber = isExportStandard ? `${documentType}/${serialNumber}` : `${documentType}/${month}/${year}/${serialNumber}`;
 
-    return {
-      baseNumber,
-      displayNumber: baseNumber,
-      serialNumber,
-      dateKey,
-      nextValue: nextCounter
-    };
-  } catch (error) {
-    throw error;
-  }
+  return {
+    baseNumber,
+    displayNumber: baseNumber,
+    serialNumber,
+    dateKey,
+    nextValue: nextCounter
+  };
 };
 
 /**
@@ -65,31 +61,27 @@ export const generateDocumentNumber = async (documentType, companyId, db, date =
   const year = String(date.getFullYear()).slice(-2);
   const dateKey = isExportStandard ? 'ALL_TIME' : `${month}/${year}`;
 
-  try {
-    const result = await db.query(
-      `INSERT INTO id_counters (company_id, prefix, date_key, counter)
-       VALUES ($1, $2, $3, 1)
-       ON CONFLICT (company_id, prefix, date_key)
-       DO UPDATE SET counter = id_counters.counter + 1, updated_at = CURRENT_TIMESTAMP
-       RETURNING counter`,
-      [companyId, documentType, dateKey]
-    );
+  const result = await db.query(
+    `INSERT INTO id_counters (company_id, prefix, date_key, counter)
+     VALUES ($1, $2, $3, 1)
+     ON CONFLICT (company_id, prefix, date_key)
+     DO UPDATE SET counter = id_counters.counter + 1, updated_at = CURRENT_TIMESTAMP
+     RETURNING counter`,
+    [companyId, documentType, dateKey]
+  );
 
-    const nextCounter = parseInt(result.rows[0].counter);
-    const serialNumber = String(nextCounter).padStart(3, '0');
-    const baseNumber = isExportStandard ? `${documentType}/${serialNumber}` : `${documentType}/${month}/${year}/${serialNumber}`;
-    const displayNumber = revisionNumber > 0 ? `${baseNumber}-R${revisionNumber}` : baseNumber;
+  const nextCounter = parseInt(result.rows[0].counter);
+  const serialNumber = String(nextCounter).padStart(3, '0');
+  const baseNumber = isExportStandard ? `${documentType}/${serialNumber}` : `${documentType}/${month}/${year}/${serialNumber}`;
+  const displayNumber = revisionNumber > 0 ? `${baseNumber}-R${revisionNumber}` : baseNumber;
 
-    return {
-      baseNumber,
-      displayNumber,
-      serialNumber,
-      dateKey,
-      nextValue: nextCounter
-    };
-  } catch (error) {
-    throw error;
-  }
+  return {
+    baseNumber,
+    displayNumber,
+    serialNumber,
+    dateKey,
+    nextValue: nextCounter
+  };
 };
 
 /**

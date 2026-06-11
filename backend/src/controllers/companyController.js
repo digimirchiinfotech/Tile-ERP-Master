@@ -361,7 +361,7 @@ export const updateCompany = async (req, res, next) => {
     const { id } = req.params;
 
     if (req.file) {
-      req.body.logo_url = `/uploads/${req.file.filename}`;
+      req.body.logo_url = req.file.location || `/uploads/${req.file.filename}`;
     }
 
     const {

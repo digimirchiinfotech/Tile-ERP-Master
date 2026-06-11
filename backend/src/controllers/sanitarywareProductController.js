@@ -569,7 +569,7 @@ export const uploadImage = async (req, res, next) => {
       return next(new AppError('No file uploaded', 400));
     }
 
-    const filePath = `/uploads/${req.file.filename}`;
+    const filePath = req.file.location || `/uploads/${req.file.filename}`;
     const imageData = {
       id: Date.now(),
       name: req.file.originalname,

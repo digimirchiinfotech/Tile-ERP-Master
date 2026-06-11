@@ -6,6 +6,8 @@ import { UserProvider, useUserContext } from './contexts/UserContext.jsx';
 import { authAPI } from './services/authAPI.js';
 import { tokenManager } from './utils/tokenManager.js';
 import { dataSyncManager } from './services/dataSyncManager.js';
+import { invoiceService } from './services/invoiceService.js';
+import { orderService } from './services/orderService.js';
 
 // Hooks
 import { useActivityTracker } from './hooks/useActivityTracker.js';
@@ -111,11 +113,9 @@ function App() {
           try {
             let recordData = null;
             if (view.includes('invoice')) {
-              const { invoiceService } = await import('./services/invoiceService.js');
               const resp = await invoiceService.getById(id);
               recordData = { invoice: resp.data?.data || resp.data };
             } else if (view.includes('order')) {
-              const { orderService } = await import('./services/orderService.js');
               const resp = await orderService.getById(id);
               recordData = { order: resp.data?.data || resp.data };
             }

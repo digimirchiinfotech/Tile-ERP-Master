@@ -48,14 +48,14 @@ const OrderSheetDashboard = () => {
   const [expandedRows, setExpandedRows] = useState({});
   
   const [filters, setFilters] = useState({
-    client_name: '',
+    supplier_name: '',
     po_no: '',
     factory_name: '',
     product: '',
     size: '',
     surface: ''
   });
-  const [filterOptions, setFilterOptions] = useState({ customers: [], pis: [], products: [], sizes: [], surfaces: [] });
+  const [filterOptions, setFilterOptions] = useState({ suppliers: [], pis: [], products: [], sizes: [], surfaces: [] });
   
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isFactoryModalOpen, setIsFactoryModalOpen] = useState(false);
@@ -78,7 +78,7 @@ const OrderSheetDashboard = () => {
     try {
       const response = await api.get('/order-sheets/filters');
       const responseData = response.data?.data || response.data;
-      if (responseData.customers) {
+      if (responseData.suppliers) {
         setFilterOptions(responseData);
       }
     } catch (error) {
@@ -178,7 +178,7 @@ const OrderSheetDashboard = () => {
   const handleExportExcel = async () => {
     try {
       const params = new URLSearchParams();
-      if (filters.client_name) params.append('client_name', filters.client_name);
+      if (filters.supplier_name) params.append('supplier_name', filters.supplier_name);
       if (filters.po_no) params.append('po_no', filters.po_no);
       if (filters.factory_name) params.append('factory_name', filters.factory_name);
       if (filters.product) params.append('product', filters.product);
@@ -223,7 +223,7 @@ const OrderSheetDashboard = () => {
         ['MASTER ORDER SHEET'],
         [],
         ['Production Sheet No', sheet.production_sheet_no || sheet.productionSheetNo || '-', 'PO Reference', sheet.po_no || sheet.poNo || '-'],
-        ['Customer', sheet.client_name || sheet.clientName || '-', 'Priority', sheet.priority || '-'],
+        ['Supplier', sheet.supplier_name || sheet.supplierName || '-', 'Priority', sheet.priority || '-'],
         ['Booking Number', sheet.booking_number || sheet.bookingNumber || '-', 'Container No', sheet.container_no || sheet.containerNo || '-'],
         ['Shipment Date', sheet.shipment_date ? new Date(sheet.shipment_date).toLocaleDateString() : '-', 'Overall Status', sheet.status || 'Pending'],
         [],
@@ -516,10 +516,10 @@ const OrderSheetDashboard = () => {
           <Row className="g-3 align-items-center">
             <Col md={2}>
               <div className="d-flex flex-column">
-                <Form.Label className="small fw-bold text-dark mb-1">Customer</Form.Label>
-                <Form.Select value={filters.client_name} onChange={(e) => setFilters({ ...filters, client_name: e.target.value })} size="sm" className="cursor-pointer shadow-none">
-                  <option value="">All Customers</option>
-                  {filterOptions.customers.map(c => <option key={c} value={c}>{c}</option>)}
+                <Form.Label className="small fw-bold text-dark mb-1">Supplier Name</Form.Label>
+                <Form.Select value={filters.supplier_name} onChange={(e) => setFilters({ ...filters, supplier_name: e.target.value })} size="sm" className="cursor-pointer shadow-none">
+                  <option value="">All Suppliers</option>
+                  {filterOptions.suppliers.map(c => <option key={c} value={c}>{c}</option>)}
                 </Form.Select>
               </div>
             </Col>
@@ -582,7 +582,7 @@ const OrderSheetDashboard = () => {
                   <th className="fw-bold py-3">Order Sheet</th>
                   <th className="fw-bold py-3">PO Reference</th>
                   <th className="fw-bold py-3">PI No.</th>
-                  <th className="fw-bold py-3">Customer</th>
+                  <th className="fw-bold py-3">Supplier Name</th>
                   <th className="fw-bold py-3 text-end">Total Boxes</th>
                   <th className="fw-bold py-3 text-end">Production Complete</th>
                   <th className="fw-bold py-3 text-end">Production Pending</th>
@@ -652,7 +652,7 @@ const OrderSheetDashboard = () => {
                           <td data-label="Order Sheet" className="fw-bold text-primary">{sheet.production_sheet_no || sheet.productionSheetNo}</td>
                           <td data-label="PO Reference" className="fw-medium">{sheet.po_no || sheet.poNo}</td>
                           <td data-label="PI No." className="fw-medium text-muted">{sheet.pi_reference || sheet.piReference || '-'}</td>
-                          <td data-label="Customer" className="fw-bold">{sheet.client_name || sheet.clientName}</td>
+                          <td data-label="Supplier Name" className="fw-bold">{sheet.supplier_name || sheet.supplierName || '-'}</td>
                           <td data-label="Total Boxes" className="text-end fw-bold">{reqBoxes.toLocaleString()}</td>
                           <td data-label="Prod. Complete" className="text-end fw-medium text-success">{prodBoxes.toLocaleString()}</td>
                           <td data-label="Prod. Pending" className="text-end fw-medium text-danger">{(reqBoxes - prodBoxes).toLocaleString()}</td>

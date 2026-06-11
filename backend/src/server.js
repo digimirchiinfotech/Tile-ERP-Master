@@ -223,7 +223,7 @@ app.get('/api/docs/swagger.json', (req, res) => {
 
 // ─── SERVE UPLOADED FILES (signatures, images, etc.) ──────────────────────────
 // Must be registered BEFORE the frontend static path so /uploads/* routes resolve correctly.
-const uploadsDir = join(__dirname, '..', 'uploads');
+const uploadsDir = join(__dirname, '..', env.upload.dir || 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 app.use('/uploads', express.static(uploadsDir, {
   maxAge: '1d',

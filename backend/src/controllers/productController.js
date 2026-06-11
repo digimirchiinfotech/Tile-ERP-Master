@@ -674,7 +674,7 @@ export const uploadImage = async (req, res, next) => {
     }
 
     // Generate file path
-    const filePath = `/uploads/${req.file.filename}`;
+    const filePath = req.file.location || `/uploads/${req.file.filename}`;
     const imageData = {
       id: Date.now(),
       name: req.file.originalname,

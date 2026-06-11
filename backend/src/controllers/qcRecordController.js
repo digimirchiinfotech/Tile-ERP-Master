@@ -123,12 +123,12 @@ export const uploadMedia = async (req, res, next) => {
       return next(new AppError('No file uploaded', 400));
     }
     
-    const fileUrl = `/uploads/${req.file.filename}`;
+    const fileUrl = req.file.location || `/uploads/${req.file.filename}`;
     return successResponse(
       res,
       {
         url: fileUrl,
-        filename: req.file.filename,
+        filename: req.file.filename || req.file.originalname,
         size: req.file.size,
         mimetype: req.file.mimetype,
         name: req.file.originalname

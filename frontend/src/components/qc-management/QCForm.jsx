@@ -535,9 +535,9 @@ function QCForm({ qcRecord, onSave, onCancel, onBack, selectedOrder, existingRec
                     </Col>
                     <Col md={6}>
                       <Form.Group>
-                        <OverlayTrigger placement="top" overlay={<Tooltip>Client Firm Name is mandatory.</Tooltip>}>
+                        <OverlayTrigger placement="top" overlay={<Tooltip>Supplier Name is mandatory.</Tooltip>}>
                           <Form.Label className="fw-bold text-danger" style={{ cursor: 'help' }}>
-                            Client Firm Name * <Info size={12} className="ms-1" />
+                            Supplier Name * <Info size={12} className="ms-1" />
                           </Form.Label>
                         </OverlayTrigger>
                         <Form.Control
@@ -547,7 +547,7 @@ function QCForm({ qcRecord, onSave, onCancel, onBack, selectedOrder, existingRec
                             handleInputChange('clientName', e.target.value)
                           }
                           isInvalid={!!errors.clientName}
-                          placeholder="Enter client name"
+                          placeholder="Enter supplier name"
                         />
                         <Form.Control.Feedback type="invalid">
                           {errors.clientName}
@@ -771,12 +771,21 @@ function QCForm({ qcRecord, onSave, onCancel, onBack, selectedOrder, existingRec
                             }
 
                             // Pull missing data from live sheet if old QC JSON is incomplete
-                            const liveLine = matchedSheet?.lines?.find(l =>
-                              (l.productCategory || l.product_category) === product.product &&
-                              l.size === product.size &&
-                              (l.surface || l.finish) === product.surface &&
-                              (l.design || l.thickness) === product.thickness
-                            );
+                            const liveLine = matchedSheet?.lines?.find(l => {
+                              const pCat = String(l.productCategory || l.product_category || '').trim().toLowerCase();
+                              const targetCat = String(product.product || '').trim().toLowerCase();
+                              
+                              const lSize = String(l.size || '').trim().toLowerCase().replace(/\s/g, '');
+                              const targetSize = String(product.size || '').trim().toLowerCase().replace(/\s/g, '');
+                              
+                              // If product name and size match, it's highly likely the same line
+                              return pCat === targetCat && lSize === targetSize;
+                            }) || matchedSheet?.lines?.find(l => {
+                              // Fallback: just match product name
+                              const pCat = String(l.productCategory || l.product_category || '').trim().toLowerCase();
+                              const targetCat = String(product.product || '').trim().toLowerCase();
+                              return pCat === targetCat;
+                            });
 
                             const finalRequiredSqm = product.requiredSqm || product.required_sqm || liveLine?.requiredSqm || liveLine?.required_sqm || 0;
                             const finalProducedSqm = product.producedSqm || product.produced_sqm || liveLine?.producedSqm || liveLine?.produced_sqm || 0;

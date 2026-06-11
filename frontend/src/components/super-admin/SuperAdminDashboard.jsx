@@ -62,6 +62,11 @@ function SuperAdminDashboard({ currentUser, onNavigate }) {
   const [statusFilter, setStatusFilter] = useState('All');
   const [planFilter, setPlanFilter] = useState('All');
   const [activeTab, setActiveTab] = useState('revenue');
+  
+  const [revenueData, setRevenueData] = useState([]);
+  const [subscriptionDistribution, setSubscriptionDistribution] = useState([]);
+  const [companyGrowthData, setCompanyGrowthData] = useState([]);
+  
   const { companies, loading: companiesLoading } = useCompanies();
   const { fetchAnalytics } = useSubscriptions();
   const { stats: ticketStats } = useSupportTickets();
@@ -128,41 +133,32 @@ function SuperAdminDashboard({ currentUser, onNavigate }) {
           arr: analytics.financials.arr || 0
         }));
       }
+      
+      if (analytics && analytics.monthly_revenue_trend) {
+        // Map backend trend to chart format, reversing to show chronological order
+        const trend = analytics.monthly_revenue_trend.map(item => {
+          const date = new Date(item.month);
+          return {
+            month: date.toLocaleString('default', { month: 'short' }),
+            revenue: parseFloat(item.revenue) || 0,
+            companies: parseInt(item.new_subscriptions) || 0
+          };
+        }).reverse();
+        setRevenueData(trend);
+        setCompanyGrowthData(trend);
+      }
+
+      if (analytics && analytics.revenue_by_plan) {
+        const colors = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6610f2'];
+        const dist = analytics.revenue_by_plan.map((item, idx) => ({
+          name: item.plan_name,
+          value: parseInt(item.subscription_count) || 0,
+          color: colors[idx % colors.length]
+        }));
+        setSubscriptionDistribution(dist);
+      }
     }).catch(console.error);
   }, []);
-
-  const revenueData = useMemo(() => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const currentMonthIdx = new Date().getMonth();
-    const displayMonths = [];
-    for (let i = 5; i >= 0; i--) {
-      const idx = (currentMonthIdx - i + 12) % 12;
-      displayMonths.push(months[idx]);
-    }
-    return displayMonths.map((month, i) => {
-      return { month, revenue: i === 5 ? systemStats.mrr : 0 }; 
-    });
-  }, [systemStats.mrr]);
-
-  const companyGrowthData = useMemo(() => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const currentMonthIdx = new Date().getMonth();
-    const displayMonths = [];
-    for (let i = 5; i >= 0; i--) {
-      const idx = (currentMonthIdx - i + 12) % 12;
-      displayMonths.push(months[idx]);
-    }
-    return displayMonths.map((month, i) => {
-      return { month, companies: i === 5 ? companies.length : 0 };
-    });
-  }, [companies.length]);
-
-  const subscriptionDistribution = useMemo(() => [
-    { name: 'Basic', value: companies.filter(c => c.subscriptionPlan === 'Basic').length, color: '#0d6efd' },
-    { name: 'Professional', value: companies.filter(c => c.subscriptionPlan === 'Professional').length, color: '#198754' },
-    { name: 'Premium', value: companies.filter(c => c.subscriptionPlan === 'Premium').length, color: '#ffc107' },
-    { name: 'Enterprise', value: companies.filter(c => c.subscriptionPlan === 'Enterprise').length, color: '#dc3545' },
-  ], [companies]);
 
   const arpu = systemStats.totalCompanies > 0 ? systemStats.totalRevenue / systemStats.totalCompanies : 0;
 

@@ -205,9 +205,9 @@ function QCDashboard({ currentUser, onNavigate, navigationData }) {
             </Col>
             <Col lg={2} md={4} sm={6}>
               <Form.Group>
-                <Form.Label className="fw-bold small text-muted text-uppercase">Client Name</Form.Label>
+                <Form.Label className="fw-bold small text-muted text-uppercase">Supplier Name</Form.Label>
                 <Form.Select className="py-2 border-primary-subtle" style={{ borderRadius: '10px' }} value={filters.clientName} onChange={(e) => setFilters({ ...filters, clientName: e.target.value })}>
-                  <option value="">All Clients</option>
+                  <option value="">All Suppliers</option>
                   {uniqueClients.map(c => <option key={c} value={c}>{c}</option>)}
                 </Form.Select>
               </Form.Group>
@@ -273,7 +273,7 @@ function QCDashboard({ currentUser, onNavigate, navigationData }) {
                   <th>Status</th>
                   <th className="ps-4">QC ID</th>
                   <th>Order Number</th>
-                  <th>Client Name</th>
+                  <th>Supplier Name</th>
                   <th>Product Name</th>
                   <th>QC Date</th>
                   <th>Assigned QC Person</th>

@@ -24,20 +24,12 @@ export const dbRouter = (req, res, next) => {
      */
     query: async (text, params = []) => {
       const companyId = req.companyFilter;
-      try {
-        if (!companyId) return await sharedQuery(text, params);
-        return await companyQuery(companyId, text, params);
-      } catch (err) {
-        throw err;
-      }
+      if (!companyId) return await sharedQuery(text, params);
+      return await companyQuery(companyId, text, params);
     },
 
     globalQuery: async (text, params = []) => {
-      try {
-        return await sharedQuery(text, params);
-      } catch (err) {
-        throw err;
-      }
+      return await sharedQuery(text, params);
     },
 
     /**

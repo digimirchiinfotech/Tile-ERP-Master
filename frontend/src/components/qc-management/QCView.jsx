@@ -189,7 +189,7 @@ function QCView({ qcRecord, onClose, onEdit, onPrint, onDownload, canEdit }) {
                   </Col>
                   <Col md={6}>
                     <div className="info-item">
-                      <label className="fw-bold text-muted">Client Firm Name:</label>
+                      <label className="fw-bold text-muted">Supplier Name:</label>
                       <p className="mb-0">{qcRecord.clientName}</p>
                     </div>
                   </Col>

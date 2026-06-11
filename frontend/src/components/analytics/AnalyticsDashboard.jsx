@@ -225,7 +225,7 @@ const AnalyticsDashboard = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} fontSize={12} />
                     <YAxis />
-                    <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+                    <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
                     <Bar dataKey="revenue" fill="#059669" />
                   </BarChart>
                 </ResponsiveContainer>

@@ -13,6 +13,7 @@ import { Modal, Button, Row, Col, Badge, Card } from 'react-bootstrap';
 import { Edit, X, Download, Eye } from 'lucide-react';
 import { useState } from 'react';
 import { tokenManager } from '../../utils/tokenManager.js';
+import { resolveImageUrl } from '../../utils/urlHelper.js';
 
 function ProductView({ product, onClose, onEdit, canEdit }) {
   const [showImageModal, setShowImageModal] = useState(false);
@@ -316,7 +317,7 @@ function ProductView({ product, onClose, onEdit, canEdit }) {
                         <Col key={index} xs={6} sm={4} md={3} lg={2}>
                           <div className="image-thumbnail-container">
                             <img
-                              src={`${image.url || image}?token=${tokenManager.getAccessToken() || ''}`}
+                              src={`${resolveImageUrl(image.url || image)}?token=${tokenManager.getAccessToken() || ''}`}
                               alt={`Product ${index + 1}`}
                               onError={(e) => {
                                  if (!e.target.src.includes('token=')) {
@@ -416,7 +417,7 @@ function ProductView({ product, onClose, onEdit, canEdit }) {
         <Modal.Body className="text-center">
           {selectedImage && (
             <img
-              src={`${selectedImage.url || selectedImage}?token=${tokenManager.getAccessToken() || ''}`}
+              src={`${resolveImageUrl(selectedImage.url || selectedImage)}?token=${tokenManager.getAccessToken() || ''}`}
               alt="Product"
               onError={(e) => {
                  if (!e.target.src.includes('token=')) {

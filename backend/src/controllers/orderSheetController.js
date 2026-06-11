@@ -116,7 +116,31 @@ const ensureMasterOrderSheetSchemaExists = async (queryFn, companyId) => {
       debugLogger.warn('SchemaCheck', 'factory_names heal skipped: ' + factoryErr.message);
     }
 
-    await queryFn(`ALTER TABLE master_order_sheet_lines ADD COLUMN IF NOT EXISTS tile_category VARCHAR(100)`);
+    // Add columns that may have been added after initial table creation
+    const alterQuery = `
+      ALTER TABLE master_order_sheet_lines
+      ADD COLUMN IF NOT EXISTS tile_category VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS qc_status VARCHAR(50) DEFAULT 'Pending',
+      ADD COLUMN IF NOT EXISTS shade VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS caliber VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS grade VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS boxes_required INTEGER DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS boxes_produced INTEGER DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS pallets_required INTEGER DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS pallets_produced INTEGER DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS total_production_boxes NUMERIC(12,2) DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS factory_allocated_boxes NUMERIC(12,2) DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS production_completed_boxes NUMERIC(12,2) DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS qc_approved_boxes NUMERIC(12,2) DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS ready_for_packing_boxes NUMERIC(12,2) DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS packed_boxes NUMERIC(12,2) DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS loaded_boxes NUMERIC(12,2) DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS production_progress_percent NUMERIC(5,2) DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS production_status VARCHAR(50) DEFAULT 'Not Started',
+      ADD COLUMN IF NOT EXISTS factory_notes TEXT,
+      ADD COLUMN IF NOT EXISTS delay_reason TEXT;
+    `;
+    await queryFn(alterQuery);
 
     ensuredSchemas.add(cacheKey);
   } catch (error) {

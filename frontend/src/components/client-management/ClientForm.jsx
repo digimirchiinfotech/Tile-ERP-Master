@@ -202,7 +202,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
     }
 
     // Auto-uppercase specific fields
-    const uppercaseFields = ['name', 'contactPersonName', 'address', 'consigneeDetails', 'buyerDetails'];
+    const uppercaseFields = ['name', 'contactPersonName', 'address', 'consigneeDetails', 'buyerDetails', 'country', 'city'];
     if (typeof filteredValue === 'string' && uppercaseFields.includes(field)) {
       filteredValue = filteredValue.toUpperCase();
     }
@@ -376,7 +376,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                             handleInputChange('country', val);
                             handleInputChange('city', '');
                           }}
-                          options={countries.map(c => c.countryName || c.name || c)}
+                          options={countries.map(c => String(c.countryName || c.name || c).toUpperCase())}
                           masterDataType="countries"
                           label="Country"
                           placeholder="Select Country"
@@ -394,7 +394,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                         <AddableDropdown
                           value={formData.city}
                           onChange={(val) => handleInputChange('city', val)}
-                          options={cities.map(c => c.cityName || c.city_name || c.value || c)}
+                          options={cities.map(c => String(c.cityName || c.city_name || c.value || c).toUpperCase())}
                           masterDataType="cities"
                           label="City"
                           placeholder="Select City"

@@ -230,6 +230,12 @@ export const createMasterData = async (req, res, next) => {
         placeholders += `, $${paramCount++}`;
       }
 
+      if (config.table === 'master_cities' && body.countryCode !== undefined) {
+        columns.push('country_code');
+        values.push(body.countryCode === '' ? null : body.countryCode);
+        placeholders += `, $${paramCount++}`;
+      }
+
       let insertQuery;
       if (config.global) {
         insertQuery = `INSERT INTO ${config.table} (${columns.join(', ')}) VALUES (${placeholders}) RETURNING id, ${config.column} as value, status${config.table === 'box_types' ? ', image_url' : ''}`;

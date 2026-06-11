@@ -73,48 +73,6 @@ function QCForm({ qcRecord, onSave, onCancel, onBack, selectedOrder, existingRec
     fetchOrderSheets();
   }, [existingRecords, qcRecord]);
 
-  // Sync missing total boxes for old records once order sheets are loaded
-  useEffect(() => {
-    if (qcRecord && allOrderSheets.length > 0 && formData.productLines.length > 0) {
-      const orderNumStr = String(formData.orderNumber || '').trim().toLowerCase();
-      const matchedSheet = allOrderSheets.find(s => 
-        String(s.productionSheetNo || s.production_sheet_no || '').trim().toLowerCase() === orderNumStr
-      );
-
-      if (matchedSheet && matchedSheet.lines) {
-        setFormData(prev => {
-          let updated = false;
-          const newLines = prev.productLines.map(product => {
-            if (product.totalBoxes && String(product.totalBoxes) !== '0') return product;
-
-            const liveLine = matchedSheet.lines.find(l => {
-              const pCat = String(l.productCategory || l.product_category || '').trim().toLowerCase();
-              const targetCat = String(product.product || '').trim().toLowerCase();
-              const lSize = String(l.size || '').trim().toLowerCase().replace(/\s/g, '');
-              const targetSize = String(product.size || '').trim().toLowerCase().replace(/\s/g, '');
-              return pCat === targetCat && lSize === targetSize;
-            }) || matchedSheet.lines.find(l => {
-              const pCat = String(l.productCategory || l.product_category || '').trim().toLowerCase();
-              const targetCat = String(product.product || '').trim().toLowerCase();
-              return pCat === targetCat;
-            });
-
-            if (liveLine) {
-              const tb = (liveLine.boxes_required || liveLine.total_production_boxes || 0).toString();
-              if (tb && tb !== '0') {
-                updated = true;
-                return { ...product, totalBoxes: tb };
-              }
-            }
-            return product;
-          });
-          
-          if (updated) return { ...prev, productLines: newLines };
-          return prev;
-        });
-      }
-    }
-  }, [allOrderSheets, qcRecord, formData.orderNumber]);
 
   const { products } = useProducts();
   const [masterData, setMasterData] = useState({
@@ -250,6 +208,49 @@ function QCForm({ qcRecord, onSave, onCancel, onBack, selectedOrder, existingRec
       });
     }
   }, [qcRecord]);
+
+  // Sync missing total boxes for old records once order sheets are loaded
+  useEffect(() => {
+    if (qcRecord && allOrderSheets.length > 0 && formData?.productLines?.length > 0) {
+      const orderNumStr = String(formData.orderNumber || '').trim().toLowerCase();
+      const matchedSheet = allOrderSheets.find(s => 
+        String(s.productionSheetNo || s.production_sheet_no || '').trim().toLowerCase() === orderNumStr
+      );
+
+      if (matchedSheet && matchedSheet.lines) {
+        setFormData(prev => {
+          let updated = false;
+          const newLines = prev.productLines.map(product => {
+            if (product.totalBoxes && String(product.totalBoxes) !== '0') return product;
+
+            const liveLine = matchedSheet.lines.find(l => {
+              const pCat = String(l.productCategory || l.product_category || '').trim().toLowerCase();
+              const targetCat = String(product.product || '').trim().toLowerCase();
+              const lSize = String(l.size || '').trim().toLowerCase().replace(/\s/g, '');
+              const targetSize = String(product.size || '').trim().toLowerCase().replace(/\s/g, '');
+              return pCat === targetCat && lSize === targetSize;
+            }) || matchedSheet.lines.find(l => {
+              const pCat = String(l.productCategory || l.product_category || '').trim().toLowerCase();
+              const targetCat = String(product.product || '').trim().toLowerCase();
+              return pCat === targetCat;
+            });
+
+            if (liveLine) {
+              const tb = (liveLine.boxes_required || liveLine.total_production_boxes || 0).toString();
+              if (tb && tb !== '0') {
+                updated = true;
+                return { ...product, totalBoxes: tb };
+              }
+            }
+            return product;
+          });
+          
+          if (updated) return { ...prev, productLines: newLines };
+          return prev;
+        });
+      }
+    }
+  }, [allOrderSheets, qcRecord, formData.orderNumber]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({

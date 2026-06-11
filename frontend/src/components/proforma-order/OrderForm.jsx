@@ -1354,7 +1354,7 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
                 >
                   <option value="">Select PI Reference</option>
                   {invoices
-                    .filter(inv => (inv.status || '').toLowerCase() !== 'revised')
+                    .filter(inv => (inv.status || '').toLowerCase() !== 'revised' && !inv.is_locked && !inv.isLocked && inv.is_locked !== 'true')
                     .map((invoice) => (
                     <option key={invoice.id} value={invoice.invoiceNo || invoice.invoice_no || invoice.id}>
                       {invoice.invoiceNo || invoice.invoice_no || invoice.id}

@@ -11,9 +11,10 @@
 
 import { useState, useRef } from 'react';
 import { Button, Row, Col, Card, Modal, Alert } from 'react-bootstrap';
-import { Upload, X, Eye, Trash2, Check } from 'lucide-react';
+import { Upload, X, Eye, Trash2, Check, Image as ImageIcon } from 'lucide-react';
 import { uploadProductImage } from '../../services/productImageService.js';
 import { resolveImageUrl } from '../../utils/urlHelper.js';
+import { tokenManager } from '../../utils/tokenManager.js';
 
 function ImageUploadServer({
   productId,
@@ -164,7 +165,10 @@ function ImageUploadServer({
 
   const getImageUrl = (image) => {
     const rawUrl = image.path || image.url || image.imageUrl || '';
-    return resolveImageUrl(rawUrl) || 'https://placehold.co/120x120/e9ecef/6c757d?text=No+Image';
+    const resolvedUrl = resolveImageUrl(rawUrl);
+    if (!resolvedUrl) return '';
+    const token = tokenManager.getAccessToken();
+    return token ? `${resolvedUrl}?token=${token}` : resolvedUrl;
   };
 
   return (
@@ -234,7 +238,9 @@ function ImageUploadServer({
                         alt={image.name}
                         className="image-thumbnail"
                         onError={(e) => {
-                          e.target.src = 'https://placehold.co/120x120/e9ecef/6c757d?text=No+Image';
+                          e.target.onerror = null;
+                          e.target.style.display = 'none';
+                          e.target.insertAdjacentHTML('afterend', '<div class="bg-light d-flex align-items-center justify-content-center" style="width: 100%; height: 120px; border-radius: 0.375rem 0.375rem 0 0;"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image text-secondary opacity-50"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></div>');
                         }}
                       />
                       <div className="image-overlay">
@@ -303,7 +309,9 @@ function ImageUploadServer({
                 className="img-fluid"
                 style={{ maxHeight: '70vh', objectFit: 'contain' }}
                 onError={(e) => {
-                  e.target.src = 'https://placehold.co/800x600/e9ecef/6c757d?text=No+Image';
+                  e.target.onerror = null;
+                  e.target.style.display = 'none';
+                  e.target.insertAdjacentHTML('afterend', '<div class="bg-light d-flex flex-column align-items-center justify-content-center mx-auto" style="width: 100%; max-width: 400px; height: 300px; border-radius: 8px;"><svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image text-secondary opacity-50 mb-3"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg><h5 class="text-secondary opacity-75">Image Unavailable</h5><small class="text-secondary opacity-50">This image file was removed from the server.</small></div>');
                 }}
               />
               <div className="mt-3">

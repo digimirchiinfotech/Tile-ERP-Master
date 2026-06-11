@@ -540,7 +540,7 @@ export const getCompanyAnalytics = async (req, res, next) => {
 
 export const registerCompany = async (req, res, next) => {
   try {
-    const { name, industry, contact_person_name, email_id, contact_number, address, city, country, website, iec_no, gstn, pan, logo_url, admin_email, admin_password, subscription_plan_id, selected_modules = [] } = req.body;
+    const { name, industry, contact_person_name, email_id, contact_number, address, city, country, website, iec_no, gstn, pan, logo_url, admin_email, admin_password, subscription_plan_id, enabled_modules = [] } = req.body;
 
     if (!name || !admin_email || !admin_password) return next(new AppError('Required fields missing', 400));
 
@@ -585,7 +585,7 @@ export const registerCompany = async (req, res, next) => {
       }
       
       // Then enable selected ones
-      for (const mod of selected_modules) {
+      for (const mod of enabled_modules) {
         if (ALL_MODULES.includes(mod)) {
           await client.query(
             `UPDATE module_access SET is_enabled = true WHERE company_id = $1 AND module_name = $2`, 

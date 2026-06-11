@@ -4,8 +4,8 @@ const pool = new pg.Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-pool.query(`SELECT product_lines FROM qc_records WHERE order_number='OS/002'`).then(r => {
-  console.log(JSON.stringify(r.rows[0].product_lines, null, 2));
+pool.query("SELECT lines FROM master_order_sheets WHERE status='complete' ORDER BY created_at DESC LIMIT 1").then(r => {
+  console.log(JSON.stringify(r.rows[0].lines, null, 2));
   pool.end();
 }).catch(e => {
   console.error(e);

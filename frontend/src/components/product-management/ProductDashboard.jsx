@@ -753,7 +753,7 @@ function ProductDashboard({ currentUser, productsData, navigationData }) {
                       <td>
                         {product.images?.[0]?.url || product.images?.[0]?.path ? (
                           <img
-                            src={`${product.images[0].url || product.images[0].path}?token=${tokenManager.getAccessToken() || ''}`}
+                            src={`${(product.images[0].url || product.images[0].path).startsWith('http') ? '' : 'https://tile-erp-master-production.up.railway.app'}${product.images[0].url || product.images[0].path}?token=${tokenManager.getAccessToken() || ''}`}
                             alt={product.name}
                             onError={(e) => {
                               if (!e.target.src.includes('token=')) {
@@ -853,7 +853,7 @@ function ProductDashboard({ currentUser, productsData, navigationData }) {
                       <div className="d-flex align-items-center gap-3">
                         {product.images?.[0]?.url || product.images?.[0]?.path ? (
                           <img
-                            src={`${product.images[0].url || product.images[0].path}?token=${tokenManager.getAccessToken() || ''}`}
+                            src={`${(product.images[0].url || product.images[0].path).startsWith('http') ? '' : 'https://tile-erp-master-production.up.railway.app'}${product.images[0].url || product.images[0].path}?token=${tokenManager.getAccessToken() || ''}`}
                             alt={product.name}
                             style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '8px' }}
                           />
@@ -1043,7 +1043,7 @@ function ProductDashboard({ currentUser, productsData, navigationData }) {
           
             </div>
             <div className="no-print bg-white border-start p-3 shadow-sm" style={{ width: '100%', maxWidth: '350px', overflowY: 'auto' }}>
-              <ActivityTimeline resourceType="document" resourceId={selectedItem?.id} />
+              <ActivityTimeline resourceType="document" resourceId={viewingProduct?.id} />
             </div>
           </Modal.Body>
         </Modal>

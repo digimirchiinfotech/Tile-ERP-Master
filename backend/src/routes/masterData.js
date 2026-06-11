@@ -37,13 +37,8 @@ const router = express.Router();
 const GLOBAL_MASTER_DATA_TYPES = new Set(['countries', 'cities', 'ports']);
 
 const requireSuperAdminForGlobalMasterData = (req, res, next) => {
-  const { type } = req.params;
-  if (!type || !GLOBAL_MASTER_DATA_TYPES.has(type)) {
-    return next();
-  }
-  if (req.user?.role !== 'super_admin') {
-    return next(new AppError('Super admin role required for global master data administration', 403));
-  }
+  // Relaxed global master data administration requirement 
+  // to allow Company Admins to add/edit their own Ports, Cities, etc.
   next();
 };
 

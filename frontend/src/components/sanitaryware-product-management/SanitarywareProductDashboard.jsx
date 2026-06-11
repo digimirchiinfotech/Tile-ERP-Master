@@ -36,6 +36,7 @@ import { showSuccess, showError } from '../shared/NotificationManager.jsx';
 import { exportData, createColumnDef } from '../../utils/exportUtils.js';
 import sanitarywareProductService from '../../services/sanitarywareProductService.js';
 import { downloadPDF } from '../../utils/pdfGenerator.js';
+import { tokenManager } from '../../utils/tokenManager.js';
 
 function SanitarywareProductDashboard({ currentUser }) {
   const [products, setProducts] = useState([]);
@@ -432,7 +433,7 @@ function SanitarywareProductDashboard({ currentUser }) {
                       <td data-label="Image">
                         {product.images && product.images.length > 0 ? (
                           <img
-                            src={product.images[0].url || product.images[0].path}
+                            src={`${(product.images[0].url || product.images[0].path).startsWith('http') ? '' : 'https://tile-erp-master-production.up.railway.app'}${product.images[0].url || product.images[0].path}?token=${tokenManager?.getAccessToken?.() || ''}`}
                             alt={product.name}
                             style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px' }}
                           />
@@ -561,7 +562,7 @@ function SanitarywareProductDashboard({ currentUser }) {
           
             </div>
             <div className="no-print bg-white border-start p-3 shadow-sm" style={{ width: '100%', maxWidth: '350px', overflowY: 'auto' }}>
-              <ActivityTimeline resourceType="document" resourceId={selectedItem?.id} />
+              <ActivityTimeline resourceType="document" resourceId={viewingProduct?.id} />
             </div>
           </Modal.Body>
         </Modal>

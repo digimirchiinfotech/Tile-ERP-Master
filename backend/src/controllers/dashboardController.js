@@ -68,10 +68,10 @@ export const getDashboardData = async (req, res, next) => {
         req.db.query(`SELECT COUNT(*) as count FROM export_invoices WHERE status IN ('In Transit', 'Shipped', 'Active') ${companyConds ? "AND " + companyConds.substring(6) : ""}`, vals),
         req.db.query(`SELECT COUNT(*) as count FROM account_entries WHERE status IN ('Pending', 'Overdue') ${companyConds ? "AND " + companyConds.substring(6) : ""}`, vals),
         req.db.query(`SELECT COUNT(*) as count FROM proforma_invoices WHERE status IN ('Draft', 'Pending') ${companyConds ? "AND " + companyConds.substring(6) : ""}`, vals),
-        req.db.query(`SELECT COUNT(*) as count FROM proforma_invoices WHERE status = 'Approved' ${companyConds ? "AND " + companyConds.substring(6) : ""}`, vals),
+        req.db.query(`SELECT COUNT(*) as count FROM proforma_invoices WHERE status IN ('Approved', 'Finalized', 'Ready', 'Active', 'Locked', 'Completed') ${companyConds ? "AND " + companyConds.substring(6) : ""}`, vals),
         req.db.query(`SELECT COUNT(*) as count FROM proforma_orders WHERE status IN ('Draft', 'Pending') ${companyConds ? "AND " + companyConds.substring(6) : ""}`, vals),
-        req.db.query(`SELECT COUNT(*) as count FROM proforma_orders WHERE status = 'Approved' ${companyConds ? "AND " + companyConds.substring(6) : ""}`, vals),
-        req.db.query(`SELECT COUNT(*) as count FROM proforma_orders WHERE qc_status = 'Approved' ${companyConds ? "AND " + companyConds.substring(6) : ""}`, vals)
+        req.db.query(`SELECT COUNT(*) as count FROM proforma_orders WHERE status IN ('Approved', 'Finalized', 'Ready', 'Active', 'Locked', 'Completed') ${companyConds ? "AND " + companyConds.substring(6) : ""}`, vals),
+        req.db.query(`SELECT COUNT(*) as count FROM proforma_orders WHERE qc_status IN ('Approved', 'Passed', 'Ready') ${companyConds ? "AND " + companyConds.substring(6) : ""}`, vals)
       ]);
 
       stats = {
@@ -109,14 +109,14 @@ export const getDashboardData = async (req, res, next) => {
         req.db.globalQuery("SELECT COUNT(*) as count FROM users WHERE company_id = $1 AND status = 'Active'", [companyId]),
         // Pending PI = Pending invoices
         req.db.query("SELECT COUNT(*) as count FROM proforma_invoices WHERE status IN ('Draft', 'Pending') AND company_id = $1", [companyId]),
-        // Confirmed PI = Approved invoices
-        req.db.query("SELECT COUNT(*) as count FROM proforma_invoices WHERE status = 'Approved' AND company_id = $1", [companyId]),
+        // Confirmed PI = Approved, Locked, etc. invoices
+        req.db.query("SELECT COUNT(*) as count FROM proforma_invoices WHERE status IN ('Approved', 'Finalized', 'Ready', 'Active', 'Locked', 'Completed') AND company_id = $1", [companyId]),
         // Pending PO = Pending orders
         req.db.query("SELECT COUNT(*) as count FROM proforma_orders WHERE status IN ('Draft', 'Pending') AND company_id = $1", [companyId]),
-        // Confirmed PO = Approved orders
-        req.db.query("SELECT COUNT(*) as count FROM proforma_orders WHERE status = 'Approved' AND company_id = $1", [companyId]),
-        // Ready PO = qc_status is Approved
-        req.db.query("SELECT COUNT(*) as count FROM proforma_orders WHERE qc_status = 'Approved' AND company_id = $1", [companyId]),
+        // Confirmed PO = Approved, Locked, etc. orders
+        req.db.query("SELECT COUNT(*) as count FROM proforma_orders WHERE status IN ('Approved', 'Finalized', 'Ready', 'Active', 'Locked', 'Completed') AND company_id = $1", [companyId]),
+        // Ready PO = qc_status is Approved/Passed/Ready
+        req.db.query("SELECT COUNT(*) as count FROM proforma_orders WHERE qc_status IN ('Approved', 'Passed', 'Ready') AND company_id = $1", [companyId]),
         // Total QC records
         req.db.query("SELECT COUNT(*) as count FROM qc_records WHERE company_id = $1", [companyId]),
         // Monthly revenue = current month PI total

@@ -138,10 +138,14 @@ function SupplierForm({ supplier, onSave, onCancel }) {
     const fetchCities = async () => {
       if (formData.country) {
         try {
-          const selectedCountry = countries.find(c => c.countryName === formData.country);
-          if (selectedCountry) {
+          const selectedCountry = countries.find(c => 
+            String(c.countryName || c.name || c).trim().toLowerCase() === String(formData.country).trim().toLowerCase()
+          );
+          if (selectedCountry && selectedCountry.countryCode) {
             const citiesData = await getCitiesByCountry(selectedCountry.countryCode);
             setCities(citiesData);
+          } else {
+            setCities([]);
           }
         } catch (error) {
           console.error('Error loading cities:', error);
@@ -396,8 +400,11 @@ function SupplierForm({ supplier, onSave, onCancel }) {
                           placeholder="Select City"
                           isInvalid={!!errors.city}
                           disabled={!formData.country}
+                          disableAutoFetch={true}
                           extraBodyData={{
-                            countryCode: countries.find(c => c.countryName === formData.country)?.countryCode
+                            countryCode: countries.find(c => 
+                              String(c.countryName || c.name || c).trim().toLowerCase() === String(formData.country).trim().toLowerCase()
+                            )?.countryCode
                           }}
                         />
                       </Form.Group>

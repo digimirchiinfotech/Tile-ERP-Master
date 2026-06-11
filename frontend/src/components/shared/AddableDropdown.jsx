@@ -34,6 +34,7 @@ function AddableDropdown({
   extraBodyData = {},
   numbersOnly = false,
   allowImageUpload = false,
+  disableAutoFetch = false,
 }) {
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -47,7 +48,7 @@ function AddableDropdown({
   useEffect(() => {
     if (Array.isArray(staticOptions) && staticOptions.length > 0) {
       setOptions(staticOptions);
-    } else if (masterDataType && (!Array.isArray(staticOptions) || staticOptions.length === 0)) {
+    } else if (masterDataType && (!Array.isArray(staticOptions) || staticOptions.length === 0) && !disableAutoFetch) {
       fetchOptions();
     } else if (Array.isArray(staticOptions)) {
       setOptions(staticOptions);

@@ -1462,7 +1462,7 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
                   </Form.Label>
                   <Form.Control
                     value={formData.buyers_order_no}
-                    onChange={(e) => setFormData({ ...formData, buyers_order_no: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, buyers_order_no: e.target.value.toUpperCase() })}
                     className="form-control"
                   />
                 </Form.Group>

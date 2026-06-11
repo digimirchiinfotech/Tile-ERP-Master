@@ -756,9 +756,14 @@ function ProductDashboard({ currentUser, productsData, navigationData }) {
                             src={`${(product.images[0].url || product.images[0].path).startsWith('http') ? '' : 'https://tile-erp-master-production.up.railway.app'}${product.images[0].url || product.images[0].path}?token=${tokenManager.getAccessToken() || ''}`}
                             alt={product.name}
                             onError={(e) => {
-                              if (!e.target.src.includes('token=')) {
+                              if (!e.target.dataset.triedToken && !e.target.src.includes('token=')) {
+                                e.target.dataset.triedToken = 'true';
                                 const token = tokenManager.getAccessToken();
                                 if (token) e.target.src = `${e.target.src.split('?')[0]}?token=${token}`;
+                              } else {
+                                e.target.onerror = null; // prevent infinite loops
+                                e.target.style.display = 'none';
+                                e.target.insertAdjacentHTML('afterend', '<div class="bg-light d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 4px;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image text-secondary opacity-50"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></div>');
                               }
                             }}
                             style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }}
@@ -855,6 +860,17 @@ function ProductDashboard({ currentUser, productsData, navigationData }) {
                           <img
                             src={`${(product.images[0].url || product.images[0].path).startsWith('http') ? '' : 'https://tile-erp-master-production.up.railway.app'}${product.images[0].url || product.images[0].path}?token=${tokenManager.getAccessToken() || ''}`}
                             alt={product.name}
+                            onError={(e) => {
+                              if (!e.target.dataset.triedToken && !e.target.src.includes('token=')) {
+                                e.target.dataset.triedToken = 'true';
+                                const token = tokenManager.getAccessToken();
+                                if (token) e.target.src = `${e.target.src.split('?')[0]}?token=${token}`;
+                              } else {
+                                e.target.onerror = null;
+                                e.target.style.display = 'none';
+                                e.target.insertAdjacentHTML('afterend', '<div class="bg-light d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; border-radius: 8px;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image text-secondary opacity-50"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></div>');
+                              }
+                            }}
                             style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '8px' }}
                           />
                         ) : (

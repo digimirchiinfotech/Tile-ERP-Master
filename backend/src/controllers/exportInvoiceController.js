@@ -84,7 +84,18 @@ const ensureSchemaExists = async (queryFn, companyId) => {
       { name: 'document_status', type: 'VARCHAR(50) DEFAULT \'Draft\'' },
       { name: 'lc_lumber', type: 'VARCHAR(255)' },
       { name: 'lc_date', type: 'DATE' },
-      { name: 'epcg_no', type: 'VARCHAR(255)' }
+      { name: 'epcg_no', type: 'VARCHAR(255)' },
+      { name: 'locked_at', type: 'TIMESTAMP' },
+      { name: 'locked_by', type: 'UUID' },
+      { name: 'snapshot_data', type: 'JSONB' },
+      { name: 'final_pdf_path', type: 'VARCHAR(255)' },
+      { name: 'final_excel_path', type: 'VARCHAR(255)' },
+      { name: 'finalized_hash', type: 'VARCHAR(255)' },
+      { name: 'lock_version', type: 'INTEGER DEFAULT 0' },
+      { name: 'finalized_at', type: 'TIMESTAMP' },
+      { name: 'unlocked_at', type: 'TIMESTAMP' },
+      { name: 'unlocked_by', type: 'UUID' },
+      { name: 'unlock_reason', type: 'TEXT' }
     ];
 
     for (const col of eiColumns) {

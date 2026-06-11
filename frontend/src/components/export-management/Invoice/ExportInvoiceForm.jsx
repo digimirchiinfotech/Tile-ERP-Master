@@ -1281,17 +1281,19 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
                       Country of Final Dest. * <Info size={12} className="ms-1" />
                     </Form.Label>
                   </OverlayTrigger>
-                  <Form.Control
+                  <AddableDropdown
                     value={formData.country}
-                    onChange={(e) => {
-                      setFormData({ ...formData, country: e.target.value });
+                    onChange={(value) => {
+                      setFormData({ ...formData, country: value });
                       if (errors.country) setErrors({...errors, country: null});
                     }}
+                    masterDataType="countries"
+                    label="Country of Final Dest."
+                    placeholder="Select Country"
+                    className="form-control h-auto py-2 fw-bold text-primary"
                     isInvalid={!!errors.country}
-                    className="form-control py-2 px-3 fw-bold text-primary"
-                    style={{ borderRadius: '10px', height: '48px' }}
                   />
-                  <Form.Control.Feedback type="invalid">{errors.country}</Form.Control.Feedback>
+                  {errors.country && <div className="invalid-feedback d-block">{errors.country}</div>}
                 </Form.Group>
               </Col>
               <Col md={3}>

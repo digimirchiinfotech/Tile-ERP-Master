@@ -2201,6 +2201,7 @@ function InvoiceForm({ invoice, onBack = () => { }, onNavigate, currentUser, inv
                     <option value="Approved">Approved</option>
                     <option value="Rejected">Rejected</option>
                     <option value="Expired">Expired</option>
+                    <option value="Converted">Converted</option>
                   </Form.Select>
                 </Form.Group>
               </div>

@@ -29,9 +29,10 @@ export const resolveImageUrl = (url) => {
     return url;
   }
 
-  // Get API base from environment
-  const apiBase = import.meta.env.VITE_API_BASE || '';
-  const uploadUrl = import.meta.env.VITE_UPLOAD_URL || '/uploads';
+  // Get API base from environment, default to production if not set
+  const apiBase = import.meta.env.VITE_API_BASE || 'https://tile-erp-master-production.up.railway.app/api';
+  // If VITE_UPLOAD_URL isn't set, deduce it from apiBase
+  const uploadUrl = import.meta.env.VITE_UPLOAD_URL || apiBase.replace(/\/api\/?$/, '/uploads');
 
   // Fix common path issues (e.g. backend/uploads/... or uploads/...)
   if (url.includes('uploads')) {

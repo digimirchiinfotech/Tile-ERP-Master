@@ -256,8 +256,10 @@ function VGMDashboard({ currentUser, onNavigate }) {
     setShowConfirmModal(true);
   };
 
-  const handleDownloadPDF = async (invoiceId, invoiceNo) => {
-    try { await api.post('/document-activity/doc/' + (invoiceId, invoiceNo?.id || 'unknown') + '/action', { action: 'DOWNLOAD' }); } catch(e){}
+  const handleDownloadPDF = async (invoice) => {
+    const invoiceId = invoice?.export_invoice_id || invoice?.id;
+    const invoiceNo = invoice?.vgm_no || invoice?.invoice_no;
+    try { await api.post('/document-activity/doc/' + (invoiceId || 'unknown') + '/action', { action: 'DOWNLOAD' }); } catch(e){}
     if (!invoiceId) { showError('Invalid ID'); return; }
     try {
       showSuccess('Initializing download...');

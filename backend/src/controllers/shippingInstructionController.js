@@ -78,9 +78,25 @@ const buildValues = (body) => {
     return val; // If it's already a string, don't re-serialize it
   };
 
+  const ensureJson = (val) => {
+    if (!val) return '[]';
+    if (typeof val === 'object') return JSON.stringify(val);
+    if (typeof val === 'string') {
+      try {
+        JSON.parse(val);
+        return val;
+      } catch (e) {
+        // If it's a plain string, wrap it in an array so it's valid JSON
+        return JSON.stringify([val]);
+      }
+    }
+    return '[]';
+  };
+
   return {
     si_no: body.instructionNo || body.instruction_no || body.si_no || null,
     si_date: body.date || body.si_date || null,
+    date: body.date || body.si_date || null,
     export_invoice_no: body.exportInvoiceNo || body.export_invoice_no || null,
     booking_no: body.bookingNo || body.booking_no || null,
     vessel_voyage: body.vessel_voyage || body.vesselVoyage || (vname ? `${vname}/${vno || ''}` : null),
@@ -91,7 +107,7 @@ const buildValues = (body) => {
     consignee_details: ensureString(body.consigneeDetails || body.consignee_details || body.consignee_details),
     notify_party_details: body.notifyParty1 || body.notify_party1 || body.notify_party_1 || body.notifyParty || body.notify_party_details || null,
     notify_party_address: body.notifyParty2 || body.notify_party2 || body.notify_party_2 || null,
-    container_details: ensureString(body.containerDetails || body.container_details || []),
+    container_details: ensureJson(body.containerDetails || body.container_details),
     marks_and_nos: body.marksAndNos || body.marks_and_nos || null,
     description_of_goods: body.siDescription || body.si_description || body.descriptionOfGoods || body.description_of_goods || null,
     total_packages: body.totalBoxes || body.total_boxes || body.total_packages || null,

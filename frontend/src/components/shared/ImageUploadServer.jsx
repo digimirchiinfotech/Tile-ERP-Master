@@ -13,6 +13,7 @@ import { useState, useRef } from 'react';
 import { Button, Row, Col, Card, Modal, Alert } from 'react-bootstrap';
 import { Upload, X, Eye, Trash2, Check } from 'lucide-react';
 import { uploadProductImage } from '../../services/productImageService.js';
+import { resolveImageUrl } from '../../utils/urlHelper.js';
 
 function ImageUploadServer({
   productId,
@@ -162,26 +163,8 @@ function ImageUploadServer({
   };
 
   const getImageUrl = (image) => {
-    // Try to get URL from various possible field names
-    const imageUrl = image.path || image.url || image.imageUrl || '';
-    
-    // If it's already a full URL from backend, use it directly
-    if (imageUrl?.startsWith('http')) {
-      return imageUrl;
-    }
-    
-    // If it's a relative path like /uploads/..., use it as-is
-    if (imageUrl?.startsWith('/uploads/')) {
-      return imageUrl;
-    }
-    
-    // If it's just a filename, prepend /uploads/
-    if (imageUrl && !imageUrl.startsWith('/')) {
-      return `/uploads/${imageUrl}`;
-    }
-    
-    // Fallback to placeholder
-    return imageUrl || '/images/placeholder.png';
+    const rawUrl = image.path || image.url || image.imageUrl || '';
+    return resolveImageUrl(rawUrl) || 'https://placehold.co/120x120/e9ecef/6c757d?text=No+Image';
   };
 
   return (
@@ -251,7 +234,7 @@ function ImageUploadServer({
                         alt={image.name}
                         className="image-thumbnail"
                         onError={(e) => {
-                          e.target.src = '/images/placeholder.png';
+                          e.target.src = 'https://placehold.co/120x120/e9ecef/6c757d?text=No+Image';
                         }}
                       />
                       <div className="image-overlay">
@@ -320,7 +303,7 @@ function ImageUploadServer({
                 className="img-fluid"
                 style={{ maxHeight: '70vh', objectFit: 'contain' }}
                 onError={(e) => {
-                  e.target.src = '/images/placeholder.png';
+                  e.target.src = 'https://placehold.co/800x600/e9ecef/6c757d?text=No+Image';
                 }}
               />
               <div className="mt-3">

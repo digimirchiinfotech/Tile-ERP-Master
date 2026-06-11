@@ -200,7 +200,7 @@ function ExportInvoiceAnnexureDashboard({ currentUser, onNavigate }) {
   };
 
   const handleDownloadPDF = async (inv, isOffice = false) => {
-    try { await api.post('/document-activity/doc/' + (inv, isOffice = false?.id || 'unknown') + '/action', { action: 'DOWNLOAD' }); } catch(e){}
+    try { await api.post('/document-activity/doc/' + (inv?.id || 'unknown') + '/action', { action: 'DOWNLOAD' }); } catch(e){}
     const annexureId = inv.id || inv.annexure_id || inv.annexureId;
     if (!annexureId) {
       showError('No annexure found for this invoice');
@@ -243,7 +243,7 @@ function ExportInvoiceAnnexureDashboard({ currentUser, onNavigate }) {
   };
 
   const handlePrint = async (inv, isOffice = false) => {
-    try { await api.post('/document-activity/doc/' + (inv, isOffice = false?.id || 'unknown') + '/action', { action: 'PRINT' }); } catch(e){}
+    try { await api.post('/document-activity/doc/' + (inv?.id || 'unknown') + '/action', { action: 'PRINT' }); } catch(e){}
     const annexureId = inv.id || inv.annexure_id || inv.annexureId;
     if (!annexureId) {
       showError('No annexure found for this invoice');

@@ -36,6 +36,7 @@ import {
 import { FIELD_PLACEHOLDERS } from '../../config/fieldPlaceholders.js';
 import ValidationErrorModal from '../shared/ValidationErrorModal.jsx';
 import { scrollToFirstError } from '../../utils/validationUIHelper.js';
+import { useCatalogues } from '../../hooks/useCatalogues.js';
 
 function ProductForm({
   product,
@@ -83,6 +84,12 @@ function ProductForm({
   const [saveAsDefaultTemplate, setSaveAsDefaultTemplate] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [displayCompanyName, setDisplayCompanyName] = useState('Company');
+  const { catalogues } = useCatalogues();
+
+  const combinedCatalogueOptions = [...new Set([
+    ...(masterData?.masterData?.catalogueNames || []),
+    ...(catalogues || []).map(c => c.name)
+  ])].filter(Boolean);
 
   useEffect(() => {
     try {
@@ -680,6 +687,7 @@ function ProductForm({
                             handleInputChange('catalogueName', value)
                           }
                           masterDataType="catalogueNames"
+                          options={combinedCatalogueOptions}
                           label="Catalogue Name"
                           placeholder="Select or add catalogue"
                           isInvalid={!!errors.catalogueName}

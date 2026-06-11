@@ -2319,6 +2319,7 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
                     <option value="Draft">Draft</option>
                     <option value="Finalized">Finalized</option>
                     <option value="Dispatched">Dispatched</option>
+                    <option value="Converted">Converted</option>
                     <option value="Cancelled">Cancelled</option>
                   </Form.Select>
                 </Form.Group>

@@ -43,6 +43,7 @@ import api from '../../services/api.js';
 
 function QCForm({ qcRecord, onSave, onCancel, onBack, selectedOrder, existingRecords = [] }) {
   const [orderSheets, setOrderSheets] = useState([]);
+  const [allOrderSheets, setAllOrderSheets] = useState([]);
 
   useEffect(() => {
     const fetchOrderSheets = async () => {
@@ -51,6 +52,8 @@ function QCForm({ qcRecord, onSave, onCancel, onBack, selectedOrder, existingRec
         const responseData = res.data?.data || res.data;
         let items = responseData?.data || responseData?.items || responseData || [];
         if (!Array.isArray(items)) items = [];
+        
+        setAllOrderSheets(items);
 
         // Only allow QC on completed production, and filter out those that already have a QC record
         // (unless we are editing the existing QC record for that sheet)
@@ -262,6 +265,7 @@ function QCForm({ qcRecord, onSave, onCancel, onBack, selectedOrder, existingRec
           thickness: line.thickness || 'N/A',
           requiredSqm: (line.requiredSqm || line.required_sqm || 0).toString(),
           producedSqm: (line.producedSqm || line.produced_sqm || 0).toString(),
+          totalBoxes: (line.boxes_required || line.total_production_boxes || line.totalBoxes || line.total_boxes || line.boxes || 0).toString(),
           boxType: selectedSheet.box_type || selectedSheet.boxType || line.boxType || line.box_type || 'N/A'
         }));
       } else {
@@ -274,6 +278,7 @@ function QCForm({ qcRecord, onSave, onCancel, onBack, selectedOrder, existingRec
           thickness: 'N/A',
           requiredSqm: '0',
           producedSqm: '0',
+          totalBoxes: '0',
           boxType: 'N/A'
         }];
       }
@@ -746,7 +751,7 @@ function QCForm({ qcRecord, onSave, onCancel, onBack, selectedOrder, existingRec
                         <tbody>
                           {formData.productLines.map((product, index) => {
                             const imageUrl = getProductImage(product.product);
-                            const matchedSheet = orderSheets.find(s => (s.productionSheetNo || s.production_sheet_no) === formData.orderNumber);
+                            const matchedSheet = allOrderSheets.find(s => (s.productionSheetNo || s.production_sheet_no) === formData.orderNumber);
                             // Always prefer the live Order Sheet's box type, as old QC JSON records might contain corrupted boxType data (e.g. shade values)
                             const rawBoxType = matchedSheet?.box_type || matchedSheet?.boxType || product.boxType || 'N/A';
 
@@ -775,6 +780,8 @@ function QCForm({ qcRecord, onSave, onCancel, onBack, selectedOrder, existingRec
 
                             const finalRequiredSqm = product.requiredSqm || product.required_sqm || liveLine?.requiredSqm || liveLine?.required_sqm || 0;
                             const finalProducedSqm = product.producedSqm || product.produced_sqm || liveLine?.producedSqm || liveLine?.produced_sqm || 0;
+                            // Prefer liveLine data to override corrupted historical json records where totalBoxes might have been mistakenly set to SQM
+                            const finalTotalBoxes = liveLine?.boxes_required || liveLine?.total_production_boxes || liveLine?.totalBoxes || liveLine?.total_boxes || liveLine?.boxes || product.totalBoxes || product.total_boxes || product.boxes || 0;
 
                             return (
                               <tr key={index}>
@@ -813,7 +820,7 @@ function QCForm({ qcRecord, onSave, onCancel, onBack, selectedOrder, existingRec
                                 <td data-label="Size">{product.size}</td>
                                 <td data-label="Surface">{product.surface}</td>
                                 <td data-label="Thickness">{product.thickness}</td>
-                                <td data-label="Total Boxes">{finalRequiredSqm}</td>
+                                <td data-label="Total Boxes">{finalTotalBoxes}</td>
                                 <td data-label="Box Type" className="text-center">
                                   <div className="d-flex flex-column align-items-center">
                                     <img

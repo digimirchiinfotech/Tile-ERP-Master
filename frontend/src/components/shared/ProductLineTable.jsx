@@ -119,6 +119,25 @@ function ProductLineTable({
     };
   }, [productLines, products]);
 
+  // Automated column validation
+  useEffect(() => {
+    if (tableContainerRef.current) {
+      const headerRow = tableContainerRef.current.querySelector('thead tr');
+      const bodyRow = tableContainerRef.current.querySelector('tbody tr');
+      const footerRow = tableContainerRef.current.querySelector('tfoot tr');
+
+      if (headerRow && bodyRow && footerRow) {
+        const headerColumns = Array.from(headerRow.children).reduce((acc, th) => acc + (th.colSpan || 1), 0);
+        const bodyColumns = Array.from(bodyRow.children).reduce((acc, td) => acc + (td.colSpan || 1), 0);
+        const footerColumns = Array.from(footerRow.children).reduce((acc, td) => acc + (td.colSpan || 1), 0);
+
+        if (headerColumns !== bodyColumns || bodyColumns !== footerColumns) {
+          console.error(`Table column mismatch detected: Header=${headerColumns}, Body=${bodyColumns}, Footer=${footerColumns}`);
+        }
+      }
+    }
+  });
+
   /**
    * Add new product line with default values
    */
@@ -722,11 +741,22 @@ function ProductLineTable({
                 </tbody>
                 <tfoot className="table-footer-sticky bg-light fw-bold">
                   <tr>
-                    <td data-label="" colSpan={10} className="text-end text-primary">TOTAL</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td data-label="" className="text-end text-primary pe-3">TOTAL</td>
                     <td data-label="Total Pallet" className="text-center text-white bg-primary">
                       {formatQuantity(productLines.reduce((sum, line) => sum + (parseFloat(line.totalPallet) || 0), 0))}
                     </td>
-                    <td colSpan={2}></td>
+                    <td></td>
+                    <td></td>
                     <td data-label="Total Boxes" className="text-center text-white bg-primary">
                       {formatQuantity(productLines.reduce((sum, line) => sum + (parseFloat(line.totalBoxes) || 0), 0))}
                     </td>

@@ -682,102 +682,104 @@ const OrderSheetDashboard = () => {
                                 <h6 className="small fw-bold text-muted text-uppercase mb-3 d-flex align-items-center">
                                   <Box size={14} className="me-2" /> Product Lines Breakdown
                                 </h6>
-                                <Table size="sm" bordered hover className="mb-0 bg-white shadow-sm" style={{ fontSize: '0.8rem' }}>
-                                  <thead className="bg-secondary bg-opacity-10">
-                                    <tr>
-                                      <th className="text-muted">Assigned Factory</th>
-                                      <th className="text-muted">Product / Design</th>
-                                      <th className="text-muted">Category</th>
-                                      <th className="text-muted">Size</th>
-                                      <th className="text-muted">Surface</th>
-                                      <th className="text-muted text-end">Req. Boxes</th>
-                                      <th className="text-muted text-end">Completed Boxes</th>
-                                      <th className="text-muted text-end">Pending Boxes</th>
-                                      <th className="text-muted">Prod Status</th>
-                                      <th className="text-muted">QC Status</th>
-                                      <th className="text-muted text-center">Action</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {lines.map((line, idx) => {
-                                      const productCategory = line.product_category || line.productCategory || 'Unknown Product';
-                                      const design = line.design || '';
-                                      const factoryName = line.factory_name || line.factoryName;
-                                      const reqBoxes = parseFloat(line.total_production_boxes || line.totalProductionBoxes || 0);
-                                      const completedBoxes = parseFloat(line.production_completed_boxes || line.productionCompletedBoxes || 0);
-                                      return (
-                                      <tr key={line.id || idx}>
-                                        <td data-label="Factory">
-                                          <div>
-                                            <Dropdown>
-                                              <Dropdown.Toggle as="div" className={`badge rounded-pill cursor-pointer hide-caret ${factoryName ? 'bg-info' : 'bg-secondary bg-opacity-50 text-dark fst-italic'}`} style={{ cursor: 'pointer', padding: '5px 10px', fontSize: '11px', display: 'inline-block' }}>
-                                                {factoryName || 'Unassigned'}
-                                              </Dropdown.Toggle>
-                                              <Dropdown.Menu renderOnMount={true} popperConfig={{ strategy: 'fixed' }} className="shadow-sm border-0" style={{ fontSize: '12px', maxHeight: '200px', overflowY: 'auto' }}>
-                                                <Dropdown.Item onClick={() => handleInlineLineUpdate(sheet.id || sheet._id, line.id, 'factory_id', null)}>-- Unassigned --</Dropdown.Item>
-                                                {availableFactories.map(f => (
-                                                  <Dropdown.Item key={f.id} onClick={() => handleInlineLineUpdate(sheet.id || sheet._id, line.id, 'factory_id', f.id)}>{f.name}</Dropdown.Item>
-                                                ))}
-                                              </Dropdown.Menu>
-                                            </Dropdown>
-                                          </div>
-                                        </td>
-                                        <td data-label="Product" className="fw-medium text-dark">{design ? `${productCategory} - ${design}` : productCategory}</td>
-                                        <td data-label="Category">{line.tile_category || line.tileCategory || line.category || '-'}</td>
-                                        <td data-label="Size">{line.size}</td>
-                                        <td data-label="Finish">{line.surface || line.finish || '-'}</td>
-                                        <td data-label="Req. Qty" className="text-end fw-bold">{reqBoxes.toLocaleString()}</td>
-                                        <td data-label="Produced" className="text-end text-success fw-medium">{completedBoxes.toLocaleString()}</td>
-                                        <td data-label="Pending" className="text-end text-danger fw-medium">{(reqBoxes - completedBoxes).toLocaleString()}</td>
-                                        <td data-label="Prod. Status">
-                                          <div>{getStatusBadge(line.production_status || line.productionStatus || line.status)}</div>
-                                        </td>
-                                        <td data-label="QC Status">
-                                          <div>
-                                            <Dropdown>
-                                              <Dropdown.Toggle as="div" className="badge rounded-pill cursor-pointer hide-caret" style={{ 
-                                                cursor: 'pointer',
-                                                padding: '5px 10px', fontSize: '11px', display: 'inline-block',
-                                                backgroundColor: (line.qc_status || line.qcStatus) === 'Complete' ? '#e8f5e9' : '#ffebee',
-                                                color: (line.qc_status || line.qcStatus) === 'Complete' ? '#2e7d32' : '#c62828'
-                                              }}>
-                                                {line.qc_status || line.qcStatus || 'Pending'}
-                                              </Dropdown.Toggle>
-                                              <Dropdown.Menu renderOnMount={true} popperConfig={{ strategy: 'fixed' }} className="shadow-sm border-0" style={{ fontSize: '12px', minWidth: '120px' }}>
-                                                <Dropdown.Item onClick={() => handleInlineLineUpdate(sheet.id || sheet._id, line.id, 'qc_status', 'Pending')}>Pending</Dropdown.Item>
-                                                <Dropdown.Item onClick={() => handleInlineLineUpdate(sheet.id || sheet._id, line.id, 'qc_status', 'Complete')}>Complete</Dropdown.Item>
-                                              </Dropdown.Menu>
-                                            </Dropdown>
-                                          </div>
-                                        </td>
-                                        <td data-label="Actions" className="text-center">
-                                          <div>
-                                            <Button size="sm" variant="light" className="text-primary border-0 p-1" onClick={() => { setSelectedSheet(sheet); setSelectedLine(line); setLogModalOpen(true); }} title="Log Production" style={{ backgroundColor: 'transparent' }}>
-                                              <FileText size={16} />
-                                            </Button>
-                                          </div>
-                                        </td>
+                                <div className="table-responsive">
+                                  <Table size="sm" bordered hover className="mb-0 bg-white shadow-sm" style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                                    <thead className="bg-secondary bg-opacity-10">
+                                      <tr>
+                                        <th className="text-muted">Assigned Factory</th>
+                                        <th className="text-muted">Product / Design</th>
+                                        <th className="text-muted">Category</th>
+                                        <th className="text-muted">Size</th>
+                                        <th className="text-muted">Surface</th>
+                                        <th className="text-muted text-end">Req. Boxes</th>
+                                        <th className="text-muted text-end">Completed Boxes</th>
+                                        <th className="text-muted text-end">Pending Boxes</th>
+                                        <th className="text-muted">Prod Status</th>
+                                        <th className="text-muted">QC Status</th>
+                                        <th className="text-muted text-center">Action</th>
                                       </tr>
-                                    )})}
-                                      {lines.length === 0 && (
-                                        <tr>
-                                          <td colSpan="9" className="text-center text-muted py-3">
-                                            <div className="d-flex flex-column align-items-center gap-2">
-                                              <span className="small">No product lines found for this sheet.</span>
-                                              <button
-                                                className="btn btn-sm btn-outline-primary"
-                                                style={{ fontSize: '0.75rem' }}
-                                                onClick={() => handleSyncLines(sheet.id || sheet._id)}
-                                                title="Pull product lines from the linked Proforma Order"
-                                              >
-                                                🔄 Sync Lines from PO
-                                              </button>
+                                    </thead>
+                                    <tbody>
+                                      {lines.map((line, idx) => {
+                                        const productCategory = line.product_category || line.productCategory || 'Unknown Product';
+                                        const design = line.design || '';
+                                        const factoryName = line.factory_name || line.factoryName;
+                                        const reqBoxes = parseFloat(line.total_production_boxes || line.totalProductionBoxes || 0);
+                                        const completedBoxes = parseFloat(line.production_completed_boxes || line.productionCompletedBoxes || 0);
+                                        return (
+                                        <tr key={line.id || idx}>
+                                          <td data-label="Factory">
+                                            <div>
+                                              <Dropdown>
+                                                <Dropdown.Toggle as="div" className={`badge rounded-pill cursor-pointer hide-caret ${factoryName ? 'bg-info' : 'bg-secondary bg-opacity-50 text-dark fst-italic'}`} style={{ cursor: 'pointer', padding: '5px 10px', fontSize: '11px', display: 'inline-block' }}>
+                                                  {factoryName || 'Unassigned'}
+                                                </Dropdown.Toggle>
+                                                <Dropdown.Menu renderOnMount={true} popperConfig={{ strategy: 'fixed' }} className="shadow-sm border-0" style={{ fontSize: '12px', maxHeight: '200px', overflowY: 'auto' }}>
+                                                  <Dropdown.Item onClick={() => handleInlineLineUpdate(sheet.id || sheet._id, line.id, 'factory_id', null)}>-- Unassigned --</Dropdown.Item>
+                                                  {availableFactories.map(f => (
+                                                    <Dropdown.Item key={f.id} onClick={() => handleInlineLineUpdate(sheet.id || sheet._id, line.id, 'factory_id', f.id)}>{f.name}</Dropdown.Item>
+                                                  ))}
+                                                </Dropdown.Menu>
+                                              </Dropdown>
+                                            </div>
+                                          </td>
+                                          <td data-label="Product" className="fw-medium text-dark">{design ? `${productCategory} - ${design}` : productCategory}</td>
+                                          <td data-label="Category">{line.tile_category || line.tileCategory || line.category || '-'}</td>
+                                          <td data-label="Size">{line.size}</td>
+                                          <td data-label="Finish">{line.surface || line.finish || '-'}</td>
+                                          <td data-label="Req. Qty" className="text-end fw-bold">{reqBoxes.toLocaleString()}</td>
+                                          <td data-label="Produced" className="text-end text-success fw-medium">{completedBoxes.toLocaleString()}</td>
+                                          <td data-label="Pending" className="text-end text-danger fw-medium">{(reqBoxes - completedBoxes).toLocaleString()}</td>
+                                          <td data-label="Prod. Status">
+                                            <div>{getStatusBadge(line.production_status || line.productionStatus || line.status)}</div>
+                                          </td>
+                                          <td data-label="QC Status">
+                                            <div>
+                                              <Dropdown>
+                                                <Dropdown.Toggle as="div" className="badge rounded-pill cursor-pointer hide-caret" style={{ 
+                                                  cursor: 'pointer',
+                                                  padding: '5px 10px', fontSize: '11px', display: 'inline-block',
+                                                  backgroundColor: (line.qc_status || line.qcStatus) === 'Complete' ? '#e8f5e9' : '#ffebee',
+                                                  color: (line.qc_status || line.qcStatus) === 'Complete' ? '#2e7d32' : '#c62828'
+                                                }}>
+                                                  {line.qc_status || line.qcStatus || 'Pending'}
+                                                </Dropdown.Toggle>
+                                                <Dropdown.Menu renderOnMount={true} popperConfig={{ strategy: 'fixed' }} className="shadow-sm border-0" style={{ fontSize: '12px', minWidth: '120px' }}>
+                                                  <Dropdown.Item onClick={() => handleInlineLineUpdate(sheet.id || sheet._id, line.id, 'qc_status', 'Pending')}>Pending</Dropdown.Item>
+                                                  <Dropdown.Item onClick={() => handleInlineLineUpdate(sheet.id || sheet._id, line.id, 'qc_status', 'Complete')}>Complete</Dropdown.Item>
+                                                </Dropdown.Menu>
+                                              </Dropdown>
+                                            </div>
+                                          </td>
+                                          <td data-label="Actions" className="text-center">
+                                            <div>
+                                              <Button size="sm" variant="light" className="text-primary border-0 p-1" onClick={() => { setSelectedSheet(sheet); setSelectedLine(line); setLogModalOpen(true); }} title="Log Production" style={{ backgroundColor: 'transparent' }}>
+                                                <FileText size={16} />
+                                              </Button>
                                             </div>
                                           </td>
                                         </tr>
-                                      )}
-                                  </tbody>
-                                </Table>
+                                      )})}
+                                        {lines.length === 0 && (
+                                          <tr>
+                                            <td colSpan="11" className="text-center text-muted py-3">
+                                              <div className="d-flex flex-column align-items-center gap-2">
+                                                <span className="small">No product lines found for this sheet.</span>
+                                                <button
+                                                  className="btn btn-sm btn-outline-primary"
+                                                  style={{ fontSize: '0.75rem' }}
+                                                  onClick={() => handleSyncLines(sheet.id || sheet._id)}
+                                                  title="Pull product lines from the linked Proforma Order"
+                                                >
+                                                  🔄 Sync Lines from PO
+                                                </button>
+                                              </div>
+                                            </td>
+                                          </tr>
+                                        )}
+                                    </tbody>
+                                  </Table>
+                                </div>
                               </div>
                             </td>
                           </tr>

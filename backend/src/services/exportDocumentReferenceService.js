@@ -615,12 +615,13 @@ export const getBacksideInheritedData = async (companyId, annexureId, db) => {
         COALESCE(NULLIF(ia.division, ''), '') as division,
         COALESCE(NULLIF(ia.commissionerate, ''), '') as commissionerate,
         COALESCE(NULLIF(ia.manufacturer_name, ''), NULLIF(po.supplier_name, ''), '') as manufacturer_name,
-        COALESCE(NULLIF(ia.manufacturer_address, ''), '') as manufacturer_address,
+        COALESCE(NULLIF(ia.manufacturer_address, ''), NULLIF(s.address, ''), '') as manufacturer_address,
         COALESCE(NULLIF(ia.factory_address, ''), 'AT MORBI') as factory_address
       FROM export_invoice_annexures ia
       LEFT JOIN export_invoices ei ON ia.export_invoice_id = ei.id
       LEFT JOIN proforma_invoices pi ON ei.proforma_invoice_id = pi.id
       LEFT JOIN proforma_orders po ON pi.proforma_order_id = po.id
+      LEFT JOIN suppliers s ON po.supplier_id = s.id
       LEFT JOIN packing_lists pl ON ia.packing_list_id = pl.id AND pl.deleted_at IS NULL
       WHERE ia.id = $1
     `;

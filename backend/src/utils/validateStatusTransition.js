@@ -21,7 +21,7 @@ const ALLOWED_TRANSITIONS = {
     Sent:      ['Approved', 'Draft', 'Revised', 'Cancelled'],
     Approved:  ['Locked', 'Sent', 'Revised', 'Converted', 'Cancelled'],
     Locked:    ['Approved'], // Only admins can unlock → moves back to Approved
-    Converted: [],           // Terminal — no further status changes
+    Converted: ['Revised', 'Approved', 'Draft'], // Allow revising or reverting to Approved/Draft
     Revised:   ['Draft', 'Sent', 'Approved', 'Cancelled'],
     Cancelled: [],           // Terminal
   },
@@ -31,7 +31,7 @@ const ALLOWED_TRANSITIONS = {
     Finalized:  ['Dispatched', 'Locked', 'Sent'],
     Dispatched: ['Locked', 'Finalized'],
     Locked:     ['Finalized'], // Only unlocked by admin to Finalized
-    Converted:  [],
+    Converted:  ['Finalized', 'Draft'], // Allow reverting to Finalized/Draft
   },
   proforma_order: {
     Draft:           ['Confirmed', 'Cancelled'],

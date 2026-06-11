@@ -2250,7 +2250,7 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
                     rows={2}
                     value={formData.other_instructions || ''}
                     disabled={isFormLocked}
-                    onChange={(e) => setFormData({ ...formData, other_instructions: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, other_instructions: e.target.value.toUpperCase() })}
                     className={isFormLocked ? "bg-light border-0 py-2 px-3" : "form-control py-2 px-3"}
                     placeholder="Enter any other specific instructions"
                     style={{ borderRadius: '10px', minHeight: '48px', height: 'auto', resize: 'vertical' }}
@@ -2269,7 +2269,7 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
                     rows={2}
                     value={formData.supply_declaration !== undefined ? formData.supply_declaration : 'SUPPLY MEANT FOR EXPORT WITHOUT PAYMENT OF INTEGRATED TAX UNDER LUT BOND'}
                     disabled={isFormLocked}
-                    onChange={(e) => setFormData({ ...formData, supply_declaration: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, supply_declaration: e.target.value.toUpperCase() })}
                     className={isFormLocked ? "bg-light border-0 py-2 px-3 fw-semibold" : "form-control py-2 px-3 fw-semibold"}
                     placeholder="Enter supply declaration text"
                     style={{ borderRadius: '10px', minHeight: '60px' }}
@@ -2286,7 +2286,7 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
                     rows={2}
                     value={formData.ftp_incentive_declaration !== undefined ? formData.ftp_incentive_declaration : '"I/WE SHALL CLAIM UNDER CHAPTER 3 INCENTIVE OF FTP AS ADMISSIBLE AT TIME POLICY IN FORCE I.E. RODTEP"'}
                     disabled={isFormLocked}
-                    onChange={(e) => setFormData({ ...formData, ftp_incentive_declaration: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, ftp_incentive_declaration: e.target.value.toUpperCase() })}
                     className={isFormLocked ? "bg-light border-0 py-2 px-3 fw-semibold" : "form-control py-2 px-3 fw-semibold"}
                     placeholder="Enter FTP incentive declaration text"
                     style={{ borderRadius: '10px', minHeight: '60px' }}

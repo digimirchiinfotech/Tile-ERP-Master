@@ -20,5 +20,8 @@
     "multi-tenant"
   ],
   "author": "Tile Exporter Solution",
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "dependencies": {
+    "pg": "^8.21.0"
+  }
 }

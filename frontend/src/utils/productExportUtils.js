@@ -1768,7 +1768,7 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       mergeRow(r, 'A', r, 'C');
       setCell(r, 1, `VESSEL / VOYAGE :\n${vessel}`, { bold: true, size: 8, align: { horizontal: 'left', vertical: 'top' } });
       mergeRow(r, 'D', r, 'F');
-      setCell(r, 4, `ETD :\n${doc.etd || formatDisplayDate(doc.vgm_date || doc.date || doc.created_at) || '-'}`, { bold: true, size: 8, align: { horizontal: 'left', vertical: 'top' } });
+      setCell(r, 4, `ETD :\n${doc.etd ? formatDisplayDate(doc.etd) : (formatDisplayDate(doc.vgm_date || doc.date || doc.created_at) || '-')}`, { bold: true, size: 8, align: { horizontal: 'left', vertical: 'top' } });
       setCell(r, 7, `POD :\n${pod}`, { bold: true, size: 8, align: { horizontal: 'left', vertical: 'top' } });
       sheet.getRow(r).height = 30;
       r++;
@@ -1785,7 +1785,7 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       const firstContSize = containers.length > 0 ? (containers[0].size || containers[0].container_size || "20'") : "20'";
       const contCount = String(containers.length).padStart(2, '0');
       const allProductsRaw = [...tileProducts, ...sanitaryProducts];
-      const totBx = allProductsRaw.reduce((s, p) => s + parseInt(p.totalBoxes || p.total_boxes || p.boxes || p.pieces || 0, 10), 0);
+      const totBx = parseInt(doc.total_boxes || doc.totalBoxes || documentData.total_boxes || documentData.totalBoxes || 0, 10);
       
       mergeRow(r, 'A', r, 'G');
       setCell(r, 1, `${contCount}X${firstContSize} FCL SAID TO CONTAIN ${totBx} BOXES`, { bold: true, size: 9, align: { horizontal: 'left', vertical: 'middle' } });
@@ -1800,15 +1800,15 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       r++;
 
       // 10. Material summary
-      const firstProd = allProductsRaw.length > 0 ? (allProductsRaw[0].product || allProductsRaw[0].product_name || allProductsRaw[0].name || '') : '';
+      const firstProd = doc.description_of_goods || doc.siDescription || doc.goods_description || doc.material_header_description || doc.product_description || (allProductsRaw.length > 0 ? (allProductsRaw[0].product || allProductsRaw[0].product_name || allProductsRaw[0].name || '') : '');
       mergeRow(r, 'A', r, 'G');
       setCell(r, 1, firstProd || 'PRODUCT DESCRIPTION', { bold: true, size: 9, align: { horizontal: 'left', vertical: 'middle' } });
       sheet.getRow(r).height = 20;
       r++;
 
       // 11. HS / SQM
-      const hsn = allProductsRaw.length > 0 ? (allProductsRaw[0].hsnCode || allProductsRaw[0].hsn_code || allProductsRaw[0].hsCode || allProductsRaw[0].hs_code || '') : '';
-      const sqTotal = allProductsRaw.reduce((s, p) => s + parseFloat(p.sqmAuto || p.sqm_auto || p.sqm || 0), 0);
+      const hsn = doc.hs_code || doc.hsCode || doc.tariff_code || doc.tariffCode || (allProductsRaw.length > 0 ? (allProductsRaw[0].hsnCode || allProductsRaw[0].hsn_code || allProductsRaw[0].hsCode || allProductsRaw[0].hs_code || '') : '');
+      const sqTotal = parseFloat(doc.total_sqm || doc.totalSqm || documentData.total_sqm || documentData.totalSqm || 0);
       
       mergeRow(r, 'A', r, 'B');
       setCell(r, 1, 'HS CODE :-', { bold: true, size: 8, align: { horizontal: 'left', vertical: 'middle' } });

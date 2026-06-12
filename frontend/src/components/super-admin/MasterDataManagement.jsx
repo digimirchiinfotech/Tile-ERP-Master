@@ -948,7 +948,7 @@ function MasterDataManagement({ currentUser }) {
                       </tr>
                     </thead>
                     <tbody>
-                      {currentList.map((item, index) => (
+                      {currentList.slice(0, 100).map((item, index) => (
                         <tr key={index}>
                           <td className="ps-4 text-center text-muted">{index + 1}</td>
                           <td className="fw-medium">
@@ -991,7 +991,7 @@ function MasterDataManagement({ currentUser }) {
 
                 <div className="d-lg-none bg-light-subtle p-3">
                   <div className="d-flex flex-column gap-3">
-                    {currentList.map((item, index) => {
+                    {currentList.slice(0, 100).map((item, index) => {
                       const mainText = item?.cityName || item?.countryName || item?.portName || item?.name || item?.value || item?.factoryName || item;
                       const subText = activeCategory === 'countries' ? `Code: ${item.countryCode || item.isoAlpha2} | ${item.isoAlpha3 || 'N/A'}` : null;
 
@@ -1023,6 +1023,13 @@ function MasterDataManagement({ currentUser }) {
                     })}
                   </div>
                 </div>
+
+                {currentList.length > 100 && (
+                  <div className="text-center p-3 text-muted small bg-light border-top">
+                    <Info size={14} className="me-1 d-inline" />
+                    Showing top 100 of {currentList.length} items. Use search or filters to narrow down.
+                  </div>
+                )}
               </>
             ) : (
               <div className="text-center py-5">

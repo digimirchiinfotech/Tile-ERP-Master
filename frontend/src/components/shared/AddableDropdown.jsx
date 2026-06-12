@@ -17,7 +17,13 @@ import { uploadMasterDataImage } from '../../services/masterDataService.js';
 
 // Custom Menu to prevent React-Bootstrap from hijacking keyboard events
 const CustomMenu = React.forwardRef(
-  ({ children, style, className, 'aria-labelledby': labeledBy, searchTerm, setSearchTerm, addButtonLabel, handleChange }, ref) => {
+  ({ style, className, 'aria-labelledby': labeledBy, options, value, addButtonLabel, handleChange }, ref) => {
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const filteredOptions = options.filter(opt => 
+      String(opt).toLowerCase().includes(searchTerm.toLowerCase())
+    ).slice(0, 100);
+
     return (
       <div
         ref={ref}
@@ -35,7 +41,7 @@ const CustomMenu = React.forwardRef(
               onChange={(e) => setSearchTerm(e.target.value)}
               value={searchTerm}
               style={{ borderRadius: '6px' }}
-              onKeyDown={(e) => e.stopPropagation()} // Crucial: Stop Dropdown from eating keystrokes!
+              onKeyDown={(e) => e.stopPropagation()} 
             />
           </div>
         </div>
@@ -46,7 +52,20 @@ const CustomMenu = React.forwardRef(
         >
           {addButtonLabel}
         </Dropdown.Item>
-        {children}
+        {filteredOptions.map((option) => (
+          <Dropdown.Item 
+            key={option} 
+            active={String(option).toLowerCase() === String(value).toLowerCase()}
+            onClick={() => handleChange({ target: { value: option } })}
+          >
+            {option}
+          </Dropdown.Item>
+        ))}
+        {filteredOptions.length === 0 && (
+          <Dropdown.Item disabled className="text-muted text-center fst-italic">
+            No matching options found
+          </Dropdown.Item>
+        )}
       </div>
     );
   },
@@ -261,10 +280,6 @@ function AddableDropdown({
     }
   }
 
-  const filteredOptions = displayedOptions.filter(opt => 
-    String(opt).toLowerCase().includes(searchTerm.toLowerCase())
-  ).slice(0, 100);
-
   const displayValue = isMultiple 
     ? (loading ? 'Loading...' : placeholder)
     : (displayedOptions.find(opt => String(opt).toLowerCase() === String(value).toLowerCase()) || value || (loading ? 'Loading...' : placeholder));
@@ -272,11 +287,7 @@ function AddableDropdown({
   return (
     <>
       <div className={className}>
-        <Dropdown 
-          onToggle={(isOpen) => {
-            if (!isOpen) setSearchTerm('');
-          }}
-        >
+        <Dropdown>
           <Dropdown.Toggle
             variant="outline-secondary"
             className={`w-100 text-start d-flex justify-content-between align-items-center mb-1 ${selectClassName} ${isInvalid ? 'is-invalid border-danger' : ''}`}
@@ -288,26 +299,11 @@ function AddableDropdown({
 
           <Dropdown.Menu 
             as={CustomMenu} 
-            searchTerm={searchTerm} 
-            setSearchTerm={setSearchTerm} 
+            options={displayedOptions}
+            value={value}
             addButtonLabel={addButtonLabel} 
             handleChange={handleChange}
-          >
-            {filteredOptions.map((option) => (
-              <Dropdown.Item 
-                key={option} 
-                active={String(option).toLowerCase() === String(value).toLowerCase()}
-                onClick={() => handleChange({ target: { value: option } })}
-              >
-                {option}
-              </Dropdown.Item>
-            ))}
-            {filteredOptions.length === 0 && (
-              <Dropdown.Item disabled className="text-muted text-center fst-italic">
-                No matching options found
-              </Dropdown.Item>
-            )}
-          </Dropdown.Menu>
+          />
         </Dropdown>
 
         {isMultiple && selectedValues.length > 0 && (

@@ -599,7 +599,7 @@ function CompanyForm({ company, onSave, onCancel, saving = false }) {
                           isInvalid={!!errors.country}
                         >
                           <option value="">Select Country</option>
-                          {countries.map(c => <option key={c.id} value={c.countryName}>{c.countryName}</option>)}
+                          {(countries || []).map(c => <option key={c.id} value={c.countryName}>{c.countryName}</option>)}
                         </Form.Select>
                       </div>
                       <div className="mb-0">
@@ -611,7 +611,7 @@ function CompanyForm({ company, onSave, onCancel, saving = false }) {
                           disabled={!formData.country}
                         >
                           <option value="">Select City</option>
-                          {cities.map(c => <option key={c.id} value={c.cityName}>{c.cityName}</option>)}
+                          {(cities || []).map(c => <option key={c.id} value={c.cityName}>{c.cityName}</option>)}
                         </Form.Select>
                       </div>
                     </Card.Body>

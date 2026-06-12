@@ -502,7 +502,7 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                             handleInputChange('country', val);
                             handleInputChange('city', '');
                           }}
-                          options={countries.map(c => String(c.countryName || c.name || c).toUpperCase())}
+                          options={(countries || []).map(c => String(c.countryName || c.name || c).toUpperCase())}
                           masterDataType="countries"
                           label="Country"
                           placeholder="Select Country"
@@ -516,7 +516,7 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                         <AddableDropdown
                           value={formData.city}
                           onChange={(val) => handleInputChange('city', val)}
-                          options={cities.map(c => String(c.cityName || c.city_name || c.value || c).toUpperCase())}
+                          options={(cities || []).map(c => String(c.cityName || c.city_name || c.value || c).toUpperCase())}
                           masterDataType="cities"
                           label="City"
                           placeholder="Select City"

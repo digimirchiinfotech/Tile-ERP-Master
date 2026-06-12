@@ -10,8 +10,8 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Form, Modal, Button, InputGroup, Spinner, Badge } from 'react-bootstrap';
-import { Plus, X, Image as ImageIcon } from 'lucide-react';
+import { Form, Modal, Button, InputGroup, Spinner, Badge, Dropdown } from 'react-bootstrap';
+import { Plus, X, Image as ImageIcon, Search } from 'lucide-react';
 import api from '../../services/api.js';
 import { uploadMasterDataImage } from '../../services/masterDataService.js';
 
@@ -44,6 +44,7 @@ function AddableDropdown({
   const [error, setError] = useState('');
   const [imageUrl, setImageUrl] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     if (Array.isArray(staticOptions) && staticOptions.length > 0) {
@@ -223,27 +224,68 @@ function AddableDropdown({
     }
   }
 
+  const filteredOptions = displayedOptions.filter(opt => 
+    String(opt).toLowerCase().includes(searchTerm.toLowerCase())
+  ).slice(0, 100);
+
+  const displayValue = isMultiple 
+    ? (loading ? 'Loading...' : placeholder)
+    : (displayedOptions.find(opt => String(opt).toLowerCase() === String(value).toLowerCase()) || value || (loading ? 'Loading...' : placeholder));
+
   return (
     <>
       <div className={className}>
-        <Form.Select
-          value={isMultiple ? '' : (displayedOptions.find(opt => String(opt).toLowerCase() === String(value).toLowerCase()) || value)}
-          onChange={handleChange}
-          isInvalid={isInvalid}
-          disabled={disabled || loading}
-          className={`mb-1 ${selectClassName}`}
-          style={selectStyle}
+        <Dropdown 
+          onToggle={(isOpen) => {
+            if (!isOpen) setSearchTerm('');
+          }}
         >
-          <option value="">{loading ? 'Loading...' : placeholder}</option>
-          <option value="__add_new__" className="text-primary fw-bold">
-            {addButtonLabel}
-          </option>
-          {displayedOptions.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </Form.Select>
+          <Dropdown.Toggle
+            variant="outline-secondary"
+            className={`w-100 text-start d-flex justify-content-between align-items-center mb-1 ${selectClassName} ${isInvalid ? 'is-invalid border-danger' : ''}`}
+            style={{ ...selectStyle, backgroundColor: '#fff', borderColor: '#dee2e6' }}
+            disabled={disabled || loading}
+          >
+            <span className="text-truncate">{displayValue}</span>
+          </Dropdown.Toggle>
+
+          <Dropdown.Menu className="w-100 shadow-sm" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+            <div className="px-2 py-1 position-sticky top-0 bg-white" style={{ zIndex: 1 }}>
+              <div className="position-relative">
+                <Search size={14} className="position-absolute top-50 translate-middle-y text-muted ms-2" />
+                <Form.Control
+                  autoFocus
+                  className="ps-4 border-primary-subtle"
+                  placeholder="Type to search..."
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={searchTerm}
+                  style={{ borderRadius: '6px' }}
+                />
+              </div>
+            </div>
+            <Dropdown.Divider className="my-1" />
+            <Dropdown.Item 
+              onClick={() => handleChange({ target: { value: '__add_new__' } })}
+              className="text-primary fw-bold"
+            >
+              {addButtonLabel}
+            </Dropdown.Item>
+            {filteredOptions.map((option) => (
+              <Dropdown.Item 
+                key={option} 
+                active={String(option).toLowerCase() === String(value).toLowerCase()}
+                onClick={() => handleChange({ target: { value: option } })}
+              >
+                {option}
+              </Dropdown.Item>
+            ))}
+            {filteredOptions.length === 0 && (
+              <Dropdown.Item disabled className="text-muted text-center fst-italic">
+                No matching options found
+              </Dropdown.Item>
+            )}
+          </Dropdown.Menu>
+        </Dropdown>
 
         {isMultiple && selectedValues.length > 0 && (
           <div className="d-flex flex-wrap gap-1 mt-1">

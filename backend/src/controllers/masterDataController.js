@@ -199,7 +199,10 @@ export const createMasterData = async (req, res, next) => {
     try {
       await client.query('BEGIN');
       const rawValue = body.value || body.name || body.cityName || body.countryName || body.portName || body.term || body.type || body.marking || body.destination || body[config.column];
-      const trimmedValue = rawValue ? String(rawValue).trim() : undefined;
+      let trimmedValue = rawValue ? String(rawValue).trim() : undefined;
+      if (trimmedValue && (config.table === 'master_cities' || config.table === 'master_countries')) {
+        trimmedValue = trimmedValue.toUpperCase();
+      }
       if (!trimmedValue) {
         await client.query('ROLLBACK');
         return res.status(400).json({ success: false, message: 'Value is required' });
@@ -278,7 +281,10 @@ export const updateMasterData = async (req, res, next) => {
       let paramCount = 1;
 
       const rawValue = body.value || body.name || body.cityName || body.countryName || body.portName || body.term || body.type || body.marking || body.destination || body[config.column];
-      const value = rawValue !== undefined ? String(rawValue).trim() : undefined;
+      let value = rawValue !== undefined ? String(rawValue).trim() : undefined;
+      if (value && (config.table === 'master_cities' || config.table === 'master_countries')) {
+        value = value.toUpperCase();
+      }
 
       if (value !== undefined && value) {
         let checkQuery, checkParams;
@@ -455,7 +461,7 @@ export const getCitiesByCountry = async (req, res, next) => {
       SELECT mc.id, mc.city_name, mc.state_province, mc.status,
              mcn.country_name, mcn.country_code, mcn.id as country_id
       FROM master_cities mc
-      LEFT JOIN master_countries mcn ON mc.country_code = mcn.country_code
+      LEFT JOIN master_countries mcn ON mc.country_id = mcn.id
       WHERE (mcn.country_code = $1 OR mcn.iso_alpha_2 = $1)
       ORDER BY mc.city_name
       LIMIT 1000
@@ -473,7 +479,7 @@ export const getAllCities = async (req, res, next) => {
       SELECT mc.id, mc.city_name, mc.state_province, mc.status,
              mcn.country_name, mcn.country_code, mcn.id as country_id
       FROM master_cities mc
-      LEFT JOIN master_countries mcn ON mc.country_code = mcn.country_code
+      LEFT JOIN master_countries mcn ON mc.country_id = mcn.id
       ORDER BY mcn.country_name, mc.city_name
       LIMIT 500
     `;
@@ -491,7 +497,7 @@ export const searchCities = async (req, res, next) => {
       SELECT mc.id, mc.city_name, mc.state_province, mc.status,
              mcn.country_name, mcn.country_code, mcn.id as country_id
       FROM master_cities mc
-      LEFT JOIN master_countries mcn ON mc.country_code = mcn.country_code
+      LEFT JOIN master_countries mcn ON mc.country_id = mcn.id
       WHERE (LOWER(mc.city_name) LIKE LOWER($1) OR LOWER(COALESCE(mc.state_province,'')) LIKE LOWER($1))
       ORDER BY mcn.country_name, mc.city_name
       LIMIT 50

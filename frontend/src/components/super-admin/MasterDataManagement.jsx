@@ -738,7 +738,13 @@ function MasterDataManagement({ currentUser }) {
                                       </td>
                                     )}
                                     <td className="fw-medium">
-                                      {item?.value || item?.name || item?.portName || item?.cityName || item?.countryName || (typeof item === 'string' ? item : 'Unnamed')}
+                                      {(() => {
+                                        let displayValue = item?.value || item?.name || item?.portName || item?.cityName || item?.countryName || (typeof item === 'string' ? item : 'Unnamed');
+                                        if (typeof displayValue === 'string' && (sub.key === 'cities' || sub.key === 'countries')) {
+                                          displayValue = displayValue.toUpperCase();
+                                        }
+                                        return displayValue;
+                                      })()}
                                     </td>
                                     <td className="pe-4 text-end">
                                       <div className="d-flex justify-content-end gap-1">

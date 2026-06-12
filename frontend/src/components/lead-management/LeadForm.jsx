@@ -189,7 +189,7 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
 
   const handleInputChange = (field, value) => {
     // Apply field-specific filtering
-    let filteredValue = value;
+    let filteredValue = typeof value === 'string' && (field === 'country' || field === 'city') ? value.toUpperCase() : value;
     if (fieldFilterMap[field]) {
       filteredValue = fieldFilterMap[field](value);
     }
@@ -502,7 +502,7 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                             handleInputChange('country', val);
                             handleInputChange('city', '');
                           }}
-                          options={countries.map(c => c.countryName || c.name || c)}
+                          options={countries.map(c => String(c.countryName || c.name || c).toUpperCase())}
                           masterDataType="countries"
                           label="Country"
                           placeholder="Select Country"
@@ -516,12 +516,13 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                         <AddableDropdown
                           value={formData.city}
                           onChange={(val) => handleInputChange('city', val)}
-                          options={cities.map(c => c.cityName || c.city_name || c.value || c)}
+                          options={cities.map(c => String(c.cityName || c.city_name || c.value || c).toUpperCase())}
                           masterDataType="cities"
                           label="City"
                           placeholder="Select City"
                           isInvalid={!!errors.city}
                           disabled={!formData.country}
+                          disableAutoFetch={true}
                           extraBodyData={{
                             countryCode: countries.find(c => c.countryName === formData.country)?.countryCode
                           }}

@@ -235,14 +235,14 @@ function AddableDropdown({
           style={selectStyle}
         >
           <option value="">{loading ? 'Loading...' : placeholder}</option>
+          <option value="__add_new__" className="text-primary fw-bold">
+            {addButtonLabel}
+          </option>
           {displayedOptions.map((option) => (
             <option key={option} value={option}>
               {option}
             </option>
           ))}
-          <option value="__add_new__" className="text-primary fw-bold">
-            {addButtonLabel}
-          </option>
         </Form.Select>
 
         {isMultiple && selectedValues.length > 0 && (

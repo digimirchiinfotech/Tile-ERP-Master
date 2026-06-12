@@ -377,7 +377,20 @@ function MasterDataManagement({ currentUser }) {
     }
 
     setEditingItem({ item, index, subcategory, id: itemData?.id || itemData?._id });
-    setNewValue(itemData?.countryName || itemData?.cityName || itemData?.name || itemData?.value || itemData?.portName || item);
+
+    let val = '';
+    if (activeCategory === 'cities') {
+      val = itemData?.cityName;
+    } else if (activeCategory === 'countries') {
+      val = itemData?.countryName;
+    } else if (activeCategory === 'factories' || apiType === 'factoryNames') {
+      val = itemData?.factoryName;
+    } else if (subcategory === 'portsOfLoading' || subcategory === 'portsOfDischarge' || subcategory === 'finalDestinations' || activeCategory === 'ports') {
+      val = itemData?.portName;
+    }
+    val = val || itemData?.name || itemData?.value || itemData;
+
+    setNewValue(typeof val === 'string' ? val : (val?.toString() || ''));
 
     if (activeCategory === 'cities') {
       setSelectedCountry(itemData?.countryCode || itemData?.countryId || null);

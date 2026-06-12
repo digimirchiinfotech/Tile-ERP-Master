@@ -427,10 +427,9 @@ const multiSelect = useMultiSelect(orders);
               date: data?.data?.orderDate || data?.data?.order_date || '',
               extension: 'pdf'
             });
-              const result = await downloadPDF(downloadPrintViewRef.current, {
+              const result = await downloadPDF(downloadPrintViewRef.current, filename, {
                 format: 'a4',
-                orientation: 'portrait',
-                filename
+                orientation: 'portrait'
               });
               if (!result.success) {
                 showError('Failed to download PDF: ' + result.message);

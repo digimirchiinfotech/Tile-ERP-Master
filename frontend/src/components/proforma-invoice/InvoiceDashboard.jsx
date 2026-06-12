@@ -509,16 +509,16 @@ function InvoiceDashboard({ onAddNew, onEdit, invoicesData, productsData, client
       // Wait for hidden component to fully render with all props and images
       setTimeout(async () => {
         if (downloadPrintViewRef.current) {
-          const result = await downloadPDF(downloadPrintViewRef.current, {
+          const filename = generateEnterpriseFilename({
+            moduleName: 'PROFORMA-INVOICE',
+            documentNo: invoice.invoiceNo || invoice.invoice_no || 'document',
+            clientName: invoice.clientName || invoice.client_name || '',
+            date: invoice.date || new Date().toISOString(),
+            extension: 'pdf'
+          });
+          const result = await downloadPDF(downloadPrintViewRef.current, filename, {
             format: 'a4',
-            orientation: 'portrait',
-            filename: generateEnterpriseFilename({
-              moduleName: 'PROFORMA-INVOICE',
-              documentNo: invoice.invoiceNo || invoice.invoice_no || 'document',
-              clientName: invoice.clientName || invoice.client_name || '',
-              date: invoice.date || new Date().toISOString(),
-              extension: 'pdf'
-            })
+            orientation: 'portrait'
           });
           if (!result.success) {
             showError('Failed to download PDF: ' + result.message);

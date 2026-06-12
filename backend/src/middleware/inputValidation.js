@@ -61,6 +61,10 @@ export const sanitizeInput = (req, res, next) => {
         req.query[key] = xss(req.query[key]);
       }
     }
+    // Explicitly handle empty string IDs to prevent Postgres UUID parse crashes globally
+    if (req.query.id === "") {
+      req.query.id = null;
+    }
   }
   next();
 };

@@ -368,14 +368,12 @@ function MasterDataManagement({ currentUser }) {
   };
 
   const handleEditItem = (item, index, subcategory = null) => {
-    let itemData;
+    let itemData = item;
     let apiType;
     if (subcategory) {
-      itemData = masterDataWithIds[subcategory]?.[index];
       setActiveSubCategory(subcategory);
     } else {
       apiType = CATEGORY_TO_API_TYPE[activeCategory];
-      itemData = masterDataWithIds[apiType === 'factoryNames' ? 'factories' : activeCategory]?.[index];
     }
 
     setEditingItem({ item, index, subcategory, id: itemData?.id || itemData?._id });
@@ -408,17 +406,15 @@ function MasterDataManagement({ currentUser }) {
   };
 
   const confirmDelete = async () => {
-    const { index, subcategory } = deleteConfig;
+    const { item, subcategory } = deleteConfig;
 
-    let itemData;
+    let itemData = item;
     let endpoint = '';
 
     if (subcategory) {
-      itemData = masterDataWithIds[subcategory]?.[index];
       endpoint = `/master-data/${subcategory}`;
     } else {
       const apiType = CATEGORY_TO_API_TYPE[activeCategory];
-      itemData = masterDataWithIds[apiType === 'factoryNames' ? 'factories' : activeCategory]?.[index];
       endpoint = activeCategory === 'countries' ? '/master-data/countries'
         : activeCategory === 'cities' ? '/master-data/cities'
           : `/master-data/${apiType}`;

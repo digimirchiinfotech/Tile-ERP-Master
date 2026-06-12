@@ -567,6 +567,7 @@ export const getByAnnexureId = async (req, res, next) => {
               pi.date AS pi_date, pi.date AS proforma_date,
               ei.invoice_date AS export_invoice_date,
               ei.invoice_no AS inv_no, ei.invoice_date AS inv_date, ei.client_name AS inv_client,
+              ei.consignee_details AS inv_consignee_details, ei.buyer_details AS inv_buyer_details,
               ei.box_type as inv_box_type, ei.pallet_type as inv_pallet_type,
               ei.tiles_back as inv_tiles_back, ei.boxes_marking as inv_marks,
               ei.fumigation as inv_fumigation, ei.legalisation as inv_legalisation,

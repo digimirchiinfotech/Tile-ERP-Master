@@ -269,8 +269,8 @@ function SupplierDashboard({ currentUser, navigationData }) {
       createColumnDef('City', 'city'),
       createColumnDef('Status', 'status'),
     ];
-    exportData(filteredSuppliers, columns, 'csv', 'suppliers');
-    showSuccess('Suppliers exported to CSV successfully!');
+    exportData(filteredSuppliers, columns, 'xlsx', 'suppliers', typeof currentUser !== 'undefined' ? currentUser?.role === 'super_admin' : false);
+    showSuccess('Suppliers exported to Excel successfully!');
   };
 
   const handleBulkDelete = async () => {

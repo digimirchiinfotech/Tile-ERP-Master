@@ -366,7 +366,7 @@ function LeadDashboard({ currentUser, leadsData, clientsData, usersData, product
       createColumnDef('Priority', 'priority'),
       createColumnDef('Status', 'status'),
     ];
-    exportData(filteredLeads, columns, 'csv', 'leads');
+    exportData(filteredLeads, columns, 'xlsx', 'leads', typeof currentUser !== 'undefined' ? currentUser?.role === 'super_admin' : false);
   };
 
   const handleBulkDelete = async () => {

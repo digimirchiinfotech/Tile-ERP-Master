@@ -62,19 +62,19 @@ export const getSalesReport = async (req, res, next) => {
 
             const result = await companyPool.query(`
               SELECT 
-                (SELECT COUNT(*) FROM proforma_invoices pi ${whereClause} ${dateFilter}) as orders,
+                (SELECT COUNT(*) FROM proforma_invoices pi ${whereClause} AND pi.status != 'Revised' ${dateFilter}) as orders,
                 (SELECT COUNT(*) FROM leads l ${whereClause.replace('1=1', '1=1')} ${dateFilter.replace(/pi\.date/g, 'l.created_at')}) as leads,
-                (SELECT COALESCE(SUM(CAST(total_amount AS DECIMAL)), 0) FROM proforma_invoices pi ${whereClause} ${dateFilter}) as revenue,
+                (SELECT COALESCE(SUM(CAST(total_amount AS DECIMAL)), 0) FROM proforma_invoices pi ${whereClause} AND pi.status != 'Revised' ${dateFilter}) as revenue,
                 (
                   SELECT COALESCE(SUM(CAST(total_amount AS DECIMAL)), 0) 
                   FROM proforma_invoices 
-                  WHERE date >= date_trunc('month', CURRENT_DATE - INTERVAL '1 month')
+                  WHERE status != 'Revised' AND date >= date_trunc('month', CURRENT_DATE - INTERVAL '1 month')
                   AND date < date_trunc('month', CURRENT_DATE)
                 ) as last_month_revenue,
                 (
                   SELECT COALESCE(SUM(CAST(total_amount AS DECIMAL)), 0) 
                   FROM proforma_invoices 
-                  WHERE date >= date_trunc('month', CURRENT_DATE)
+                  WHERE status != 'Revised' AND date >= date_trunc('month', CURRENT_DATE)
                 ) as current_month_revenue
             `, params);
 
@@ -144,6 +144,7 @@ export const getSalesReport = async (req, res, next) => {
           SELECT COALESCE(SUM(CAST(total_amount AS DECIMAL)), 0) 
           FROM proforma_invoices sub_pi 
           WHERE sub_pi.client_id = c.id 
+          AND sub_pi.status != 'Revised'
           AND sub_pi.date >= date_trunc('month', CURRENT_DATE - INTERVAL '1 month')
           AND sub_pi.date < date_trunc('month', CURRENT_DATE)
         ) as last_month_revenue,
@@ -151,11 +152,12 @@ export const getSalesReport = async (req, res, next) => {
           SELECT COALESCE(SUM(CAST(total_amount AS DECIMAL)), 0) 
           FROM proforma_invoices sub_pi 
           WHERE sub_pi.client_id = c.id 
+          AND sub_pi.status != 'Revised'
           AND sub_pi.date >= date_trunc('month', CURRENT_DATE)
         ) as current_month_revenue
       FROM proforma_invoices pi
       LEFT JOIN clients c ON pi.client_id = c.id
-      ${whereClause}
+      ${whereClause} AND pi.status != 'Revised'
       GROUP BY c.id, c.client_name
       ORDER BY revenue DESC
     `, params);
@@ -221,7 +223,7 @@ export const getOperationalReport = async (req, res, next) => {
             const piRes = await companyPool.query(`
               SELECT COUNT(*) as count, AVG(EXTRACT(DAY FROM updated_at - created_at)) as avg_days
               FROM proforma_invoices
-              WHERE updated_at > created_at
+              WHERE updated_at > created_at AND status != 'Revised'
             `);
             totalPI += parseInt(piRes.rows[0].count) || 0;
             totalDays += (parseFloat(piRes.rows[0].avg_days) || 0) * (parseInt(piRes.rows[0].count) || 0);
@@ -279,7 +281,7 @@ export const getOperationalReport = async (req, res, next) => {
       SELECT 
         AVG(EXTRACT(DAY FROM updated_at - created_at)) as avg_days
       FROM proforma_invoices 
-      ${invoiceWhereClause}
+      ${invoiceWhereClause ? invoiceWhereClause + ' AND status != \'Revised\'' : 'WHERE status != \'Revised\''}
     `, params);
 
     const invoiceData = invoiceResult.rows[0];
@@ -344,6 +346,7 @@ export const getFinancialReport = async (req, res, next) => {
                 SUM(CASE WHEN status = 'Paid' THEN 1 ELSE 0 END) as paid_count,
                 SUM(CAST(total_amount AS DECIMAL)) as revenue
               FROM proforma_invoices
+              WHERE status != 'Revised'
               GROUP BY DATE_TRUNC('month', date)
               ORDER BY month_date DESC
               LIMIT 3
@@ -380,7 +383,7 @@ export const getFinancialReport = async (req, res, next) => {
     }
 
     const params = userCompanyId ? [userCompanyId] : [];
-    const companyFilter = userCompanyId ? 'WHERE pi.company_id = $1' : 'WHERE pi.company_id IS NULL';
+    const companyFilter = userCompanyId ? 'WHERE pi.company_id = $1 AND pi.status != \'Revised\'' : 'WHERE pi.company_id IS NULL AND pi.status != \'Revised\'';
 
     const result = await req.db.query(`
       SELECT 
@@ -435,6 +438,7 @@ export const getProductPerformanceReport = async (req, res, next) => {
               SELECT pil.product_name as name, COUNT(DISTINCT pi.id) as orders, SUM(CAST(pil.amount AS DECIMAL)) as revenue
               FROM proforma_invoices pi
               JOIN proforma_invoice_lines pil ON pi.id = pil.proforma_invoice_id
+              WHERE pi.status != 'Revised'
               GROUP BY pil.product_name
               HAVING pil.product_name IS NOT NULL
             `);
@@ -449,6 +453,7 @@ export const getProductPerformanceReport = async (req, res, next) => {
               SELECT COALESCE(cl.country, 'Unknown') as country, COUNT(DISTINCT pi.id) as orders, SUM(CAST(pi.total_amount AS DECIMAL)) as revenue
               FROM proforma_invoices pi
               LEFT JOIN clients cl ON pi.client_id = cl.id
+              WHERE pi.status != 'Revised'
               GROUP BY cl.country
             `);
             countryRes.rows.forEach(row => {
@@ -478,7 +483,7 @@ export const getProductPerformanceReport = async (req, res, next) => {
     }
 
     const params = userCompanyId ? [userCompanyId] : [];
-    const companyFilter = userCompanyId ? 'WHERE pi.company_id = $1' : 'WHERE pi.company_id IS NULL';
+    const companyFilter = userCompanyId ? 'WHERE pi.company_id = $1 AND pi.status != \'Revised\'' : 'WHERE pi.company_id IS NULL AND pi.status != \'Revised\'';
 
     // Top Products by number of invoices and revenue
     const productsResult = await req.db.query(`
@@ -512,7 +517,7 @@ export const getProductPerformanceReport = async (req, res, next) => {
           SUM(CAST(pi.total_amount AS DECIMAL)) as revenue
         FROM proforma_invoices pi
         LEFT JOIN clients cl ON pi.client_id = cl.id
-        WHERE pi.company_id = $1 AND cl.country IS NOT NULL
+        WHERE pi.company_id = $1 AND pi.status != 'Revised' AND cl.country IS NOT NULL
         GROUP BY cl.country
         ORDER BY revenue DESC
         LIMIT 5
@@ -525,7 +530,7 @@ export const getProductPerformanceReport = async (req, res, next) => {
           SUM(CAST(pi.total_amount AS DECIMAL)) as revenue
         FROM proforma_invoices pi
         LEFT JOIN clients cl ON pi.client_id = cl.id
-        WHERE pi.company_id IS NULL AND cl.country IS NOT NULL
+        WHERE pi.company_id IS NULL AND pi.status != 'Revised' AND cl.country IS NOT NULL
         GROUP BY cl.country
         ORDER BY revenue DESC
         LIMIT 5
@@ -617,6 +622,7 @@ export const getOverviewReport = async (req, res, next) => {
                 SUM(CAST(total_amount AS DECIMAL)) as revenue,
                 TO_CHAR(date, 'YYYY-MM-DD') as date_label
               FROM proforma_invoices
+              WHERE status != 'Revised'
               GROUP BY status, date_label
             `);
 
@@ -662,7 +668,7 @@ export const getOverviewReport = async (req, res, next) => {
     }
 
     const baseParams = [];
-    let baseWhere = 'WHERE 1=1';
+    let baseWhere = 'WHERE status != \'Revised\'';
     let baseCount = 1;
     
     if (userCompanyId) {

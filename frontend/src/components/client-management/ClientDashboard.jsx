@@ -328,8 +328,8 @@ function ClientDashboard({ currentUser, clientsData, usersData, navigationData }
       createColumnDef('Assigned Sales', 'assignedSalesperson'),
       createColumnDef('Total Value', (item) => item.totalOrderValue || 0),
     ];
-    exportData(filteredClients, columns, 'csv', 'clients');
-    showSuccess('Clients exported to CSV successfully!');
+    exportData(filteredClients, columns, 'xlsx', 'clients', typeof currentUser !== 'undefined' ? currentUser?.role === 'super_admin' : false);
+    showSuccess('Clients exported to Excel successfully!');
   };
 
   const handleBulkDelete = async () => {

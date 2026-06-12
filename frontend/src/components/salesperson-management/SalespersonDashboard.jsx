@@ -305,8 +305,8 @@ function SalespersonDashboard({ currentUser }) {
       createColumnDef('Commission', 'commission'),
       createColumnDef('Status', 'status'),
     ];
-    exportData(filteredSalespersons, columns, 'csv', 'salespersons');
-    showSuccess('Salespersons exported to CSV successfully!');
+    exportData(filteredSalespersons, columns, 'xlsx', 'salespersons', typeof currentUser !== 'undefined' ? currentUser?.role === 'super_admin' : false);
+    showSuccess('Salespersons exported to Excel successfully!');
   };
 
   const handleImportData = async (importData) => {

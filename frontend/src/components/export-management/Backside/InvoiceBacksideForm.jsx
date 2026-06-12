@@ -30,6 +30,7 @@ function InvoiceBacksideForm({ exportInvoiceId: initialExportInvoiceId, initialB
     const [saving, setSaving] = useState(false);
     const [annexureOptions, setAnnexureOptions] = useState([]);
     const [selectedAnnexure, setSelectedAnnexure] = useState('');
+    const [suppliers, setSuppliers] = useState([]);
     const [errors, setErrors] = useState({});
     const isFirstLoad = useRef(true);
     const isInheriting = useRef(false);
@@ -111,10 +112,20 @@ function InvoiceBacksideForm({ exportInvoiceId: initialExportInvoiceId, initialB
             .catch(() => { });
     }, [fetchAnnexureReferences, selectedAnnexure, formData.annexure_id]);
 
-    // ── Fetch company profile for defaults (LUT ARN, IEC, etc.) ──
+    // ── Fetch company profile and suppliers ──
     useEffect(() => {
-        const fetchCompanyProfile = async () => {
+        const fetchCompanyProfileAndSuppliers = async () => {
             const cid = currentUser?.company_id || currentUser?.companyId || localStorage.getItem('companyId');
+            
+            try {
+                const suppRes = await api.get('/suppliers');
+                if (suppRes.data?.success || suppRes.data?.data) {
+                    setSuppliers(suppRes.data.data || suppRes.data);
+                }
+            } catch (e) {
+                console.error('Failed to load suppliers:', e);
+            }
+
             if (!cid) return;
 
             try {
@@ -159,7 +170,7 @@ function InvoiceBacksideForm({ exportInvoiceId: initialExportInvoiceId, initialB
                 console.error('[BacksideForm] Error fetching company profile:', err);
             }
         };
-        fetchCompanyProfile();
+        fetchCompanyProfileAndSuppliers();
     }, [currentUser]);
 
 
@@ -677,11 +688,39 @@ function InvoiceBacksideForm({ exportInvoiceId: initialExportInvoiceId, initialB
                                             ))}
                                         </div>
                                         <div className="d-flex gap-1">
+                                            <Form.Select
+                                                className="border-0 bg-white py-1 px-2 fw-bold text-primary"
+                                                style={{ borderRadius: '6px', height: '34px', width: '200px', flex: 'none', cursor: 'pointer', boxShadow: '0 0 0 1px #dee2e6' }}
+                                                value=""
+                                                onChange={(e) => {
+                                                    const selectedId = e.target.value;
+                                                    if (!selectedId) return;
+                                                    const supp = suppliers.find(s => s.id === selectedId);
+                                                    if (supp) {
+                                                        const existing = formData.manufacturer_name ? formData.manufacturer_name.split(',').filter(m => m.trim()) : [];
+                                                        const nameToAdd = (supp.company_name || supp.name || '').toUpperCase();
+                                                        if (nameToAdd && !existing.includes(nameToAdd)) {
+                                                            existing.push(nameToAdd);
+                                                            const addrToAdd = supp.address || supp.company_address || '';
+                                                            setFormData({ 
+                                                                ...formData, 
+                                                                manufacturer_name: existing.join(', '),
+                                                                manufacturer_address: addrToAdd ? addrToAdd.toUpperCase() : formData.manufacturer_address 
+                                                            });
+                                                        }
+                                                    }
+                                                }}
+                                            >
+                                                <option value="" disabled hidden>+ Pick Supplier</option>
+                                                {suppliers.map(s => (
+                                                    <option key={s.id} value={s.id}>{s.company_name || s.name}</option>
+                                                ))}
+                                            </Form.Select>
                                             <Form.Control
                                                 type="text"
-                                                placeholder="Type & press Enter to add"
+                                                placeholder="Or type & press Enter"
                                                 className="border-0 bg-white py-1 px-2 fw-bold"
-                                                style={{ borderRadius: '6px', height: '34px', flex: 1 }}
+                                                style={{ borderRadius: '6px', height: '34px', flex: 1, boxShadow: '0 0 0 1px #dee2e6' }}
                                                 onKeyDown={(e) => {
                                                     if (e.key === 'Enter') {
                                                         e.preventDefault();

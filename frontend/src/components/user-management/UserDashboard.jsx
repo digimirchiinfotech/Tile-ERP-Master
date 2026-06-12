@@ -218,8 +218,8 @@ function UserDashboard({ currentUser, onNavigate, navigationData }) {
       createColumnDef('Role', 'role'),
       createColumnDef('Status', 'status'),
     ];
-    exportData(filteredUsers, columns, 'csv', 'users');
-    showSuccess('Users exported to CSV successfully!');
+    exportData(filteredUsers, columns, 'xlsx', 'users', typeof currentUser !== 'undefined' ? currentUser?.role === 'super_admin' : false);
+    showSuccess('Users exported to Excel successfully!');
   };
 
   const handleImportData = async (importData) => {

@@ -635,7 +635,7 @@ function MasterDataManagement({ currentUser }) {
       dataToExport = currentList;
     }
 
-    exportData(dataToExport, columns, 'csv', fileName);
+    exportData(dataToExport, columns, 'xlsx', fileName);
     showSuccess(`${activeCategory} data exported successfully`);
   };
 

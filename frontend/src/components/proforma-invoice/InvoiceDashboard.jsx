@@ -52,6 +52,7 @@ import api from '../../services/api';
 import { invoiceService } from '../../services/invoiceService';
 import { exportData, createColumnDef } from '../../utils/exportUtils.js';
 import { exportProductDetailsToXLSX } from '../../utils/productExportUtils.js';
+import { generateEnterpriseFilename } from '../../utils/fileNamingUtils.js';
 import StatusBadge from '../common/StatusBadge';
 import DashboardStatusDropdown from '../shared/DashboardStatusDropdown.jsx';
 import ActivityTimeline from '../shared/ActivityTimeline.jsx';
@@ -379,7 +380,7 @@ function InvoiceDashboard({ onAddNew, onEdit, invoicesData, productsData, client
       createColumnDef('Amount', (item) => item.totalAmount || item.total_amount),
       createColumnDef('Status', 'status'),
     ];
-    exportData(filteredInvoices, columns, 'csv', 'proforma_invoices');
+    exportData(filteredInvoices, columns, 'xlsx', 'proforma_invoices', typeof currentUser !== 'undefined' ? currentUser?.role === 'super_admin' : false);
   };
 
   const printViewRef = useRef(null);
@@ -511,7 +512,13 @@ function InvoiceDashboard({ onAddNew, onEdit, invoicesData, productsData, client
           const result = await downloadPDF(downloadPrintViewRef.current, {
             format: 'a4',
             orientation: 'portrait',
-            filename: `PI_${invoice.invoiceNo || invoice.invoice_no || 'document'}.pdf`
+            filename: generateEnterpriseFilename({
+              moduleName: 'PROFORMA-INVOICE',
+              documentNo: invoice.invoiceNo || invoice.invoice_no || 'document',
+              clientName: invoice.clientName || invoice.client_name || '',
+              date: invoice.date || new Date().toISOString(),
+              extension: 'pdf'
+            })
           });
           if (!result.success) {
             showError('Failed to download PDF: ' + result.message);

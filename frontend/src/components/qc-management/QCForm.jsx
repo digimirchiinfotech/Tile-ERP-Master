@@ -310,7 +310,7 @@ function QCForm({ qcRecord, onSave, onCancel, onBack, selectedOrder, existingRec
           thickness: line.thickness || 'N/A',
           requiredSqm: (line.requiredSqm || line.required_sqm || 0).toString(),
           producedSqm: (line.producedSqm || line.produced_sqm || 0).toString(),
-          totalBoxes: (line.boxes_required || line.total_production_boxes || line.totalBoxes || line.total_boxes || line.boxes || 0).toString(),
+          totalBoxes: (line.boxes_required || line.total_production_boxes || line.totalProductionBoxes || line.totalBoxes || line.total_boxes || line.boxes || 0).toString(),
           boxType: selectedSheet.box_type || selectedSheet.boxType || line.boxType || line.box_type || 'N/A'
         }));
       } else {
@@ -839,7 +839,7 @@ function QCForm({ qcRecord, onSave, onCancel, onBack, selectedOrder, existingRec
                             const finalRequiredSqm = product.requiredSqm || product.required_sqm || liveLine?.requiredSqm || liveLine?.required_sqm || 0;
                             const finalProducedSqm = product.producedSqm || product.produced_sqm || liveLine?.producedSqm || liveLine?.produced_sqm || 0;
                             // Prefer liveLine data to override corrupted historical json records where totalBoxes might have been mistakenly set to SQM
-                            const finalTotalBoxes = liveLine?.boxes_required || liveLine?.total_production_boxes || liveLine?.totalBoxes || liveLine?.total_boxes || liveLine?.boxes || product.totalBoxes || product.total_boxes || product.boxes || 0;
+                            const finalTotalBoxes = liveLine?.boxes_required || liveLine?.total_production_boxes || liveLine?.totalProductionBoxes || liveLine?.totalBoxes || liveLine?.total_boxes || liveLine?.boxes || product.totalBoxes || product.total_boxes || product.boxes || 0;
 
                             return (
                               <tr key={index}>

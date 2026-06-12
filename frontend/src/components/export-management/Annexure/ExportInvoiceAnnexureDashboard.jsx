@@ -231,7 +231,7 @@ function ExportInvoiceAnnexureDashboard({ currentUser, onNavigate }) {
             showError('Print element search failed');
           }
           setShowPrintModal(false);
-        }, 800);
+        }, 1500);
       } else {
         showError('Failed to load annexure for PDF');
       }
@@ -257,10 +257,10 @@ function ExportInvoiceAnnexureDashboard({ currentUser, onNavigate }) {
       if (data) {
         setPrintData(data);
         setShowPrintModal(true);
-        // Wait for modal to render before triggering print
+        // Wait for modal to render and images to load before triggering print
         setTimeout(() => {
           window.print();
-        }, 600);
+        }, 1500);
       } else {
         showError('Failed to load annexure for print');
       }

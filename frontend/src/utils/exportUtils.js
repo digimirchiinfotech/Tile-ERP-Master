@@ -48,47 +48,96 @@ export const downloadCSV = (csvContent, filename) => {
 };
 
 // Export function that handles both CSV and JSON
-export const exportData = (items, columns, format = 'csv', filename = 'export') => {
+export const exportData = async (items, columns, format = 'xlsx', filename = 'export', isSuperAdmin = false) => {
   if (items.length === 0) {
     alert('No data to export');
-    return;
+    return false;
+  }
+
+  // If super admin, dynamically append a Tenant/Company ID column if it doesn't exist
+  if (isSuperAdmin) {
+    const hasCompanyCol = columns.some(c => c.label === 'Company ID' || c.label === 'Tenant');
+    if (!hasCompanyCol) {
+      columns = [
+        ...columns,
+        {
+          label: 'Tenant / Company ID',
+          accessor: (item) => item.company_id || item.companyId || item.tenant_id || 'Global'
+        }
+      ];
+    }
   }
 
   const timestamp = new Date().toLocaleDateString('en-CA');
   const finalFilename = `${filename}-${timestamp}`;
 
-  if (format === 'csv') {
-    const csv = convertToCSV(items, columns);
-    downloadCSV(csv, `${finalFilename}.csv`);
-  } else if (format === 'xlsx' || format === 'excel') {
-    const jsonData = items.map(item =>
-      columns.reduce((acc, col) => {
-        acc[col.label] = col.accessor(item);
-        return acc;
-      }, {})
-    );
-    
-    const worksheet = XLSX.utils.json_to_sheet(jsonData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Data");
-    
-    XLSX.writeFile(workbook, `${finalFilename}.xlsx`);
-  } else if (format === 'json') {
-    const jsonData = items.map(item =>
-      columns.reduce((acc, col) => {
-        acc[col.label] = col.accessor(item);
-        return acc;
-      }, {})
-    );
-    const jsonString = JSON.stringify(jsonData, null, 2);
-    const element = document.createElement('a');
-    element.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(jsonString));
-    element.setAttribute('download', `${finalFilename}.json`);
-    element.style.display = 'none';
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-  }
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      try {
+        // Dynamic Column Discovery to prevent missing data
+        const sensitiveKeys = ['_id', '__v', 'password', 'token', 'refreshToken'];
+        const explicitlyMappedKeys = new Set(
+          columns.map(c => {
+            // Extract accessor string if it exists to know what is mapped
+            const accessorStr = c.accessor.toString();
+            const match = accessorStr.match(/item\.([a-zA-Z0-9_]+)/) || accessorStr.match(/item\[['"]([a-zA-Z0-9_]+)['"]\]/);
+            return match ? match[1] : null;
+          }).filter(Boolean)
+        );
+
+        const formatKeyToHeader = (key) => key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
+
+        // Find all unique keys across all items that aren't mapped or sensitive
+        const unmappedKeys = new Set();
+        items.forEach(item => {
+          Object.keys(item).forEach(k => {
+            if (!explicitlyMappedKeys.has(k) && !sensitiveKeys.includes(k) && typeof item[k] !== 'object') {
+              unmappedKeys.add(k);
+            }
+          });
+        });
+
+        const dynamicColumns = [...columns, ...Array.from(unmappedKeys).map(k => createColumnDef(formatKeyToHeader(k), k))];
+
+        if (format === 'csv') {
+          const csv = convertToCSV(items, dynamicColumns);
+          downloadCSV(csv, `${finalFilename}.csv`);
+        } else if (format === 'xlsx' || format === 'excel') {
+          const jsonData = items.map(item =>
+            dynamicColumns.reduce((acc, col) => {
+              acc[col.label] = col.accessor(item);
+              return acc;
+            }, {})
+          );
+          
+          const worksheet = XLSX.utils.json_to_sheet(jsonData);
+          const workbook = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(workbook, worksheet, "Data");
+          
+          XLSX.writeFile(workbook, `${finalFilename}.xlsx`);
+        } else if (format === 'json') {
+          const jsonData = items.map(item =>
+            dynamicColumns.reduce((acc, col) => {
+              acc[col.label] = col.accessor(item);
+              return acc;
+            }, {})
+          );
+          const jsonString = JSON.stringify(jsonData, null, 2);
+          const element = document.createElement('a');
+          element.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(jsonString));
+          element.setAttribute('download', `${finalFilename}.json`);
+          element.style.display = 'none';
+          document.body.appendChild(element);
+          element.click();
+          document.body.removeChild(element);
+        }
+        resolve(true);
+      } catch (e) {
+        console.error('Export failed', e);
+        resolve(false);
+      }
+    }, 0);
+  });
 };
 
 // Column definitions helper
@@ -110,7 +159,7 @@ export const exportCompanies = (companies) => {
     createColumnDef('Country', 'country'),
     createColumnDef('Status', 'status'),
   ];
-  exportData(companies, columns, 'csv', 'companies');
+  exportData(companies, columns, 'xlsx', 'companies');
   return { success: true, message: 'Companies exported successfully' };
 };
 
@@ -124,16 +173,16 @@ export const exportQCRecords = (records) => {
     createColumnDef('Status', 'qcStatus'),
     createColumnDef('Date', 'qcDate'),
   ];
-  exportData(records, columns, 'csv', 'qc-reports');
+  exportData(records, columns, 'xlsx', 'qc-reports');
   return { success: true, message: 'QC Records exported successfully' };
 };
 
 export const exportToCSV = (data, filename = 'export') => {
   if (!data || data.length === 0) return false;
-  const csvContent = convertToCSV(data, Object.keys(data[0]).map(key => ({
+  const columns = Object.keys(data[0]).map(key => ({
     label: key,
     accessor: (item) => item[key],
-  })));
-  downloadCSV(csvContent, `${filename}-${new Date().toLocaleDateString('en-CA')}.csv`);
+  }));
+  exportData(data, columns, 'xlsx', filename);
   return true;
 };

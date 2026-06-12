@@ -248,16 +248,19 @@ function VGMForm({ exportInvoiceId: propExportInvoiceId, onBack, currentUser }) 
 
 
   const handleSheetChange = (index, field, value) => {
-    const newSheet = [...formData.container_sheet];
-    const val = field === 'cargo_wt' || field === 'tare_wt' ? value : value;
-    newSheet[index][field] = val;
+    setFormData(prev => {
+      const newSheet = [...prev.container_sheet];
+      const updatedRow = { ...newSheet[index], [field]: value };
 
-    if (field === 'cargo_wt' || field === 'tare_wt') {
-      const c = parseFloat(newSheet[index].cargo_wt || 0);
-      const t = parseFloat(newSheet[index].tare_wt || 0);
-      newSheet[index].vgm_weight = parseFloat((c + t).toFixed(2));
-    }
-    setFormData(prev => ({ ...prev, container_sheet: newSheet }));
+      if (field === 'cargo_wt' || field === 'tare_wt') {
+        const c = parseFloat(updatedRow.cargo_wt || 0);
+        const t = parseFloat(updatedRow.tare_wt || 0);
+        updatedRow.vgm_weight = parseFloat((c + t).toFixed(2));
+      }
+      
+      newSheet[index] = updatedRow;
+      return { ...prev, container_sheet: newSheet };
+    });
   };
 
   const validateForm = () => {
@@ -890,10 +893,10 @@ function VGMForm({ exportInvoiceId: propExportInvoiceId, onBack, currentUser }) 
                         <Form.Control
                           size="sm"
                           type="number"
-                          value={c.tare_wt}
+                          value={c.tare_wt !== undefined ? c.tare_wt : ''}
                           onChange={e => handleSheetChange(i, 'tare_wt', e.target.value)}
-                          className="border-0 text-center bg-transparent"
-                          style={{ fontWeight: 'bold' }}
+                          className="text-center fw-bold text-primary border-primary border-opacity-25"
+                          style={{ width: '90px', margin: '0 auto', backgroundColor: '#f8f9fa' }}
                         />
                       </td>
                       <td data-label="VGM Weight" className="fw-bold text-primary">{c.vgm_weight}</td>
@@ -974,10 +977,10 @@ function VGMForm({ exportInvoiceId: propExportInvoiceId, onBack, currentUser }) 
                               <Form.Control
                                 size="sm"
                                 type="number"
-                                value={c.tare_wt}
+                                value={c.tare_wt !== undefined ? c.tare_wt : ''}
                                 onChange={e => handleSheetChange(i, 'tare_wt', e.target.value)}
-                                className="fw-bold border-primary border-opacity-25 mt-1"
-                                style={{ height: '36px', borderRadius: '8px', fontSize: '15px' }}
+                                className="fw-bold border-primary border-opacity-25 mt-1 text-primary"
+                                style={{ height: '36px', borderRadius: '8px', fontSize: '15px', backgroundColor: '#f8f9fa' }}
                               />
                             </Col>
                             <Col xs={12} className="pt-3 border-top border-primary border-opacity-10">

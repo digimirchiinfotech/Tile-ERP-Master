@@ -285,7 +285,7 @@ const multiSelect = useMultiSelect(orders);
       createColumnDef('Amount', 'amount'),
       createColumnDef('Status', 'status'),
     ];
-    exportData(filteredOrders, columns, 'csv', 'proforma_orders');
+    exportData(filteredOrders, columns, 'xlsx', 'proforma_orders', typeof currentUser !== 'undefined' ? currentUser?.role === 'super_admin' : false);
   };
 
 

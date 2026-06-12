@@ -484,7 +484,7 @@ function ProductDashboard({ currentUser, productsData, navigationData }) {
       createColumnDef('Box Weight', 'boxWeight'),
       createColumnDef('Status', 'status'),
     ];
-    exportData(filteredProducts, columns, 'csv', 'products');
+    exportData(filteredProducts, columns, 'xlsx', 'products', typeof currentUser !== 'undefined' ? currentUser?.role === 'super_admin' : false);
   };
 
   const handleImportData = async (importData) => {

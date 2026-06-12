@@ -268,7 +268,7 @@ function ClientOrderDashboard({ currentUser, navigationData }) {
       createColumnDef('Created At', (item) => formatDisplayDate(item.created_at)),
       createColumnDef('Updated At', (item) => formatDisplayDate(item.updated_at)),
     ];
-    exportData(orders, columns, 'csv', 'client_orders');
+    exportData(orders, columns, 'xlsx', 'client_orders', typeof currentUser !== 'undefined' ? currentUser?.role === 'super_admin' : false);
   };
 
   const handleImportData = async (importedOrders) => {

@@ -186,7 +186,7 @@ function SanitarywareProductDashboard({ currentUser }) {
       createColumnDef('Weight (kg)', 'weight_per_piece'),
       createColumnDef('Status', 'status'),
     ];
-    exportData(filteredProducts, columns, 'csv', 'sanitaryware_products');
+    exportData(filteredProducts, columns, 'xlsx', 'sanitaryware_products', typeof currentUser !== 'undefined' ? currentUser?.role === 'super_admin' : false);
     showSuccess('Exported successfully');
   };
 

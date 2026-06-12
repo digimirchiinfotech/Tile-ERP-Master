@@ -567,11 +567,17 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       // Products
       let totalBoxes = 0;
       let totalSqm = 0;
+      const prodStartRow = r;
       productLinesArr.forEach((p, index) => {
         const isFoc = !!(p.is_foc || p.isFoc);
         const name = p.productName || p.product_name || p.materialDescription || p.material_description || '';
         const desc = p.materialDescription || p.material_description || '';
-        const finalDesc = (isFoc ? 'FREE OF COST SAMPLE NO COMMERCIAL VALUE\n' : '') + (name !== desc && desc ? `${name}\n${desc}` : name);
+        let finalDesc = (isFoc ? 'FREE OF COST SAMPLE NO COMMERCIAL VALUE\n' : '') + (name !== desc && desc ? `${name}\n${desc}` : name);
+        
+        const factoryProductName = p.factoryProductName || p.factory_product_name;
+        const pallets = p.pallets || p.totalPallets || p.total_pallets || p.no_of_pallets || p.noOfPallets;
+        if (factoryProductName && factoryProductName !== '-' && factoryProductName !== name) finalDesc += `\nFACTORY PROD: ${factoryProductName}`;
+        if (pallets && pallets !== '0' && pallets !== 0) finalDesc += `\nPALLETS: ${pallets}`;
         
         const boxes = parseInt(p.boxQuantity || p.box_quantity || 0, 10);
         const sqm = parseFloat(p.sqm || p.pcs || 0);
@@ -608,19 +614,19 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       // Totals
       mergeRow(r, 'A', r, 'C');
       setCell(r, 1, 'TOTAL:', { bold: true, align: { horizontal: 'right', vertical: 'middle' }, bg: 'FFF8F9FA' });
-      setCell(r, 4, totalBoxes, { bold: true, align: { horizontal: 'center', vertical: 'middle' }, bg: 'FFF8F9FA' });
+      setCell(r, 4, { formula: `SUM(D${prodStartRow}:D${r-1})`, result: totalBoxes }, { bold: true, align: { horizontal: 'center', vertical: 'middle' }, bg: 'FFF8F9FA' });
       
-      const totSqmCell = setCell(r, 5, totalSqm, { bold: true, align: { horizontal: 'center', vertical: 'middle' }, bg: 'FFF8F9FA' });
+      const totSqmCell = setCell(r, 5, { formula: `SUM(E${prodStartRow}:E${r-1})`, result: totalSqm }, { bold: true, align: { horizontal: 'center', vertical: 'middle' }, bg: 'FFF8F9FA' });
       totSqmCell.numFmt = '#,##0.00';
       
       setCell(r, 6, '', { bg: 'FFF8F9FA' });
       
-      const totTaxCell = setCell(r, 7, parseFloat(doc.totalBeforeTax || doc.total_before_tax || 0), { bold: true, align: { horizontal: 'right', vertical: 'middle' }, bg: 'FFF8F9FA' });
+      const totTaxCell = setCell(r, 7, { formula: `SUM(G${prodStartRow}:G${r-1})`, result: parseFloat(doc.totalBeforeTax || doc.total_before_tax || 0) }, { bold: true, align: { horizontal: 'right', vertical: 'middle' }, bg: 'FFF8F9FA' });
       totTaxCell.numFmt = '#,##0.00';
       
       setCell(r, 8, '', { bg: 'FFF8F9FA' });
       
-      const totIgstCell = setCell(r, 9, parseFloat(doc.totalIgst || doc.total_igst || 0), { bold: true, align: { horizontal: 'right', vertical: 'middle' }, bg: 'FFF8F9FA' });
+      const totIgstCell = setCell(r, 9, { formula: `SUM(I${prodStartRow}:I${r-1})`, result: parseFloat(doc.totalIgst || doc.total_igst || 0) }, { bold: true, align: { horizontal: 'right', vertical: 'middle' }, bg: 'FFF8F9FA' });
       totIgstCell.numFmt = '#,##0.00';
       
       sheet.getRow(r).height = 25;
@@ -640,19 +646,19 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       
       mergeRow(sumStart, 'G', sumStart, 'H');
       setCell(sumStart, 7, 'VALUE BEFORE TAX (INR):', { bold: true, align: { horizontal: 'left', vertical: 'middle' } });
-      const val1 = setCell(sumStart, 9, parseFloat(doc.totalBeforeTax || doc.total_before_tax || 0), { bold: true, align: { horizontal: 'right', vertical: 'middle' } });
+      const val1 = setCell(sumStart, 9, { formula: `G${r-2}`, result: parseFloat(doc.totalBeforeTax || doc.total_before_tax || 0) }, { bold: true, align: { horizontal: 'right', vertical: 'middle' } });
       val1.numFmt = '#,##0.00';
       sheet.getRow(sumStart).height = 25;
 
       mergeRow(sumStart + 1, 'G', sumStart + 1, 'H');
       setCell(sumStart + 1, 7, 'INTEGRATED GST (18.00%):', { bold: true, align: { horizontal: 'left', vertical: 'middle' } });
-      const val2 = setCell(sumStart + 1, 9, parseFloat(doc.totalIgst || doc.total_igst || 0), { bold: true, align: { horizontal: 'right', vertical: 'middle' } });
+      const val2 = setCell(sumStart + 1, 9, { formula: `I${r-3}`, result: parseFloat(doc.totalIgst || doc.total_igst || 0) }, { bold: true, align: { horizontal: 'right', vertical: 'middle' } });
       val2.numFmt = '#,##0.00';
       sheet.getRow(sumStart + 1).height = 25;
 
       mergeRow(sumStart + 2, 'G', sumStart + 2, 'H');
       setCell(sumStart + 2, 7, 'GRAND TOTAL (INR):', { bold: true, size: 10, align: { horizontal: 'left', vertical: 'middle' }, color: 'FF166534' });
-      const val3 = setCell(sumStart + 2, 9, parseFloat(doc.grandTotal || doc.grand_total || 0), { bold: true, size: 10, align: { horizontal: 'right', vertical: 'middle' }, color: 'FF166534' });
+      const val3 = setCell(sumStart + 2, 9, { formula: `I${sumStart} + I${sumStart + 1}`, result: parseFloat(doc.grandTotal || doc.grand_total || 0) }, { bold: true, size: 10, align: { horizontal: 'right', vertical: 'middle' }, color: 'FF166534' });
       val3.numFmt = '#,##0.00';
       sheet.getRow(sumStart + 2).height = 25;
       r += 3;
@@ -2110,6 +2116,12 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
         finalDescription += productName;
       }
 
+      // Append Factory Product Name and Pallets universally if they exist to prevent missing data
+      const factoryProductName = line.factoryProductName || line.factory_product_name;
+      const pallets = line.pallets || line.totalPallets || line.total_pallets || line.no_of_pallets || line.noOfPallets;
+      if (factoryProductName && factoryProductName !== '-' && factoryProductName !== productName) finalDescription += `\nFACTORY PROD: ${factoryProductName}`;
+      if (pallets && pallets !== '0' && pallets !== 0) finalDescription += `\nPALLETS: ${pallets}`;
+
       return {
         ...line,
         isFoc,
@@ -2337,8 +2349,12 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       currentRow += 2;
 
       // Weights row
-      const netWeight = parseFloat(documentData.net_weight || documentData.netWeight || 0);
-      const grossWeight = parseFloat(documentData.gross_weight || documentData.grossWeight || 0);
+      let netWeight = parseFloat(documentData.net_weight || documentData.netWeight || 0);
+      let grossWeight = parseFloat(documentData.gross_weight || documentData.grossWeight || 0);
+      
+      // Fallback to aggregated totals if document level weights are missing or zero
+      if (netWeight === 0) netWeight = totalNetWeightAll;
+      if (grossWeight === 0) grossWeight = totalGrossWeightAll;
 
       sheet.mergeCells(`A${currentRow}:C${currentRow}`);
       sheet.getCell(`A${currentRow}`).value = `NET WEIGHT\n${netWeight.toFixed(2)} KGS`;

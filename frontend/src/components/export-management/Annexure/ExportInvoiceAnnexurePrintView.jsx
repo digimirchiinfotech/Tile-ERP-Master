@@ -261,13 +261,13 @@ const ExportInvoiceAnnexurePrintView = forwardRef(({ data, annexureData: annexur
               <tr>
                 <td colSpan="2" style={{ width: '50%' }}>
                   <span className="label-bold">CONSIGNEE</span><br />
-                  <div className="value-bold" style={{ fontSize: '8pt', whiteSpace: 'pre-wrap' }}>{annexureData?.consignee_details || annexureData?.consigneeDetails || 'TO THE ORDER'}</div>
+                  <div className="value-bold" style={{ fontSize: '8pt', whiteSpace: 'pre-wrap' }}>{annexureData?.consignee_details || annexureData?.consigneeDetails || annexureData?.inv_consignee_details || annexureData?.inv_client || 'TO THE ORDER'}</div>
                 </td>
               </tr>
               <tr>
                 <td colSpan="2" style={{ width: '50%' }}>
                   <span className="label-bold">BUYER</span><br />
-                  <div className="value-bold" style={{ fontSize: '8pt', whiteSpace: 'pre-wrap' }}>{annexureData?.buyer_details || annexureData?.buyerDetails || 'TO THE ORDER'}</div>
+                  <div className="value-bold" style={{ fontSize: '8pt', whiteSpace: 'pre-wrap' }}>{annexureData?.buyer_details || annexureData?.buyerDetails || annexureData?.inv_buyer_details || annexureData?.inv_client || 'TO THE ORDER'}</div>
                 </td>
               </tr>
 

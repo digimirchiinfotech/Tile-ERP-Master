@@ -241,7 +241,7 @@ function SanitarywareMasterDataManagement({ currentUser }) {
       createColumnDef('Status', 'Status')
     ];
 
-    exportData(dataToExport, columns, 'csv', `sanitaryware_master_${activeCategory}`);
+    exportData(dataToExport, columns, 'xlsx', `sanitaryware_master_${activeCategory}`);
     showSuccess('Exported successfully');
   };
 

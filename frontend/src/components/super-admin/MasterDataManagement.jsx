@@ -87,14 +87,6 @@ function MasterDataManagement({ currentUser }) {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
 
-  // Pagination State
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 100;
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [activeCategory, searchQuery, filterCountry]);
-
   const [masterData, setMasterData] = useState({
     products: {
       categories: [],
@@ -863,9 +855,6 @@ function MasterDataManagement({ currentUser }) {
       });
     }
 
-    const totalPages = Math.ceil(currentList.length / itemsPerPage);
-    const paginatedList = currentList.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
     return (
       <>
         {/* Collapsible Filter Panel */}
@@ -873,7 +862,6 @@ function MasterDataManagement({ currentUser }) {
           onClear={() => {
             setSearchQuery('');
             setFilterCountry('');
-            setCurrentPage(1);
           }}
           title={`Search in ${categories.find((c) => c.key === activeCategory)?.label}`}
           className="mb-4"
@@ -891,10 +879,7 @@ function MasterDataManagement({ currentUser }) {
                       style={{ borderRadius: '10px' }}
                       placeholder={`Search in ${activeCategory}...`}
                       value={searchQuery}
-                      onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        setCurrentPage(1);
-                      }}
+                      onChange={(e) => setSearchQuery(e.target.value)}
                     />
                   </div>
                 </Form.Group>
@@ -907,10 +892,7 @@ function MasterDataManagement({ currentUser }) {
                       className="py-2 border-primary-subtle"
                       style={{ borderRadius: '10px' }}
                       value={filterCountry}
-                      onChange={(e) => {
-                        setFilterCountry(e.target.value);
-                        setCurrentPage(1);
-                      }}
+                      onChange={(e) => setFilterCountry(e.target.value)}
                     >
                       <option value="">All Countries</option>
                       {masterDataWithIds.countries?.map((c) => (
@@ -966,54 +948,50 @@ function MasterDataManagement({ currentUser }) {
                       </tr>
                     </thead>
                     <tbody>
-                      {paginatedList.map((item, localIndex) => {
-                        const index = (currentPage - 1) * itemsPerPage + localIndex;
-                        return (
-                          <tr key={index}>
-                            <td className="ps-4 text-center text-muted">{index + 1}</td>
-                            <td className="fw-medium">
-                              {item?.cityName ||
-                                (activeCategory === 'countries' && (item?.countryName || item?.value || (typeof item === 'string' && item)) ?
-                                  `${item.countryName || item.value || item} (${item.countryCode || item.isoAlpha2 || item.code || '??'}${item.isoAlpha3 ? ' / ' + item.isoAlpha3 : ''})` :
-                                  (item?.countryName || item?.value || (typeof item === 'string' && item))) ||
-                                item?.portName ||
-                                item?.name ||
-                                item?.factoryName ||
-                                (typeof item === 'string' ? item : item?.value || 'Unnamed')}
-                            </td>
-                            <td className="pe-4 text-end">
-                              <div className="d-flex justify-content-end gap-1">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-primary border-primary-subtle hover-bg-primary-light"
-                                  onClick={() => handleEditItem(item, index)}
-                                  title="Edit"
-                                >
-                                  <Edit size={14} />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-danger border-danger-subtle hover-bg-danger-light"
-                                  onClick={() => handleDeleteClick(item, index)}
-                                  title="Delete"
-                                >
-                                  <Trash2 size={14} />
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
+                      {currentList.map((item, index) => (
+                        <tr key={index}>
+                          <td className="ps-4 text-center text-muted">{index + 1}</td>
+                          <td className="fw-medium">
+                            {item?.cityName ||
+                              (activeCategory === 'countries' && (item?.countryName || item?.value || (typeof item === 'string' && item)) ?
+                                `${item.countryName || item.value || item} (${item.countryCode || item.isoAlpha2 || item.code || '??'}${item.isoAlpha3 ? ' / ' + item.isoAlpha3 : ''})` :
+                                (item?.countryName || item?.value || (typeof item === 'string' && item))) ||
+                              item?.portName ||
+                              item?.name ||
+                              item?.factoryName ||
+                              (typeof item === 'string' ? item : item?.value || 'Unnamed')}
+                          </td>
+                          <td className="pe-4 text-end">
+                            <div className="d-flex justify-content-end gap-1">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-primary border-primary-subtle hover-bg-primary-light"
+                                onClick={() => handleEditItem(item, index)}
+                                title="Edit"
+                              >
+                                <Edit size={14} />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-danger border-danger-subtle hover-bg-danger-light"
+                                onClick={() => handleDeleteClick(item, index)}
+                                title="Delete"
+                              >
+                                <Trash2 size={14} />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </Table>
                 </div>
 
                 <div className="d-lg-none bg-light-subtle p-3">
                   <div className="d-flex flex-column gap-3">
-                    {paginatedList.map((item, localIndex) => {
-                      const index = (currentPage - 1) * itemsPerPage + localIndex;
+                    {currentList.map((item, index) => {
                       const mainText = item?.cityName || item?.countryName || item?.portName || item?.name || item?.value || item?.factoryName || item;
                       const subText = activeCategory === 'countries' ? `Code: ${item.countryCode || item.isoAlpha2} | ${item.isoAlpha3 || 'N/A'}` : null;
 
@@ -1045,39 +1023,6 @@ function MasterDataManagement({ currentUser }) {
                     })}
                   </div>
                 </div>
-
-                {totalPages > 1 && (
-                  <div className="d-flex flex-column flex-sm-row justify-content-between align-items-center p-3 border-top bg-light-subtle gap-3">
-                    <span className="small text-muted fw-medium text-center text-sm-start">
-                      Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, currentList.length)} of {currentList.length} entries
-                    </span>
-                    <div className="d-flex gap-2">
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        disabled={currentPage === 1}
-                        onClick={() => setCurrentPage(p => p - 1)}
-                        className="fw-bold px-3 shadow-sm"
-                        style={{ borderRadius: '8px' }}
-                      >
-                        Previous
-                      </Button>
-                      <div className="d-flex align-items-center justify-content-center bg-white border border-primary-subtle text-primary fw-bold" style={{ width: '32px', height: '32px', borderRadius: '8px' }}>
-                        {currentPage}
-                      </div>
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        disabled={currentPage === totalPages}
-                        onClick={() => setCurrentPage(p => p + 1)}
-                        className="fw-bold px-3 shadow-sm"
-                        style={{ borderRadius: '8px' }}
-                      >
-                        Next
-                      </Button>
-                    </div>
-                  </div>
-                )}
               </>
             ) : (
               <div className="text-center py-5">

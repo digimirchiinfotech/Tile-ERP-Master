@@ -240,6 +240,24 @@ export const createMasterData = async (req, res, next) => {
         placeholders += `, $${paramCount++}`;
       }
 
+      if (config.table === 'master_countries') {
+        if (body.countryCode !== undefined) {
+          columns.push('country_code');
+          values.push(body.countryCode === '' ? null : body.countryCode);
+          placeholders += `, $${paramCount++}`;
+        }
+        if (body.isoAlpha2 !== undefined) {
+          columns.push('iso_alpha_2');
+          values.push(body.isoAlpha2 === '' ? null : body.isoAlpha2);
+          placeholders += `, $${paramCount++}`;
+        }
+        if (body.isoAlpha3 !== undefined) {
+          columns.push('iso_alpha_3');
+          values.push(body.isoAlpha3 === '' ? null : body.isoAlpha3);
+          placeholders += `, $${paramCount++}`;
+        }
+      }
+
       let insertQuery;
       if (config.global) {
         insertQuery = `INSERT INTO ${config.table} (${columns.join(', ')}) VALUES (${placeholders}) RETURNING id, ${config.column} as value, status${config.table === 'box_types' ? ', image_url' : ''}`;
@@ -313,6 +331,26 @@ export const updateMasterData = async (req, res, next) => {
       if (config.table === 'box_types' && updateImgUrl !== undefined) {
         updates.push(`image_url = $${paramCount++}`);
         values.push(updateImgUrl === '' ? null : updateImgUrl);
+      }
+
+      if (config.table === 'master_cities' && body.countryCode !== undefined) {
+        updates.push(`country_code = $${paramCount++}`);
+        values.push(body.countryCode === '' ? null : body.countryCode);
+      }
+
+      if (config.table === 'master_countries') {
+        if (body.countryCode !== undefined) {
+          updates.push(`country_code = $${paramCount++}`);
+          values.push(body.countryCode === '' ? null : body.countryCode);
+        }
+        if (body.isoAlpha2 !== undefined) {
+          updates.push(`iso_alpha_2 = $${paramCount++}`);
+          values.push(body.isoAlpha2 === '' ? null : body.isoAlpha2);
+        }
+        if (body.isoAlpha3 !== undefined) {
+          updates.push(`iso_alpha_3 = $${paramCount++}`);
+          values.push(body.isoAlpha3 === '' ? null : body.isoAlpha3);
+        }
       }
 
       if (updates.length === 0) {
@@ -461,9 +499,14 @@ export const getCitiesByCountry = async (req, res, next) => {
       SELECT mc.id, mc.city_name, mc.state_province, mc.status,
              mcn.country_name, mcn.country_code, mcn.id as country_id
       FROM master_cities mc
-      LEFT JOIN master_countries mcn ON mc.country_code = mcn.country_code
+      LEFT JOIN (
+        SELECT DISTINCT ON (country_code) country_name, country_code, id, iso_alpha_2
+        FROM master_countries 
+        WHERE country_code IS NOT NULL OR iso_alpha_2 IS NOT NULL
+      ) mcn ON mc.country_code = mcn.country_code
       WHERE (mcn.country_code = $1 OR mcn.iso_alpha_2 = $1)
       ORDER BY mc.city_name
+      LIMIT 1000
     `;
     const result = await req.db.globalQuery(query, [countryCode.toUpperCase()]);
     res.json({ success: true, data: transformRowsToCamelCase(result.rows) });
@@ -478,7 +521,11 @@ export const getAllCities = async (req, res, next) => {
       SELECT mc.id, mc.city_name, mc.state_province, mc.status,
              mcn.country_name, mcn.country_code, mcn.id as country_id
       FROM master_cities mc
-      LEFT JOIN master_countries mcn ON mc.country_code = mcn.country_code
+      LEFT JOIN (
+        SELECT DISTINCT ON (country_code) country_name, country_code, id 
+        FROM master_countries 
+        WHERE country_code IS NOT NULL
+      ) mcn ON mc.country_code = mcn.country_code
       ORDER BY mcn.country_name, mc.city_name
     `;
     const result = await req.db.globalQuery(query, []);
@@ -495,7 +542,11 @@ export const searchCities = async (req, res, next) => {
       SELECT mc.id, mc.city_name, mc.state_province, mc.status,
              mcn.country_name, mcn.country_code, mcn.id as country_id
       FROM master_cities mc
-      LEFT JOIN master_countries mcn ON mc.country_code = mcn.country_code
+      LEFT JOIN (
+        SELECT DISTINCT ON (country_code) country_name, country_code, id 
+        FROM master_countries 
+        WHERE country_code IS NOT NULL
+      ) mcn ON mc.country_code = mcn.country_code
       WHERE (LOWER(mc.city_name) LIKE LOWER($1) OR LOWER(COALESCE(mc.state_province,'')) LIKE LOWER($1))
       ORDER BY mcn.country_name, mc.city_name
       LIMIT 50

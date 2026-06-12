@@ -18,7 +18,7 @@ import { trackError, trackSlowRequest } from '../utils/errorTracker';
 // In production, use relative /api path
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE ||
-  "https://tile-erp-master-production.up.railway.app/api";
+  "https://tile-erp-master-production.railway.app/api";
 
 console.log("API_BASE_URL =", API_BASE_URL);
 

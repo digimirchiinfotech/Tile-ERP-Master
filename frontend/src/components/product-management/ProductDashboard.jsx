@@ -262,7 +262,7 @@ function ProductDashboard({ currentUser, productsData, navigationData }) {
   };
 
   const handleDownloadPDF = async (product) => {
-    try { await api.post('/document-activity/doc/' + (product?.id || 'unknown') + '/action', { action: 'DOWNLOAD' }); } catch(e){}
+    try { await api.post('/document-activity/doc/' + (product?.id || 'unknown') + '/action', { action: 'DOWNLOAD' }); } catch (e) { }
     setViewingProduct(product);
     setShowPrintModal(true);
     setTimeout(async () => {
@@ -458,16 +458,16 @@ function ProductDashboard({ currentUser, productsData, navigationData }) {
   };
 
   const resetFilters = () => {
-      setFilters({
-        factoryName: '',
-        factoryProductName: '',
-        companyProductName: '',
-        size: '',
-        surface: '',
-        thickness: '',
-        application: '',
-        status: '',
-      });
+    setFilters({
+      factoryName: '',
+      factoryProductName: '',
+      companyProductName: '',
+      size: '',
+      surface: '',
+      thickness: '',
+      application: '',
+      status: '',
+    });
   };
 
 
@@ -491,7 +491,7 @@ function ProductDashboard({ currentUser, productsData, navigationData }) {
     try {
       setIsSaving(true);
       let successCount = 0;
-      
+
       for (const prod of importData) {
         // Robust mapping for common CSV headers to internal keys
         const mappedProd = {
@@ -520,7 +520,7 @@ function ProductDashboard({ currentUser, productsData, navigationData }) {
         await createProduct(mappedProd);
         successCount++;
       }
-      
+
       showSuccess(`✅ Successfully imported ${successCount} products!`);
       fetchProducts();
       setShowImportModal(false);
@@ -536,7 +536,7 @@ function ProductDashboard({ currentUser, productsData, navigationData }) {
   const userRole = currentUser?.role?.toLowerCase();
   const isAdmin = ['super_admin', 'company_admin', 'admin'].includes(userRole);
   const hasGlobalPermission = currentUser?.permissions?.includes('all') || currentUser?.permissions?.includes('company_all');
-  
+
   const canManageProducts =
     isAdmin ||
     userRole === 'administration' ||
@@ -1052,11 +1052,11 @@ function ProductDashboard({ currentUser, productsData, navigationData }) {
           </Modal.Header>
           <Modal.Body className="p-0 bg-light d-flex flex-column flex-md-row">
             <div className="flex-grow-1 overflow-auto bg-light">
-              
-            <div ref={printRef}>
-              <ProductPrintView productData={viewingProduct} />
-            </div>
-          
+
+              <div ref={printRef}>
+                <ProductPrintView productData={viewingProduct} />
+              </div>
+
             </div>
             <div className="no-print bg-white border-start p-3 shadow-sm" style={{ width: '100%', maxWidth: '350px', overflowY: 'auto' }}>
               <ActivityTimeline resourceType="document" resourceId={viewingProduct?.id} />

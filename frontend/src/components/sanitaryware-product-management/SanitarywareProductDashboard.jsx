@@ -42,17 +42,17 @@ function SanitarywareProductDashboard({ currentUser }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+
   const [showProductForm, setShowProductForm] = useState(false);
   const [showProductView, setShowProductView] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmConfig, setConfirmConfig] = useState({
     title: '',
     message: '',
-    onConfirm: () => {},
+    onConfirm: () => { },
     variant: 'danger'
   });
-  
+
   const [editingProduct, setEditingProduct] = useState(null);
   const [viewingProduct, setViewingProduct] = useState(null);
   const [showPrintModal, setShowPrintModal] = useState(false);
@@ -191,7 +191,7 @@ function SanitarywareProductDashboard({ currentUser }) {
   };
 
   const handleDownloadPDF = async (product) => {
-    try { await api.post('/document-activity/doc/' + (product?.id || 'unknown') + '/action', { action: 'DOWNLOAD' }); } catch(e){}
+    try { await api.post('/document-activity/doc/' + (product?.id || 'unknown') + '/action', { action: 'DOWNLOAD' }); } catch (e) { }
     setViewingProduct(product);
     setShowPrintModal(true);
     setTimeout(async () => {
@@ -421,8 +421,8 @@ function SanitarywareProductDashboard({ currentUser }) {
                     <tr key={product.id || index}>
                       <td data-label="Sr." className="ps-4 text-muted small">{index + 1}</td>
                       <td data-label="Status">
-                        <Badge 
-                          bg={product.status === 'Active' ? 'success' : 'secondary'} 
+                        <Badge
+                          bg={product.status === 'Active' ? 'success' : 'secondary'}
                           className="px-2 py-1 cursor-pointer"
                           style={{ borderRadius: '6px' }}
                           onClick={() => handleToggleStatus(product)}
@@ -555,11 +555,11 @@ function SanitarywareProductDashboard({ currentUser }) {
           </Modal.Header>
           <Modal.Body className="p-0 bg-light d-flex flex-column flex-md-row">
             <div className="flex-grow-1 overflow-auto bg-light">
-              
-            <div ref={printRef}>
-              <SanitarywareProductPrintView productData={viewingProduct} />
-            </div>
-          
+
+              <div ref={printRef}>
+                <SanitarywareProductPrintView productData={viewingProduct} />
+              </div>
+
             </div>
             <div className="no-print bg-white border-start p-3 shadow-sm" style={{ width: '100%', maxWidth: '350px', overflowY: 'auto' }}>
               <ActivityTimeline resourceType="document" resourceId={viewingProduct?.id} />

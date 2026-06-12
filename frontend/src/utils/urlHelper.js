@@ -18,12 +18,12 @@
  */
 export const resolveImageUrl = (url) => {
   if (!url) return '';
-  
+
   // If it's already an absolute URL (starts with http or https), return as is
   if (url.startsWith('http://') || url.startsWith('https://')) {
     return url;
   }
-  
+
   // If it starts with data:, it's a base64 image
   if (url.startsWith('data:')) {
     return url;

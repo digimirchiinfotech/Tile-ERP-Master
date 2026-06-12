@@ -52,7 +52,7 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
 
     const tileProducts = parseProducts(documentData.product_lines || documentData.productLines || documentData.products || documentData.product_details || documentData.inherited_product_details || documentData.productDetails);
     const sanitaryProducts = parseProducts(documentData.sanitary_products || documentData.sanitaryProducts || documentData.inherited_sanitary_products);
-    const containers = parseProducts(documentData.containers || documentData.container_sheet || documentData.container_details);
+    const containers = parseProducts(documentData.containers || documentData.container_sheet || documentData.container_details || documentData.containerDetails);
     
     const docNo = documentData.igst_invoice_no || documentData.igstInvoiceNo || documentData.invoice_no || documentData.invoiceNo || documentData.exp_no || documentData.vgm_no || documentData.instructionNo || documentData.si_no || documentData.backside_no || documentData.annexure_no || documentData.packing_list_no || 'Document';
     const clientName = documentData.client_name || documentData.clientName || documentData.exporter_name || 'N/A';
@@ -126,14 +126,14 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
     const consignee = documentData.consignee_details || documentData.consigneeDetails || 'TO THE ORDER';
     const buyer = documentData.buyer_details || documentData.buyerDetails || 'SAME AS ABOVE';
     
-    const invNo = documentData.igst_invoice_no || documentData.igstInvoiceNo || documentData.invoice_no || documentData.invoiceNo || documentData.exp_no || documentData.expNo || documentData.vgm_no || documentData.vgmNo || documentData.si_no || documentData.siNo || documentData.annexure_no || documentData.annexureNo || documentData.packing_list_no || documentData.packingListNo || '-';
+    const invNo = documentData.igst_invoice_no || documentData.igstInvoiceNo || documentData.invoice_no || documentData.invoiceNo || documentData.exp_no || documentData.expNo || documentData.vgm_no || documentData.vgmNo || documentData.si_no || documentData.siNo || documentData.annexure_no || documentData.annexureNo || documentData.packing_list_no || documentData.packingListNo || documentData.po_no || documentData.proforma_order_no || documentData.proformaOrderNo || '-';
     const invDate = formatDisplayDate(documentData.invoice_date || documentData.invoiceDate || documentData.vgm_date || documentData.vgmDate || documentData.date || documentData.created_at || documentData.createdAt || documentData.packing_list_date);
     
-    const piNo = documentData.pi_no || documentData.proforma_invoice_no || documentData.proformaInvoiceNo || documentData.exporter_ref || documentData.exporterRef || '-';
-    const piDate = formatDisplayDate(documentData.pi_date || documentData.proforma_date || documentData.proformaDate);
+    const piNo = documentData.pi_no || documentData.piNo || documentData.proforma_invoice_no || documentData.proformaInvoiceNo || documentData.exporter_ref || documentData.exporterRef || '-';
+    const piDate = formatDisplayDate(documentData.pi_date || documentData.piDate || documentData.proforma_date || documentData.proformaDate);
     
-    const buyerOrderNo = documentData.buyers_order_no || documentData.buyersOrderNo || '-';
-    const buyerOrderDate = formatDisplayDate(documentData.buyers_order_date || documentData.buyersOrderDate);
+    const buyerOrderNo = documentData.buyers_order_no || documentData.buyersOrderNo || documentData.buyer_order_no || documentData.buyerOrderNo || '-';
+    const buyerOrderDate = formatDisplayDate(documentData.buyers_order_date || documentData.buyersOrderDate || documentData.buyer_order_date || documentData.buyerOrderDate);
     
     const deliveryTerms = documentData.delivery_terms || documentData.deliveryTerms || '-';
     const tariffCode = documentData.tariff_code || documentData.tariffCode || '-';
@@ -586,7 +586,7 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
 
         setCell(r, 1, index + 1, { align: { horizontal: 'center', vertical: 'top' } });
         setCell(r, 2, finalDesc, { bold: true, align: { horizontal: 'left', vertical: 'top' } });
-        setCell(r, 3, p.hsnCode || p.hsn_code || p.hsCode || p.hs_code || '', { align: { horizontal: 'center', vertical: 'top' } });
+        setCell(r, 3, p.hsnCode || p.hsn_code || p.hsCode || p.hs_code || (tariffCode !== '-' ? tariffCode : ''), { align: { horizontal: 'center', vertical: 'top' } });
         setCell(r, 4, boxes, { align: { horizontal: 'center', vertical: 'top' } });
         setCell(r, 5, sqm, { align: { horizontal: 'center', vertical: 'top' } });
         
@@ -1073,11 +1073,13 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
         const isFoc = !!(c.is_foc || c.isFoc);
         let desc = '';
         if (isFoc) desc += 'FREE OF COST SAMPLE NO COMMERCIAL VALUE\n';
-        if (c.product_name && c.product_name.toLowerCase() !== 'unknown' && c.product_name.toLowerCase() !== 'name') {
-          desc += c.product_name + '\n';
+        const pName = c.product_name || c.productName || '';
+        const mDesc = c.material_description || c.materialDescription || '';
+        if (pName && pName.toLowerCase() !== 'unknown' && pName.toLowerCase() !== 'name') {
+          desc += pName + '\n';
         }
-        if (c.material_description && c.material_description !== c.product_name && c.material_description.toLowerCase() !== 'name' && c.material_description.toLowerCase() !== 'unknown' && c.material_description !== '-') {
-          desc += c.material_description;
+        if (mDesc && mDesc !== pName && mDesc.toLowerCase() !== 'name' && mDesc.toLowerCase() !== 'unknown' && mDesc !== '-') {
+          desc += mDesc;
         }
         setCell(r, 5, desc.trim(), { size: 7, align: { horizontal: 'left', vertical: 'top' } });
         

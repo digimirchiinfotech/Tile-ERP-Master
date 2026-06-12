@@ -464,7 +464,6 @@ export const getCitiesByCountry = async (req, res, next) => {
       LEFT JOIN master_countries mcn ON mc.country_code = mcn.country_code
       WHERE (mcn.country_code = $1 OR mcn.iso_alpha_2 = $1)
       ORDER BY mc.city_name
-      LIMIT 1000
     `;
     const result = await req.db.globalQuery(query, [countryCode.toUpperCase()]);
     res.json({ success: true, data: transformRowsToCamelCase(result.rows) });

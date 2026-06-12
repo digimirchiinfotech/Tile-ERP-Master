@@ -9,11 +9,48 @@
  * or reverse engineering of this file, via any medium, is strictly prohibited.
  */
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Modal, Button, InputGroup, Spinner, Badge, Dropdown } from 'react-bootstrap';
 import { Plus, X, Image as ImageIcon, Search } from 'lucide-react';
 import api from '../../services/api.js';
 import { uploadMasterDataImage } from '../../services/masterDataService.js';
+
+// Custom Menu to prevent React-Bootstrap from hijacking keyboard events
+const CustomMenu = React.forwardRef(
+  ({ children, style, className, 'aria-labelledby': labeledBy, searchTerm, setSearchTerm, addButtonLabel, handleChange }, ref) => {
+    return (
+      <div
+        ref={ref}
+        style={{ ...style, maxHeight: '300px', overflowY: 'auto' }}
+        className={`w-100 shadow-sm ${className}`}
+        aria-labelledby={labeledBy}
+      >
+        <div className="px-2 py-1 position-sticky top-0 bg-white" style={{ zIndex: 1 }}>
+          <div className="position-relative">
+            <Search size={14} className="position-absolute top-50 translate-middle-y text-muted ms-2" />
+            <Form.Control
+              autoFocus
+              className="ps-4 border-primary-subtle"
+              placeholder="Type to search..."
+              onChange={(e) => setSearchTerm(e.target.value)}
+              value={searchTerm}
+              style={{ borderRadius: '6px' }}
+              onKeyDown={(e) => e.stopPropagation()} // Crucial: Stop Dropdown from eating keystrokes!
+            />
+          </div>
+        </div>
+        <Dropdown.Divider className="my-1" />
+        <Dropdown.Item 
+          onClick={() => handleChange({ target: { value: '__add_new__' } })}
+          className="text-primary fw-bold"
+        >
+          {addButtonLabel}
+        </Dropdown.Item>
+        {children}
+      </div>
+    );
+  },
+);
 
 function AddableDropdown({
   value,
@@ -249,27 +286,13 @@ function AddableDropdown({
             <span className="text-truncate">{displayValue}</span>
           </Dropdown.Toggle>
 
-          <Dropdown.Menu className="w-100 shadow-sm" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-            <div className="px-2 py-1 position-sticky top-0 bg-white" style={{ zIndex: 1 }}>
-              <div className="position-relative">
-                <Search size={14} className="position-absolute top-50 translate-middle-y text-muted ms-2" />
-                <Form.Control
-                  autoFocus
-                  className="ps-4 border-primary-subtle"
-                  placeholder="Type to search..."
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  value={searchTerm}
-                  style={{ borderRadius: '6px' }}
-                />
-              </div>
-            </div>
-            <Dropdown.Divider className="my-1" />
-            <Dropdown.Item 
-              onClick={() => handleChange({ target: { value: '__add_new__' } })}
-              className="text-primary fw-bold"
-            >
-              {addButtonLabel}
-            </Dropdown.Item>
+          <Dropdown.Menu 
+            as={CustomMenu} 
+            searchTerm={searchTerm} 
+            setSearchTerm={setSearchTerm} 
+            addButtonLabel={addButtonLabel} 
+            handleChange={handleChange}
+          >
             {filteredOptions.map((option) => (
               <Dropdown.Item 
                 key={option} 

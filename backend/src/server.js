@@ -513,9 +513,18 @@ const gracefulShutdown = async (signal) => {
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
+// Prevent global process crashes from unhandled database promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Server', 'Unhandled Rejection at:', promise, 'reason:', reason);
+  // Do not exit the process, allowing the server to gracefully continue serving other requests
+});
+
+process.on('uncaughtException', (error) => {
+  logger.error('Server', 'Uncaught Exception:', error);
+  // Do not exit the process immediately, log the error
+});
+
 // Cleanup expired tokens periodically
 setInterval(cleanupExpiredTokens, 60 * 60 * 1000);
 
 export default app;
-
-// trigger nodemon restart

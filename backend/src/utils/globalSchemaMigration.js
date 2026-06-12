@@ -213,6 +213,14 @@ export const runGlobalSchemaMigration = async () => {
           ALTER TABLE packing_lists ADD COLUMN deleted_at timestamp without time zone;
         END IF;
 
+        -- Account Entries missing column fix
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'account_entries' AND column_name = 'reference_no'
+        ) THEN
+          ALTER TABLE account_entries ADD COLUMN reference_no VARCHAR(255);
+        END IF;
+
       END $$;
     `);
 

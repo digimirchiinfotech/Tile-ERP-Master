@@ -21,7 +21,8 @@ import { notificationService } from '../services/notificationService.js';
 export const getNextNumber = async (req, res, next) => {
   try {
     let companyId = req.companyFilter;
-    const { exportInvoiceId } = req.query;
+    let { exportInvoiceId } = req.query;
+    if (exportInvoiceId === "") exportInvoiceId = null;
 
     if (!companyId && exportInvoiceId) {
       const invRes = await req.db.query('SELECT company_id FROM export_invoices WHERE id = $1', [exportInvoiceId]);

@@ -481,7 +481,6 @@ export const getAllCities = async (req, res, next) => {
       FROM master_cities mc
       LEFT JOIN master_countries mcn ON mc.country_code = mcn.country_code
       ORDER BY mcn.country_name, mc.city_name
-      LIMIT 500
     `;
     const result = await req.db.globalQuery(query, []);
     res.json({ success: true, data: transformRowsToCamelCase(result.rows) });

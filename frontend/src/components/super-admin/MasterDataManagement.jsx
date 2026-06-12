@@ -81,6 +81,8 @@ function MasterDataManagement({ currentUser }) {
   const [currencySymbol, setCurrencySymbol] = useState('');
   const [deleteConfig, setDeleteConfig] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterCountry, setFilterCountry] = useState('');
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [imageUrl, setImageUrl] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
@@ -534,7 +536,7 @@ function MasterDataManagement({ currentUser }) {
         endpoint = '/master-data/cities';
         payload = {
           cityName: newValue.trim(),
-          countryId: selectedCountry,
+          countryCode: selectedCountry,
           value: newValue.trim()
         };
       } else if (currentCategory === 'currencies') {
@@ -840,6 +842,12 @@ function MasterDataManagement({ currentUser }) {
 
     let currentList = masterData[activeCategory] || [];
 
+    if (activeCategory === 'cities' && filterCountry) {
+      currentList = currentList.filter(item => 
+        item?.countryCode === filterCountry || item?.countryId === filterCountry
+      );
+    }
+
     if (searchQuery.trim()) {
       currentList = currentList.filter(item => {
         const val = (item?.cityName || item?.countryName || item?.portName || item?.name || item?.value || (typeof item === 'string' ? item : '')).toLowerCase();
@@ -851,13 +859,16 @@ function MasterDataManagement({ currentUser }) {
       <>
         {/* Collapsible Filter Panel */}
         <FilterPanel
-          onClear={() => setSearchQuery('')}
+          onClear={() => {
+            setSearchQuery('');
+            setFilterCountry('');
+          }}
           title={`Search in ${categories.find((c) => c.key === activeCategory)?.label}`}
           className="mb-4"
         >
           <Form onSubmit={(e) => e.preventDefault()}>
             <Row className="g-3 align-items-center">
-              <Col md={12}>
+              <Col md={activeCategory === 'cities' ? 8 : 12}>
                 <Form.Group>
                   <Form.Label className="fw-bold small text-muted text-uppercase">Search Term</Form.Label>
                   <div className="position-relative">
@@ -873,6 +884,26 @@ function MasterDataManagement({ currentUser }) {
                   </div>
                 </Form.Group>
               </Col>
+              {activeCategory === 'cities' && (
+                <Col md={4}>
+                  <Form.Group>
+                    <Form.Label className="fw-bold small text-muted text-uppercase">Filter By Country</Form.Label>
+                    <Form.Select
+                      className="py-2 border-primary-subtle"
+                      style={{ borderRadius: '10px' }}
+                      value={filterCountry}
+                      onChange={(e) => setFilterCountry(e.target.value)}
+                    >
+                      <option value="">All Countries</option>
+                      {masterDataWithIds.countries?.map((c) => (
+                        <option key={c.id || c._id} value={c.countryCode || c.isoAlpha2 || c.id || c._id}>
+                          {c.countryName || c.value}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+              )}
             </Row>
           </Form>
         </FilterPanel>
@@ -1161,7 +1192,7 @@ function MasterDataManagement({ currentUser }) {
               >
                 <option value="">Select Country</option>
                 {masterDataWithIds.countries?.map((c) => (
-                  <option key={c.id || c._id} value={c.id || c._id}>{c.countryName || c.value}</option>
+                  <option key={c.id || c._id} value={c.countryCode || c.isoAlpha2 || c.id || c._id}>{c.countryName || c.value}</option>
                 ))}
               </Form.Select>
             </Form.Group>

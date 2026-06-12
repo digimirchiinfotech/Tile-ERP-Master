@@ -712,7 +712,7 @@ function InvoiceBacksideForm({ exportInvoiceId: initialExportInvoiceId, initialB
                                                 }}
                                             >
                                                 <option value="" disabled hidden>+ Pick Supplier</option>
-                                                {suppliers.map(s => (
+                                                {(suppliers || []).map(s => (
                                                     <option key={s.id} value={s.id}>{s.company_name || s.name}</option>
                                                 ))}
                                             </Form.Select>
@@ -803,7 +803,7 @@ function InvoiceBacksideForm({ exportInvoiceId: initialExportInvoiceId, initialB
                                 </tr>
                             </thead>
                             <tbody>
-                                {formData.container_details.map((c, i) => (
+                                {(formData.container_details || []).map((c, i) => (
                                     <tr key={i}>
                                         <td data-label="Sr. No.">{c.sr_no || i + 1}</td>
                                         <td data-label="Container No." className="text-center">{c.container_no || ''}</td>
@@ -840,9 +840,9 @@ function InvoiceBacksideForm({ exportInvoiceId: initialExportInvoiceId, initialB
 
                     {/* Mobile View: Container Cards */}
                     <div className="d-block d-lg-none p-3 bg-light bg-opacity-50">
-                        {formData.container_details && formData.container_details.length > 0 ? (
+                        {(formData.container_details && formData.container_details.length > 0) ? (
                             <>
-                                {formData.container_details.map((c, i) => (
+                                {(formData.container_details || []).map((c, i) => (
                                     <Card key={i} className="mb-3 border-0 shadow-sm rounded-4 overflow-hidden">
                                         <Card.Header className="bg-white py-2 px-3 border-bottom d-flex align-items-center">
                                             <div className="bg-primary bg-opacity-10 p-1 rounded-2 me-2">

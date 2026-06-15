@@ -15,9 +15,12 @@ import { normalizeData, prepareDataForAPI } from '../utils/dataTransformers';
 import { trackError, trackSlowRequest } from '../utils/errorTracker';
 
 // Use Vite proxy in development (configured in vite.config.js)
-// In production, ignore Vercel environment variables because they contain the dead .up.railway.app domain
-const isDev = import.meta.env.DEV || import.meta.env.MODE === 'development';
-const API_BASE_URL = isDev ? '/api' : (import.meta.env.DEV || import.meta.env.MODE === 'development' ? '/api' : 'https://tile-erp-master-production.railway.app/api');
+// In production, use the correct Railway backend domain or a custom override via VITE_API_BASE
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE ||
+  (import.meta.env.DEV || import.meta.env.MODE === 'development'
+    ? '/api'
+    : 'https://tile-erp-master.up.railway.app/api');
 
 console.log("API_BASE_URL =", API_BASE_URL);
 

@@ -62,7 +62,7 @@ export const getByExportInvoiceId = async (req, res, next) => {
               p.delivery_terms, p.pre_carriage_by, p.place_of_receipt, p.vessel_flight_no, p.port_of_loading, p.port_of_discharge,
               p.bank_details, p.material_description, p.total_pallets, p.total_boxes, p.total_sqm, p.total_amount, 
               p.total_weight, p.net_weight, p.gross_weight, p.pallet_type, p.made_in_india, p.tiles_back, p.boxes_marking, p.box_type,
-              p.fumigation, p.legalisation, p.product_lines, p.container_details,
+              p.fumigation, p.legalisation, p.lc_number, p.lc_date, p.epcg_no, p.product_lines, p.container_details,
               p.consignee, p.buyer, p.buyers_order_no, p.buyers_order_date, p.shipment_terms, p.tariff_code, p.status, p.created_at, p.updated_at,
               p.is_locked, p.snapshot_data,
               ei.id as export_invoice_id, ei.invoice_no as inv_invoice_no, ei.invoice_date as inv_invoice_date, ei.client_name as inv_client_name, ei.country as inv_country,
@@ -89,7 +89,8 @@ export const getByExportInvoiceId = async (req, res, next) => {
               ei.box_type as inv_box_type,
               ei.fumigation as inv_fumigation,
               ei.legalisation as inv_legalisation,
-              ei.legalisation,
+              ei.legalisation, ei.lc_number, ei.lc_date, ei.epcg_no,
+              ei.lc_number as inv_lc_number, ei.lc_date as inv_lc_date, ei.epcg_no as inv_epcg_no,
               pi.invoice_no as pi_no, pi.date as pi_date,
               a.container_details as annexure_container_details, a.total_pallets as annexure_pallets,
               a.shipping_bill_no as inv_sb_no, a.shipping_bill_date as inv_sb_date,
@@ -209,6 +210,9 @@ export const getByExportInvoiceId = async (req, res, next) => {
         box_type: p.box_type || '',
         fumigation: p.fumigation || '',
         legalisation: p.legalisation || '',
+        lc_number: p.lc_number || mergedRow.inv_lc_number || '',
+        lc_date: p.lc_date || mergedRow.inv_lc_date || null,
+        epcg_no: p.epcg_no || mergedRow.inv_epcg_no || '',
 
         client_name: p.client_name || ''
       } : {
@@ -250,6 +254,9 @@ export const getByExportInvoiceId = async (req, res, next) => {
         box_type: mergedRow.inv_box_type || '',
         fumigation: mergedRow.inv_fumigation || '',
         legalisation: mergedRow.inv_legalisation || '',
+        lc_number: mergedRow.inv_lc_number || mergedRow.lc_number || '',
+        lc_date: mergedRow.inv_lc_date || mergedRow.lc_date || null,
+        epcg_no: mergedRow.inv_epcg_no || mergedRow.epcg_no || '',
 
         client_name: mergedRow.inv_client_name || ''
       }),
@@ -323,6 +330,9 @@ const _buildUpsertParams = (body, exportInvoiceId, companyId, existingNo) => {
     box_type,
     fumigation,
     legalisation,
+    lc_number,
+    lc_date,
+    epcg_no,
 
     product_lines,
     container_details,
@@ -385,6 +395,9 @@ const _buildUpsertParams = (body, exportInvoiceId, companyId, existingNo) => {
     box_type: coerce(box_type),
     fumigation: _toYesNo(fumigation),
     legalisation: _toYesNo(legalisation),
+    lc_number: coerce(lc_number),
+    lc_date: coerceDate(lc_date),
+    epcg_no: coerce(epcg_no),
 
     product_lines: product_lines ? JSON.stringify(product_lines) : '[]',
     container_details: container_details ? JSON.stringify(container_details) : '[]',
@@ -461,8 +474,8 @@ export const createOrUpdate = async (req, res, next) => {
           tiles_back = $34, box_type = $35, fumigation = $36, legalisation = $37,
           status = $38, product_lines = $39, container_details = $40,
           total_amount = $41, client_name = $42, delivery_terms = $43, boxes_marking = $44,
-          total_weight = $45, updated_at = CURRENT_TIMESTAMP
-        WHERE export_invoice_id = $46 AND company_id = $47 RETURNING *`,
+          total_weight = $45, lc_number = $46, lc_date = $47, epcg_no = $48, updated_at = CURRENT_TIMESTAMP
+        WHERE export_invoice_id = $49 AND company_id = $50 RETURNING *`,
         [
           p.packing_list_no, p.packing_list_date, p.iec_no, p.gstn,
           p.proforma_invoice_no, p.proforma_date, p.consignee, p.buyer,
@@ -474,7 +487,7 @@ export const createOrUpdate = async (req, res, next) => {
           p.net_weight, p.gross_weight, p.pallet_type, p.made_in_india,
           p.status, p.product_lines, p.container_details,
           p.total_amount, p.client_name, p.delivery_terms, p.boxes_marking,
-          p.total_weight, exportInvoiceId, companyId
+          p.total_weight, p.lc_number, p.lc_date, p.epcg_no, exportInvoiceId, companyId
         ]
       );
     } else {
@@ -486,12 +499,12 @@ export const createOrUpdate = async (req, res, next) => {
           final_destination, payment_terms, delivery_terms, pre_carriage_by, place_of_receipt, vessel_flight_no,
           port_of_loading, port_of_discharge, bank_details, material_description, total_pallets,
           total_boxes, total_sqm, total_amount, total_weight, net_weight, gross_weight, pallet_type, made_in_india,
-          tiles_back, boxes_marking, box_type, fumigation, legalisation,
+          tiles_back, boxes_marking, box_type, fumigation, legalisation, lc_number, lc_date, epcg_no,
           product_lines, container_details, client_name, status
         ) VALUES (
           $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,
           $20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,
-          $39,$40,$41,$42,$43,$44,$45,$46,$47
+          $39,$40,$41,$42,$43,$44,$45,$46,$47,$48,$49,$50
         ) RETURNING *`,
         [
           companyId, exportInvoiceId, p.packing_list_no, p.packing_list_date, p.iec_no, p.gstn,
@@ -500,7 +513,7 @@ export const createOrUpdate = async (req, res, next) => {
           p.final_destination, p.payment_terms, p.delivery_terms, p.pre_carriage_by, p.place_of_receipt, p.vessel_flight_no,
           p.port_of_loading, p.port_of_discharge, p.bank_details, p.material_description, p.total_pallets,
           p.total_boxes, p.total_sqm, p.total_amount, p.total_weight, p.net_weight, p.gross_weight, p.pallet_type, p.made_in_india,
-          p.tiles_back, p.boxes_marking, p.box_type, p.fumigation, p.legalisation,
+          p.tiles_back, p.boxes_marking, p.box_type, p.fumigation, p.legalisation, p.lc_number, p.lc_date, p.epcg_no,
           p.product_lines, p.container_details, p.client_name, p.status
         ]
       );
@@ -559,8 +572,8 @@ export const updateById = async (req, res, next) => {
         tiles_back = $34, box_type = $35, fumigation = $36, legalisation = $37,
         status = $38, product_lines = $39, container_details = $40,
         total_amount = $41, client_name = $42, delivery_terms = $43, boxes_marking = $44,
-        total_weight = $45, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $46 RETURNING *`,
+        total_weight = $45, lc_number = $46, lc_date = $47, epcg_no = $48, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $49 RETURNING *`,
       [
         p.packing_list_no, p.packing_list_date, p.iec_no, p.gstn,
         p.proforma_invoice_no, p.proforma_date, p.consignee, p.buyer,
@@ -573,7 +586,7 @@ export const updateById = async (req, res, next) => {
         p.tiles_back, p.box_type, p.fumigation, p.legalisation,
         p.status, p.product_lines, p.container_details,
         p.total_amount, p.client_name, p.delivery_terms, p.boxes_marking,
-        p.total_weight, id
+        p.total_weight, p.lc_number, p.lc_date, p.epcg_no, id
       ]
     );
 
@@ -629,12 +642,12 @@ export const create = async (req, res, next) => {
         final_destination, payment_terms, delivery_terms, pre_carriage_by, place_of_receipt, vessel_flight_no,
         port_of_loading, port_of_discharge, bank_details, material_description, total_pallets,
         total_boxes, total_sqm, total_amount, total_weight, net_weight, gross_weight, pallet_type, made_in_india,
-        tiles_back, boxes_marking, box_type, fumigation, legalisation,
+        tiles_back, boxes_marking, box_type, fumigation, legalisation, lc_number, lc_date, epcg_no,
         product_lines, container_details, client_name, status
       ) VALUES (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,
         $20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,
-        $39,$40,$41,$42,$43,$44,$45,$46
+        $39,$40,$41,$42,$43,$44,$45,$46,$47,$48,$49
       ) RETURNING *`,
       [
         companyId, p.packing_list_no, p.packing_list_date, p.iec_no, p.gstn,
@@ -643,7 +656,7 @@ export const create = async (req, res, next) => {
         p.final_destination, p.payment_terms, p.delivery_terms, p.pre_carriage_by, p.place_of_receipt, p.vessel_flight_no,
         p.port_of_loading, p.port_of_discharge, p.bank_details, p.material_description, p.total_pallets,
         p.total_boxes, p.total_sqm, p.total_amount, p.total_weight, p.net_weight, p.gross_weight, p.pallet_type, p.made_in_india,
-        p.tiles_back, p.boxes_marking, p.box_type, p.fumigation, p.legalisation,
+        p.tiles_back, p.boxes_marking, p.box_type, p.fumigation, p.legalisation, p.lc_number, p.lc_date, p.epcg_no,
         p.product_lines, p.container_details, p.client_name, p.status
       ]
     );

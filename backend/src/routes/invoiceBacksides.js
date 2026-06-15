@@ -13,6 +13,7 @@ import { Router } from 'express';
 import { authenticate, filterByCompany } from '../middleware/auth.js';
 import { requirePermission } from '../middleware/rbac.js';
 import { checkDocumentLock } from '../middleware/lockManager.js';
+import { createAuditMiddleware } from '../middleware/auditLog.js';
 import {
   getAll,
   getById,
@@ -40,17 +41,17 @@ router.get('/:id', ...auth, getById);
 
 const lockMiddleware = checkDocumentLock('INVOICE_BACKSIDE', { idParam: 'exportInvoiceId', idField: 'export_invoice_id' });
 
-router.post('/export-invoice/:exportInvoiceId', ...auth, lockMiddleware, createOrUpdate);
-router.post('/:exportInvoiceId', ...auth, lockMiddleware, createOrUpdate);
+router.post('/export-invoice/:exportInvoiceId', ...auth, lockMiddleware, createAuditMiddleware('invoice_backside', 'UPDATE'), createOrUpdate);
+router.post('/:exportInvoiceId', ...auth, lockMiddleware, createAuditMiddleware('invoice_backside', 'UPDATE'), createOrUpdate);
 
-router.put('/export-invoice/:exportInvoiceId', ...auth, lockMiddleware, createOrUpdate);
-router.put('/:exportInvoiceId', ...auth, lockMiddleware, createOrUpdate);
+router.put('/export-invoice/:exportInvoiceId', ...auth, lockMiddleware, createAuditMiddleware('invoice_backside', 'UPDATE'), createOrUpdate);
+router.put('/:exportInvoiceId', ...auth, lockMiddleware, createAuditMiddleware('invoice_backside', 'UPDATE'), createOrUpdate);
 
-router.delete('/export-invoice/:exportInvoiceId', ...auth, lockMiddleware, remove);
-router.delete('/:id', ...auth, checkDocumentLock('INVOICE_BACKSIDE'), removeById);
+router.delete('/export-invoice/:exportInvoiceId', ...auth, lockMiddleware, createAuditMiddleware('invoice_backside', 'DELETE'), remove);
+router.delete('/:id', ...auth, checkDocumentLock('INVOICE_BACKSIDE'), createAuditMiddleware('invoice_backside', 'DELETE'), removeById);
 
-router.patch('/:id/toggle-status', ...auth, checkDocumentLock('INVOICE_BACKSIDE'), toggleStatus);
+router.patch('/:id/toggle-status', ...auth, checkDocumentLock('INVOICE_BACKSIDE'), createAuditMiddleware('invoice_backside', 'STATUS_CHANGE'), toggleStatus);
 
-router.patch('/:id/status', ...auth, checkDocumentLock('INVOICE_BACKSIDE'), updateStatus);
+router.patch('/:id/status', ...auth, checkDocumentLock('INVOICE_BACKSIDE'), createAuditMiddleware('invoice_backside', 'STATUS_CHANGE'), updateStatus);
 export default router;
 

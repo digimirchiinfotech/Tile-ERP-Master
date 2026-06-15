@@ -1,3 +1,4 @@
+import { createAuditMiddleware } from '../middleware/auditLog.js';
 /**
  * TILE EXPORTER ERP SAAS
  * 
@@ -20,10 +21,10 @@ router.use(authenticate);
 router.use(filterByCompany);
 
 router.get('/', requirePermission('export_management', 'all'), certController.getAll);
-router.post('/', requirePermission('export_management', 'all'), certController.create);
+router.post('/', requirePermission('export_management', 'all'), createAuditMiddleware('certificate', 'UPDATE'), certController.create);
 router.get('/:id', requirePermission('export_management', 'all'), certController.getById);
-router.put('/:id', requirePermission('export_management', 'all'), certController.update);
-router.delete('/:id/hard-delete', requirePermission('export_management', 'all'), certController.hardDelete);
-router.delete('/:id', requirePermission('export_management', 'all'), certController.remove);
+router.put('/:id', requirePermission('export_management', 'all'), createAuditMiddleware('certificate', 'UPDATE'), certController.update);
+router.delete('/:id/hard-delete', requirePermission('export_management', 'all'), createAuditMiddleware('certificate', 'DELETE'), certController.hardDelete);
+router.delete('/:id', requirePermission('export_management', 'all'), createAuditMiddleware('certificate', 'DELETE'), certController.remove);
 
 export default router;

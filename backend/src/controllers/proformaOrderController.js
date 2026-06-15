@@ -43,7 +43,7 @@ const ensureSchemaExists = async (queryFn, companyId) => {
       { name: 'gst_rate', type: 'NUMERIC(5, 2) DEFAULT 0' },
       { name: 'gst_amount', type: 'NUMERIC(15, 2) DEFAULT 0' },
       { name: 'currency', type: 'VARCHAR(50) DEFAULT \'INR (₹)\'' },
-      { name: 'lc_lumber', type: 'VARCHAR(255)' },
+      { name: 'lc_number', type: 'VARCHAR(255)' },
       { name: 'lc_date', type: 'DATE' },
       { name: 'epcg_no', type: 'VARCHAR(255)' }
     ];
@@ -334,7 +334,7 @@ export const create = async (req, res, next) => {
       pallet_type, tiles_back, boxes_marking, box_type, fumigation, legalisation, other_instructions,
       country, port_of_loading, port_of_discharge, final_destination,
       payment_terms, delivery_schedule, currency,
-      lc_lumber, lc_date, epcg_no
+      lc_number, lc_date, epcg_no
     } = req.body;
 
     // Use req.companyFilter which is already validated by auth middleware
@@ -377,7 +377,7 @@ export const create = async (req, res, next) => {
           pallet_type, tiles_back, boxes_marking, box_type, fumigation, legalisation, other_instructions,
           country, port_of_loading, port_of_discharge, final_destination,
           payment_terms, delivery_schedule, currency,
-          lc_lumber, lc_date, epcg_no,
+          lc_number, lc_date, epcg_no,
           created_by, created_at, updated_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         RETURNING *`,
@@ -392,7 +392,7 @@ export const create = async (req, res, next) => {
           fumigation || 'YES', legalisation || 'YES', other_instructions || null,
           country || null, port_of_loading || 'MUNDRA PORT', port_of_discharge || null, final_destination || null,
           payment_terms || null, delivery_schedule || null, currency || 'INR (₹)',
-          lc_lumber || null, lc_date || null, epcg_no || null,
+          lc_number || null, lc_date || null, epcg_no || null,
           req.user.id
         ]
       );
@@ -484,7 +484,7 @@ export const update = async (req, res, next) => {
       pallet_type, tiles_back, boxes_marking, box_type, fumigation, legalisation, other_instructions,
       country, port_of_loading, port_of_discharge, final_destination,
       payment_terms, delivery_schedule, currency, status,
-      lc_lumber, lc_date, epcg_no,
+      lc_number, lc_date, epcg_no,
       revision_reason
     } = req.body;
 
@@ -548,7 +548,7 @@ export const update = async (req, res, next) => {
       pallet_type, tiles_back, boxes_marking, box_type, fumigation, legalisation, other_instructions,
       country, port_of_loading, port_of_discharge, final_destination,
       payment_terms, delivery_schedule, currency,
-      lc_lumber: lc_lumber === '' ? null : lc_lumber,
+      lc_number: lc_number === '' ? null : lc_number,
       lc_date: lc_date === '' ? null : lc_date,
       epcg_no: epcg_no === '' ? null : epcg_no,
       order_no: newRevNo,
@@ -599,7 +599,7 @@ export const update = async (req, res, next) => {
           pallet_type, tiles_back, boxes_marking, box_type, fumigation, legalisation, other_instructions,
           country, port_of_loading, port_of_discharge, final_destination,
           payment_terms, delivery_schedule, currency,
-          lc_lumber, lc_date, epcg_no,
+          lc_number, lc_date, epcg_no,
           created_by, updated_by, original_order_no, revision_no, revision_count, revised_from_id, revision_reason, created_at, updated_at
         )
         SELECT 
@@ -609,7 +609,7 @@ export const update = async (req, res, next) => {
           pallet_type, tiles_back, boxes_marking, box_type, fumigation, legalisation, other_instructions,
           country, port_of_loading, port_of_discharge, final_destination,
           payment_terms, delivery_schedule, currency,
-          lc_lumber, lc_date, epcg_no,
+          lc_number, lc_date, epcg_no,
           created_by, updated_by, COALESCE(original_order_no, REPLACE(order_no, '-TEMP', '')), COALESCE(revision_no, REPLACE(order_no, '-TEMP', '')), COALESCE(revision_count, 0), revised_from_id, revision_reason, created_at, updated_at
         FROM proforma_orders
         WHERE id = $1

@@ -400,6 +400,18 @@ const PackingListPrintView = forwardRef(({ data, boxTypeImageUrl }, ref) => {
                       </td>
                     </tr>
                     <tr>
+                      <td style={{ border: 'none', borderBottom: '1px solid #000', borderRight: '1px solid #000', padding: '2px 5px' }}>
+                        <span className="print-label" style={{ fontSize: '7pt' }}>LC No. & Date :-</span>
+                        <div className="print-value print-bold" style={{ fontSize: '8pt' }}>
+                          {data.lcNumber || data.lc_number || '-'} / {formatDate(data.lcDate || data.lc_date)}
+                        </div>
+                      </td>
+                      <td style={{ border: 'none', borderBottom: '1px solid #000', padding: '2px 5px' }}>
+                        <span className="print-label" style={{ fontSize: '7pt' }}>EPCG No. :</span>
+                        <div className="print-value print-bold" style={{ fontSize: '8pt' }}>{data.epcgNo || data.epcg_no || '-'}</div>
+                      </td>
+                    </tr>
+                    <tr>
                       <td style={{ border: 'none', borderRight: '1px solid #000', padding: '2px 5px' }}>
                         <span className="print-label" style={{ fontSize: '7pt' }}>Shipment Terms -</span>
                         <div className="print-value print-bold" style={{ fontSize: '8.5pt' }}>{data.shipmentTerms || data.shipment_terms || data.deliveryTerms || data.delivery_terms || '-'}</div>

@@ -61,7 +61,7 @@ const ensureSchemaExists = async (queryFn, companyId) => {
       { name: 'approved_by', type: 'UUID' },
       { name: 'approved_at', type: 'TIMESTAMP' },
       { name: 'approval_remarks', type: 'TEXT' },
-      { name: 'lc_lumber', type: 'VARCHAR(255)' },
+      { name: 'lc_number', type: 'VARCHAR(255)' },
       { name: 'lc_date', type: 'DATE' },
       { name: 'epcg_no', type: 'VARCHAR(255)' }
     ];
@@ -395,7 +395,7 @@ export const create = async (req, res, next) => {
       pallet_type, tiles_back, boxes_marking, box_type, fumigation, legalisation, other_instructions,
       consignee_details, buyer_details, final_destination, currency,
       pre_carriage_by, place_of_receipt, bl_no, bl_date, vessel_flight_no, sb_no, sb_date, exchange_rate,
-      lc_lumber, lc_date, epcg_no
+      lc_number, lc_date, epcg_no
     } = req.body;
 
     // Comprehensive camelCase to snake_case fallbacks for frontend compatibility
@@ -470,7 +470,7 @@ export const create = async (req, res, next) => {
           total_amount, pallets, total_sqm, status, payment_terms, delivery_terms, port_of_loading,
           port_of_discharge, final_destination, consignee_details, buyer_details, validity_days, notes, product_lines, tariff_code, supplier_details, pallet_type, tiles_back, boxes_marking, box_type, fumigation, legalisation, other_instructions, currency, 
           pre_carriage_by, place_of_receipt, bl_no, bl_date, vessel_flight_no, sb_no, sb_date, exchange_rate,
-          lc_lumber, lc_date, epcg_no,
+          lc_number, lc_date, epcg_no,
           created_by, created_at, updated_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         RETURNING *`,
@@ -486,7 +486,7 @@ export const create = async (req, res, next) => {
           vessel_flight_no || req.body.vesselFlightNo || null, 
           sb_no || req.body.sbNo || null, sb_date || req.body.sbDate || null,
           exchange_rate || req.body.exchangeRate || 1,
-          lc_lumber || req.body.lcLumber || null,
+          lc_number || req.body.lcNumber || null,
           lc_date || req.body.lcDate || null,
           epcg_no || req.body.epcgNo || null,
           req.user.id
@@ -595,7 +595,7 @@ export const update = async (req, res, next) => {
       pallet_type, tiles_back, boxes_marking, box_type, fumigation, legalisation, other_instructions,
       consignee_details, buyer_details, final_destination, currency,
       pre_carriage_by, place_of_receipt, bl_no, bl_date, vessel_flight_no, sb_no, sb_date, exchange_rate,
-      lc_lumber, lc_date, epcg_no,
+      lc_number, lc_date, epcg_no,
       revision_reason
     } = req.body;
 
@@ -625,7 +625,7 @@ export const update = async (req, res, next) => {
     const m_sb_no = sb_no !== undefined ? sb_no : req.body.sbNo;
     const m_sb_date = sb_date !== undefined ? sb_date : req.body.sbDate;
     const m_exchange_rate = exchange_rate !== undefined ? exchange_rate : req.body.exchangeRate;
-    const m_lc_lumber = lc_lumber !== undefined ? lc_lumber : req.body.lcLumber;
+    const m_lc_number = lc_number !== undefined ? lc_number : req.body.lcNumber;
     const m_lc_date = lc_date !== undefined ? lc_date : req.body.lcDate;
     const m_epcg_no = epcg_no !== undefined ? epcg_no : req.body.epcgNo;
 
@@ -694,7 +694,7 @@ export const update = async (req, res, next) => {
       legalisation, other_instructions, currency: m_currency,
       pre_carriage_by: m_pre_carriage_by, place_of_receipt: m_place_of_receipt, bl_no: m_bl_no, bl_date: m_bl_date,
       vessel_flight_no: m_vessel_flight_no, sb_no: m_sb_no, sb_date: m_sb_date, exchange_rate: m_exchange_rate,
-      lc_lumber: m_lc_lumber, lc_date: m_lc_date, epcg_no: m_epcg_no,
+      lc_number: m_lc_number, lc_date: m_lc_date, epcg_no: m_epcg_no,
       invoice_no: newRevNo,
       revision_no: newRevNo,
       original_invoice_no: baseDocNo,
@@ -739,7 +739,7 @@ export const update = async (req, res, next) => {
           total_amount, pallets, total_sqm, status, payment_terms, delivery_terms, port_of_loading,
           port_of_discharge, final_destination, consignee_details, buyer_details, validity_days, notes, product_lines, tariff_code, supplier_details, pallet_type, tiles_back, boxes_marking, box_type, fumigation, legalisation, other_instructions, currency, 
           pre_carriage_by, place_of_receipt, bl_no, bl_date, vessel_flight_no, sb_no, sb_date, exchange_rate,
-          lc_lumber, lc_date, epcg_no,
+          lc_number, lc_date, epcg_no,
           created_by, updated_by, original_invoice_no, revision_no, revision_count, revised_from_id, revision_reason, created_at, updated_at
         )
         SELECT 
@@ -747,7 +747,7 @@ export const update = async (req, res, next) => {
           total_amount, pallets, total_sqm, 'Revised', payment_terms, delivery_terms, port_of_loading,
           port_of_discharge, final_destination, consignee_details, buyer_details, validity_days, notes, product_lines, tariff_code, supplier_details, pallet_type, tiles_back, boxes_marking, box_type, fumigation, legalisation, other_instructions, currency, 
           pre_carriage_by, place_of_receipt, bl_no, bl_date, vessel_flight_no, sb_no, sb_date, exchange_rate,
-          lc_lumber, lc_date, epcg_no,
+          lc_number, lc_date, epcg_no,
           created_by, updated_by, COALESCE(original_invoice_no, REPLACE(invoice_no, '-TEMP', '')), COALESCE(revision_no, REPLACE(invoice_no, '-TEMP', '')), COALESCE(revision_count, 0), revised_from_id, revision_reason, created_at, updated_at
         FROM proforma_invoices
         WHERE id = $1

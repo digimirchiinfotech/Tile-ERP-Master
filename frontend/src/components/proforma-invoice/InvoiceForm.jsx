@@ -116,7 +116,7 @@ const getInitialFormState = () => ({
   vesselFlightNo: '',
   preCarriageBy: '',
   placeOfReceipt: '',
-  lcLumber: '',
+  lcNumber: '',
   lcDate: '',
   epcgNo: '',
   paymentTerms: '',
@@ -441,7 +441,7 @@ function InvoiceForm({ invoice, onBack = () => { }, onNavigate, currentUser, inv
           vesselFlightNo: transformed?.vesselFlightNo || currentInvoice?.vessel_flight_no || '',
           preCarriageBy: transformed?.preCarriageBy || currentInvoice?.pre_carriage_by || '',
           placeOfReceipt: transformed?.placeOfReceipt || currentInvoice?.place_of_receipt || '',
-          lcLumber: transformed?.lcLumber || currentInvoice?.lc_lumber || '',
+          lcNumber: transformed?.lcNumber || currentInvoice?.lc_number || '',
           lcDate: formatDateForInput(transformed?.lcDate || currentInvoice?.lc_date),
           epcgNo: transformed?.epcgNo || currentInvoice?.epcg_no || '',
           paymentTerms: transformed?.paymentTerms || currentInvoice?.payment_terms || '',
@@ -1054,7 +1054,7 @@ function InvoiceForm({ invoice, onBack = () => { }, onNavigate, currentUser, inv
         vesselFlightNo: formData.vesselFlightNo,
         preCarriageBy: formData.preCarriageBy,
         placeOfReceipt: formData.placeOfReceipt,
-        lcLumber: formData.lcLumber,
+        lcNumber: formData.lcNumber,
         lcDate: formData.lcDate || null,
         epcgNo: formData.epcgNo,
         subtotal: transformedProductLines.reduce(
@@ -2039,13 +2039,13 @@ function InvoiceForm({ invoice, onBack = () => { }, onNavigate, currentUser, inv
                   <Col md={4}>
                     <Form.Group>
                       <Form.Label className="form-label-enhanced">
-                        LC Lumber
+                        LC Number
                       </Form.Label>
                       <Form.Control
                         type="text"
-                        placeholder="Enter LC Lumber"
-                        value={formData.lcLumber}
-                        onChange={(e) => handleInputChange('lcLumber', e.target.value)}
+                        placeholder="Enter LC Number"
+                        value={formData.lcNumber}
+                        onChange={(e) => handleInputChange('lcNumber', e.target.value)}
                         className="form-control-enhanced"
                       />
                     </Form.Group>

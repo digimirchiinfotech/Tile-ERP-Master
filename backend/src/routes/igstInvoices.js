@@ -13,6 +13,7 @@ import { Router } from 'express';
 import { authenticate, filterByCompany } from '../middleware/auth.js';
 import { requirePermission } from '../middleware/rbac.js';
 import { checkDocumentLock } from '../middleware/lockManager.js';
+import { createAuditMiddleware } from '../middleware/auditLog.js';
 import {
   getAll,
   getById,
@@ -38,17 +39,17 @@ router.get('/:id', ...auth, getById);
 
 const lockMiddleware = checkDocumentLock('IGST_INVOICE', { idParam: 'exportInvoiceId', idField: 'export_invoice_id' });
 
-router.post('/export-invoice/:exportInvoiceId', ...auth, lockMiddleware, createOrUpdate);
-router.post('/:exportInvoiceId', ...auth, lockMiddleware, createOrUpdate);
+router.post('/export-invoice/:exportInvoiceId', ...auth, lockMiddleware, createAuditMiddleware('igst_invoice', 'UPDATE'), createOrUpdate);
+router.post('/:exportInvoiceId', ...auth, lockMiddleware, createAuditMiddleware('igst_invoice', 'UPDATE'), createOrUpdate);
 
-router.put('/export-invoice/:exportInvoiceId', ...auth, lockMiddleware, createOrUpdate);
-router.put('/:exportInvoiceId', ...auth, lockMiddleware, createOrUpdate);
+router.put('/export-invoice/:exportInvoiceId', ...auth, lockMiddleware, createAuditMiddleware('igst_invoice', 'UPDATE'), createOrUpdate);
+router.put('/:exportInvoiceId', ...auth, lockMiddleware, createAuditMiddleware('igst_invoice', 'UPDATE'), createOrUpdate);
 
-router.delete('/export-invoice/:exportInvoiceId', ...auth, lockMiddleware, remove);
-router.delete('/:id', ...auth, checkDocumentLock('IGST_INVOICE'), removeById);
+router.delete('/export-invoice/:exportInvoiceId', ...auth, lockMiddleware, createAuditMiddleware('igst_invoice', 'DELETE'), remove);
+router.delete('/:id', ...auth, checkDocumentLock('IGST_INVOICE'), createAuditMiddleware('igst_invoice', 'DELETE'), removeById);
 
-router.patch('/:id/toggle-status', ...auth, checkDocumentLock('IGST_INVOICE'), toggleStatus);
+router.patch('/:id/toggle-status', ...auth, checkDocumentLock('IGST_INVOICE'), createAuditMiddleware('igst_invoice', 'STATUS_CHANGE'), toggleStatus);
 
-router.patch('/:id/status', ...auth, checkDocumentLock('IGST_INVOICE'), updateStatus);
+router.patch('/:id/status', ...auth, checkDocumentLock('IGST_INVOICE'), createAuditMiddleware('igst_invoice', 'STATUS_CHANGE'), updateStatus);
 export default router;
 

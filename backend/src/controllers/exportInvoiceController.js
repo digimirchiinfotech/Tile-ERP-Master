@@ -82,7 +82,7 @@ const ensureSchemaExists = async (queryFn, companyId) => {
       { name: 'is_converted', type: 'BOOLEAN DEFAULT false' },
       { name: 'linked_document_id', type: 'UUID' },
       { name: 'document_status', type: 'VARCHAR(50) DEFAULT \'Draft\'' },
-      { name: 'lc_lumber', type: 'VARCHAR(255)' },
+      { name: 'lc_number', type: 'VARCHAR(255)' },
       { name: 'lc_date', type: 'DATE' },
       { name: 'epcg_no', type: 'VARCHAR(255)' },
       { name: 'locked_at', type: 'TIMESTAMP' },
@@ -492,7 +492,7 @@ export const getFromProforma = async (req, res, next) => {
       legalisation: mergeUniqueFieldValues(proformas.map(p => p.legalisation)),
       other_instructions: mergeUniqueFieldValues(proformas.map(p => p.other_instructions), '\n'),
 
-      lc_lumber: mergeUniqueFieldValues(proformas.map(p => p.lc_lumber)),
+      lc_number: mergeUniqueFieldValues(proformas.map(p => p.lc_number)),
       lc_date: proformas.map(p => p.lc_date).find(d => d) || null,
       epcg_no: mergeUniqueFieldValues(proformas.map(p => p.epcg_no)),
 
@@ -647,7 +647,7 @@ export const getFromProforma = async (req, res, next) => {
       gstn: proforma.gstn,
       lut_date: proforma.lut_date || null,
       order_id: proforma.order_id || proforma.proforma_order_id,
-      lc_lumber: proforma.lc_lumber || '',
+      lc_number: proforma.lc_number || '',
       lc_date: proforma.lc_date ? (
         typeof proforma.lc_date === 'string' && proforma.lc_date.includes(',')
           ? proforma.lc_date
@@ -779,7 +779,7 @@ export const getFullFromProforma = async (req, res, next) => {
       iec_no: proforma.iec_no,
       gstn: proforma.gstn,
       country_of_origin: 'INDIA',
-      lc_lumber: proforma.lc_lumber || '',
+      lc_number: proforma.lc_number || '',
       lc_date: proforma.lc_date ? (proforma.lc_date instanceof Date ? proforma.lc_date.toISOString().split('T')[0] : String(proforma.lc_date).split('T')[0].split(' ')[0]) : null,
       epcg_no: proforma.epcg_no || '',
       already_exists: false

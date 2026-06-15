@@ -782,6 +782,7 @@ export const remove = async (req, res, next) => {
       );
     } catch (err) {}
 
+    res.locals.auditResourceId = result.rows[0]?.id;
     return successResponse(res, null, 'IGST Invoice deleted successfully');
   } catch (error) {
     debugLogger.error(`[IGST Invoice Controller] Error in remove:`, error);
@@ -815,6 +816,7 @@ export const removeById = async (req, res, next) => {
       );
     } catch (err) {}
 
+    res.locals.auditResourceId = result.rows[0]?.id;
     return successResponse(res, null, 'IGST Invoice deleted successfully');
   } catch (error) {
     debugLogger.error(`[IGST Invoice Controller] Error in removeById:`, error);

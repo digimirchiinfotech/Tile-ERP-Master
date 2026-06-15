@@ -1,3 +1,4 @@
+import { createAuditMiddleware } from '../middleware/auditLog.js';
 /**
  * TILE EXPORTER ERP SAAS
  * 
@@ -84,6 +85,7 @@ router.delete(
   authenticate,
   filterByCompany,
   requirePermission('user_management', 'all'),
+  createAuditMiddleware('user', 'DELETE'),
   remove
 );
 
@@ -100,6 +102,7 @@ router.patch(
   authenticate,
   filterByCompany,
   requirePermission('user_management', 'all'),
+  createAuditMiddleware('user', 'STATUS_CHANGE'),
   toggleStatus
 );
 

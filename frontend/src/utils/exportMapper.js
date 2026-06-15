@@ -286,6 +286,9 @@ export const exportMapper = {
             country_of_origin: getVal(inv, 'country_of_origin', 'countryOfOrigin', 'INDIA'),
             lut_bond_ref: getVal(inv, 'lut_bond_ref', 'lutBondRef', 'lut_arn_no', 'lutArnNo', ''),
             lut_date: formatDate(getVal(inv, 'lut_date', 'lutDate', '')),
+            lc_number: getVal(inv, 'lc_number', 'lcNumber', ''),
+            lc_date: formatDate(getVal(inv, 'lc_date', 'lcDate', '')),
+            epcg_no: getVal(inv, 'epcg_no', 'epcgNo', ''),
 
             currency: getVal(inv, 'currency', ''),
             iec_no: getVal(inv, 'iec_no', 'iecNo', 'iec', ''),

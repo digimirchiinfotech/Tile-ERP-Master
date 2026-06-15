@@ -763,6 +763,7 @@ export const remove = async (req, res, next) => {
 
     if (result.rowCount === 0) return next(new AppError('VGM not found', 404));
 
+    res.locals.auditResourceId = result.rows[0]?.id;
     return successResponse(res, null, 'VGM deleted successfully');
   } catch (error) { next(error); }
 };

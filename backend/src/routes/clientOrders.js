@@ -1,3 +1,4 @@
+import { createAuditMiddleware } from '../middleware/auditLog.js';
 /**
  * TILE EXPORTER ERP SAAS
  * 
@@ -53,6 +54,7 @@ router.post(
   authenticate,
   filterByCompany,
   requirePermission('client_order', 'all'),
+  createAuditMiddleware('client_order', 'UPDATE'),
   create
 );
 
@@ -61,6 +63,7 @@ router.put(
   authenticate,
   filterByCompany,
   requirePermission('client_order', 'all'),
+  createAuditMiddleware('client_order', 'UPDATE'),
   update
 );
 
@@ -69,6 +72,7 @@ router.delete(
   authenticate,
   filterByCompany,
   requirePermission('client_order', 'all'),
+  createAuditMiddleware('client_order', 'DELETE'),
   remove
 );
 
@@ -77,6 +81,7 @@ router.patch(
   authenticate,
   filterByCompany,
   requirePermission('client_order', 'all'),
+  createAuditMiddleware('client_order', 'STATUS_CHANGE'),
   toggleStatus
 );
 

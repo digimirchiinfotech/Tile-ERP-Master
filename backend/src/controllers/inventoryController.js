@@ -68,7 +68,17 @@ export const getStockSummary = async (req, res, next) => {
       [companyId]
     );
 
-    res.json({ success: true, data: result.rows[0] });
+    const summary = result.rows[0] || {};
+    res.json({ 
+      success: true, 
+      data: {
+        total_skus: parseInt(summary.total_skus || 0, 10),
+        total_boxes: parseFloat(summary.total_boxes || 0),
+        total_sqm: parseFloat(summary.total_sqm || 0),
+        total_reserved: parseFloat(summary.total_reserved || 0),
+        total_available: parseFloat(summary.total_available || 0)
+      } 
+    });
   } catch (error) {
     next(error);
   }
@@ -108,6 +118,13 @@ export const recordStockMovement = async (req, res, next) => {
 
     await client.query('BEGIN');
 
+    const productRes = await client.query(
+      `SELECT default_sqm_per_box FROM products WHERE id = $1 AND company_id = $2`,
+      [product_id, companyId]
+    );
+    const productSqm = parseFloat(productRes.rows[0]?.default_sqm_per_box || 0);
+    const actualQuantitySqm = quantity_sqm ? parseFloat(quantity_sqm) : (qty * productSqm);
+
     let stockRes = await client.query(
       `SELECT * FROM stock_register WHERE company_id = $1 AND product_id = $2 AND warehouse_location = $3 FOR UPDATE`,
       [companyId, product_id, warehouse_location]
@@ -129,7 +146,7 @@ export const recordStockMovement = async (req, res, next) => {
     const stock = stockRes.rows[0];
     const currentQty = parseFloat(stock.quantity_boxes || 0);
     const currentSqm = parseFloat(stock.quantity_sqm || 0);
-    const sqmDelta = parseFloat(quantity_sqm || 0);
+    const sqmDelta = actualQuantitySqm;
 
     let newQty = currentQty;
     if (['IN', 'PRODUCTION', 'ADJUSTMENT'].includes(movement_type)) {

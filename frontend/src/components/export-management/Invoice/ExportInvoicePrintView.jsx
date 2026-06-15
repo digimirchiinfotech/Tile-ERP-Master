@@ -378,6 +378,17 @@ const ExportInvoicePrintView = forwardRef(({ invoiceData, boxTypeImageUrl }, ref
               </tr>
               <tr>
                 <td>
+                  <strong>LC NO. & DATE</strong><br />
+                  {invoiceData?.lcNumber || invoiceData?.lc_number || '-'}
+                  {(invoiceData?.lcDate || invoiceData?.lc_date) ? `   ${formatDate(invoiceData?.lcDate || invoiceData?.lc_date)}` : ''}
+                </td>
+                <td>
+                  <strong>EPCG NO.</strong><br />
+                  {invoiceData?.epcgNo || invoiceData?.epcg_no || '-'}
+                </td>
+              </tr>
+              <tr>
+                <td>
                   <strong>SHIPMENT TERMS</strong><br />
                   <strong>{invoiceData?.deliveryTerms || invoiceData?.delivery_terms || '-'}</strong>
                 </td>

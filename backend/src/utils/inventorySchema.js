@@ -1,7 +1,11 @@
 /**
  * Ensures inventory tables exist in tenant databases.
  */
+const ensuredDbs = new WeakSet();
+
 export const ensureInventorySchema = async (db) => {
+  if (ensuredDbs.has(db)) return;
+
   await db.query(`
     CREATE TABLE IF NOT EXISTS stock_register (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -54,6 +58,8 @@ export const ensureInventorySchema = async (db) => {
     CREATE INDEX IF NOT EXISTS idx_stock_movements_company ON stock_movements(company_id);
     CREATE INDEX IF NOT EXISTS idx_stock_reservations_company ON stock_reservations(company_id);
   `);
+  
+  ensuredDbs.add(db);
 };
 
 export default ensureInventorySchema;

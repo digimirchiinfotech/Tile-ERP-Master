@@ -679,6 +679,7 @@ export const remove = async (req, res, next) => {
       if (!idValidation.isValid) return next(new AppError(idValidation.error, 400));
       await req.db.query(`UPDATE shipping_instructions SET deleted_at = NOW() WHERE export_invoice_id = $1${filterParam}`, req.companyFilter ? [exportInvoiceId, req.companyFilter] : [exportInvoiceId]);
     }
+    res.locals.auditResourceId = result.rows[0]?.id;
     return successResponse(res, null, 'Deleted');
   } catch (error) { next(error); }
 };
@@ -694,6 +695,7 @@ export const hardDelete = async (req, res, next) => {
     if (existing.rows.length === 0) return next(new AppError('Shipping Instruction not found', 404));
 
     await req.db.query(`DELETE FROM shipping_instructions WHERE id = $1${filterParam}`, req.companyFilter ? [id, req.companyFilter] : [id]);
+    res.locals.auditResourceId = result.rows[0]?.id;
     return successResponse(res, null, 'Shipping Instruction permanently deleted');
   } catch (error) { next(error); }
 };

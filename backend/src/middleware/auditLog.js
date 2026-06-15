@@ -31,6 +31,12 @@ const RESOURCE_TABLE_MAP = {
   'export_invoice_annexure': 'export_invoice_annexures',
   'invoice_backside': 'invoice_backside',
   'igst_invoice': 'igst_invoices',
+  'client_order': 'client_orders',
+  'catalogue': 'catalogues',
+  'account_entry': 'account_entries',
+  'sanitaryware_product': 'sanitaryware_products',
+  'user': 'users',
+  'certificate': 'certificates'
 };
 
 /**
@@ -103,10 +109,15 @@ export const createAuditMiddleware = (resourceType, action) => {
     const db = req.db; // req.db is attached by dbRouter
     if (!db) return next();
 
-    if ((action === 'UPDATE' || action === 'DELETE' || action === 'STATUS_CHANGE') && req.params.id && tableName) {
+    if ((action === 'UPDATE' || action === 'DELETE' || action === 'STATUS_CHANGE') && tableName) {
       const companyId = req.companyFilter || req.user?.companyId;
-      if (companyId) {
-        oldRecord = await fetchRecord(tableName, req.params.id, companyId, db).catch(() => null);
+      const lookupId = req.params.id || req.params.exportInvoiceId;
+      if (companyId && lookupId) {
+        // Note: fetchRecord assumes id is the primary key. If lookupId is exportInvoiceId, this fetch might fail unless we make fetchRecord smarter.
+        // For simplicity, we just use it if it's req.params.id
+        if (req.params.id) {
+          oldRecord = await fetchRecord(tableName, req.params.id, companyId, db).catch(() => null);
+        }
       }
     }
 
@@ -122,7 +133,7 @@ export const createAuditMiddleware = (resourceType, action) => {
           const url = req.originalUrl || req.url;
           const parsed = parseResponseBody(body);
           const responseData = parsed?.data || parsed;
-          const resourceId = req.params.id || responseData?.id || null;
+          const resourceId = responseData?.id || req.params.id || req.params.exportInvoiceId || res.locals?.auditResourceId || null;
 
           insertAuditLog({
             userId, companyId, action, resourceType, resourceId,

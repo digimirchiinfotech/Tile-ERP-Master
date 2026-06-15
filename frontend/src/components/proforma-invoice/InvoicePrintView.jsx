@@ -466,7 +466,7 @@ const InvoicePrintView = forwardRef(({ invoiceData, products: masterProducts = [
               <strong>GSTN : {exporter.gstn}</strong>
             </td>
             <td className="exporter-details" colSpan="1" style={{ width: '25%' }}>
-              <strong>L/C NO. & DATE :<br/>{invoiceData?.lcLumber || invoiceData?.lc_lumber || ''} {invoiceData?.lcDate || invoiceData?.lc_date ? `DT. ${formatDate(invoiceData.lcDate || invoiceData.lc_date)}` : ''}</strong><br />
+              <strong>L/C NO. & DATE :<br/>{invoiceData?.lcNumber || invoiceData?.lc_number || ''} {invoiceData?.lcDate || invoiceData?.lc_date ? `DT. ${formatDate(invoiceData.lcDate || invoiceData.lc_date)}` : ''}</strong><br />
               <div style={{ marginTop: '1mm' }}>
                 <strong>EPCG NO. : {invoiceData?.epcgNo || invoiceData?.epcg_no || ''}</strong>
               </div>

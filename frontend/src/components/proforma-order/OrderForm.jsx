@@ -736,7 +736,7 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
         const fetchedDeliverySchedule = selectedInvoice.deliverySchedule || selectedInvoice.delivery_schedule || selectedInvoice.deliveryTerms || selectedInvoice.delivery_terms || '';
         const fetchedPaymentTerms = selectedInvoice.paymentTerms || selectedInvoice.payment_terms || '';
         const fetchedOtherInstructions = selectedInvoice.otherInstructions || selectedInvoice.other_instructions || '';
-        const fetchedLcLumber = selectedInvoice.lcLumber || selectedInvoice.lc_lumber || '';
+        const fetchedLcLumber = selectedInvoice.lcNumber || selectedInvoice.lc_lumber || '';
         const fetchedLcDate = selectedInvoice.lcDate || selectedInvoice.lc_date ? new Date(selectedInvoice.lcDate || selectedInvoice.lc_date).toISOString().split('T')[0] : '';
         const fetchedEpcgNo = selectedInvoice.epcgNo || selectedInvoice.epcg_no || '';
 
@@ -794,7 +794,7 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
             deliverySchedule: fetchedDeliverySchedule,
             paymentTerms: fetchedPaymentTerms,
             otherInstructions: fetchedOtherInstructions,
-            lcLumber: fetchedLcLumber,
+            lcNumber: fetchedLcLumber,
             lcDate: fetchedLcDate,
             epcgNo: fetchedEpcgNo,
             productLines: convertedProductLines,
@@ -1728,12 +1728,12 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
                 <Form.Label>LC & EPCG Details</Form.Label>
                 <Row className="g-3">
                   <Col md={4}>
-                    <Form.Label className="form-label-enhanced text-muted small mb-1">LC Lumber</Form.Label>
+                    <Form.Label className="form-label-enhanced text-muted small mb-1">LC Number</Form.Label>
                     <Form.Control
                       type="text"
-                      placeholder="Enter LC Lumber"
-                      value={formData.lcLumber}
-                      onChange={(e) => handleInputChange('lcLumber', e.target.value)}
+                      placeholder="Enter LC Number"
+                      value={formData.lcNumber}
+                      onChange={(e) => handleInputChange('lcNumber', e.target.value)}
                       className="form-control-enhanced"
                     />
                   </Col>

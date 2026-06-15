@@ -811,6 +811,7 @@ export const remove = async (req, res, next) => {
 
     if (result.rowCount === 0) return next(new AppError('Annexure not found', 404));
 
+    res.locals.auditResourceId = result.rows[0]?.id;
     return successResponse(res, null, 'Annexure deleted successfully');
   } catch (error) {
     next(error);

@@ -758,7 +758,7 @@ function ProductDashboard({ currentUser, productsData, navigationData }) {
                       <td>
                         {product.images?.[0]?.url || product.images?.[0]?.path ? (
                           <img
-                            src={`${(product.images[0].url || product.images[0].path).startsWith('http') ? '' : (import.meta.env.DEV || import.meta.env.MODE === 'development' ? '' : 'https://tile-erp-master-production.railway.app')}${product.images[0].url || product.images[0].path}?token=${tokenManager.getAccessToken() || ''}`}
+                            src={`${(product.images[0].url || product.images[0].path).startsWith('http') ? '' : (import.meta.env.DEV || import.meta.env.MODE === 'development' ? '' : 'https://tile-erp-master-production.up.railway.app')}${product.images[0].url || product.images[0].path}?token=${tokenManager.getAccessToken() || ''}`}
                             alt={product.name}
                             onError={(e) => {
                               if (!e.target.dataset.triedToken && !e.target.src.includes('token=')) {
@@ -863,7 +863,7 @@ function ProductDashboard({ currentUser, productsData, navigationData }) {
                       <div className="d-flex align-items-center gap-3">
                         {product.images?.[0]?.url || product.images?.[0]?.path ? (
                           <img
-                            src={`${(product.images[0].url || product.images[0].path).startsWith('http') ? '' : (import.meta.env.DEV || import.meta.env.MODE === 'development' ? '' : 'https://tile-erp-master-production.railway.app')}${product.images[0].url || product.images[0].path}?token=${tokenManager.getAccessToken() || ''}`}
+                            src={`${(product.images[0].url || product.images[0].path).startsWith('http') ? '' : (import.meta.env.DEV || import.meta.env.MODE === 'development' ? '' : 'https://tile-erp-master-production.up.railway.app')}${product.images[0].url || product.images[0].path}?token=${tokenManager.getAccessToken() || ''}`}
                             alt={product.name}
                             onError={(e) => {
                               if (!e.target.dataset.triedToken && !e.target.src.includes('token=')) {

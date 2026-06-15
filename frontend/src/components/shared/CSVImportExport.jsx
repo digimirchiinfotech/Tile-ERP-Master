@@ -92,7 +92,7 @@ function CSVImportExport({ currentUser, onRefresh, openImportModal = false, open
         headers['x-selected-company-id'] = selectedCompanyId;
       }
 
-      const response = await fetch(`${(import.meta.env.DEV || import.meta.env.MODE === 'development' ? '/api' : 'https://tile-erp-master-production.railway.app/api')}/import/${module}`, {
+      const response = await fetch(`${(import.meta.env.DEV || import.meta.env.MODE === 'development' ? '/api' : 'https://tile-erp-master-production.up.railway.app/api')}/import/${module}`, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify({ csvData: fileContent })
@@ -137,7 +137,7 @@ function CSVImportExport({ currentUser, onRefresh, openImportModal = false, open
         headers['x-selected-company-id'] = selectedCompanyId;
       }
 
-      const response = await fetch(`${(import.meta.env.DEV || import.meta.env.MODE === 'development' ? '/api' : 'https://tile-erp-master-production.railway.app/api')}/export/${module}`, {
+      const response = await fetch(`${(import.meta.env.DEV || import.meta.env.MODE === 'development' ? '/api' : 'https://tile-erp-master-production.up.railway.app/api')}/export/${module}`, {
         headers: headers
       });
 

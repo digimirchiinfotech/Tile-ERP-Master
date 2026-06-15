@@ -433,7 +433,7 @@ function SanitarywareProductDashboard({ currentUser }) {
                       <td data-label="Image">
                         {product.images && product.images.length > 0 ? (
                           <img
-                            src={`${(product.images[0].url || product.images[0].path).startsWith('http') ? '' : (import.meta.env.DEV || import.meta.env.MODE === 'development' ? '' : 'https://tile-erp-master-production.railway.app')}${product.images[0].url || product.images[0].path}?token=${tokenManager?.getAccessToken?.() || ''}`}
+                            src={`${(product.images[0].url || product.images[0].path).startsWith('http') ? '' : (import.meta.env.DEV || import.meta.env.MODE === 'development' ? '' : 'https://tile-erp-master-production.up.railway.app')}${product.images[0].url || product.images[0].path}?token=${tokenManager?.getAccessToken?.() || ''}`}
                             alt={product.name}
                             style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px' }}
                           />

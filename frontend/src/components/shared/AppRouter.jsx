@@ -202,7 +202,7 @@ const AppRouter = ({
       'order-form': ['all', 'company_all', 'proforma_order'],
       'user-management': ['all', 'company_all', 'user_management'],
       'product-management': ['all', 'company_all', 'product_management'],
-      'sanitaryware-product-management': ['all', 'company_all', 'sanitaryware_management'],
+      'sanitaryware-product-management': ['all', 'company_all', 'sanitaryware_management', 'product_management'],
       'sanitaryware-master-data': ['all', 'company_all', 'sanitaryware_management', 'master_data_management'],
       'catalogue-management': ['all', 'company_all', 'catalogue_management'],
       'lead-management': ['all', 'company_all', 'lead_management'],

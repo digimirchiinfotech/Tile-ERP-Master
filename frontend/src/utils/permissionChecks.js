@@ -15,7 +15,7 @@ const ROLE_MODULE_ACCESS = {
   company_admin: ['all'],
   admin: ['all'],
   sales_manager: ['sales', 'leads', 'clients', 'proforma_invoices', 'proforma_orders', 'products', 'catalogues', 'qc_records'],
-  sales_executive: ['sales', 'leads', 'clients', 'proforma_invoices', 'proforma_orders', 'products', 'qc_records'],
+  sales_executive: ['proforma_orders', 'products', 'sanitaryware_products', 'catalogues', 'qc_records', 'suppliers', 'order_sheet'],
   administration: ['users', 'clients', 'companies', 'account_entries', 'products'],
   qc: ['qc_records', 'products'],
   qc_inspector: ['qc_records', 'products'],

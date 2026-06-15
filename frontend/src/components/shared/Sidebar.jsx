@@ -64,17 +64,17 @@ function Sidebar({
       product_management: ['all', 'product_management', 'administration', 'company_admin', 'admin', 'purchase_manager', 'sales_manager', 'sales_executive', 'qc', 'qc_inspector', 'export_documents', 'account', 'inventory_manager', 'production_manager'],
       sanitaryware_management: ['all', 'sanitaryware_management', 'administration', 'company_admin', 'purchase_manager', 'sales_manager', 'sales_executive', 'qc', 'qc_inspector', 'export_documents', 'account'],
       catalogue_management: ['all', 'catalogue_management', 'administration', 'company_admin', 'sales_manager', 'sales_executive', 'qc', 'qc_inspector', 'export_documents', 'account'],
-      lead_management: ['all', 'lead_management', 'sales_manager', 'sales_executive', 'company_admin'],
-      proforma_invoice: ['all', 'proforma_invoice', 'sales_manager', 'sales_executive', 'company_admin', 'client', 'export_documents', 'qc', 'qc_inspector'],
+      lead_management: ['all', 'lead_management', 'sales_manager', 'company_admin'],
+      proforma_invoice: ['all', 'proforma_invoice', 'sales_manager', 'company_admin', 'client', 'export_documents', 'qc', 'qc_inspector'],
       proforma_order: ['all', 'proforma_order', 'purchase', 'purchase_manager', 'sales_manager', 'sales_executive', 'company_admin'],
       qc_management: ['all', 'qc_management', 'qc', 'qc_inspector', 'company_admin', 'sales_manager', 'sales_executive', 'production_manager'],
       inventory_management: ['all', 'inventory_management', 'inventory_manager', 'company_admin', 'admin', 'purchase_manager', 'production_manager', 'administration'],
       production_management: ['all', 'production_management', 'production_manager', 'company_admin', 'purchase_manager', 'qc_management'],
-      order_sheet: ['all', 'order_sheet', 'qc_management', 'qc', 'qc_inspector', 'company_admin', 'admin', 'purchase_manager', 'sales_manager', 'production_manager'],
+      order_sheet: ['all', 'order_sheet', 'qc_management', 'qc', 'qc_inspector', 'company_admin', 'admin', 'purchase_manager', 'sales_manager', 'sales_executive', 'production_manager'],
       pallet_management: ['all', 'pallet_management', 'purchase', 'purchase_manager', 'company_admin'],
-      client_management: ['all', 'client_management', 'sales_manager', 'sales_executive', 'company_admin'],
-      supplier_management: ['all', 'supplier_management', 'purchase', 'purchase_manager', 'company_admin', 'sales_manager'],
-      client_order: ['all', 'client_order', 'client', 'sales_manager', 'sales_executive', 'company_admin'],
+      client_management: ['all', 'client_management', 'sales_manager', 'company_admin'],
+      supplier_management: ['all', 'supplier_management', 'purchase', 'purchase_manager', 'company_admin', 'sales_manager', 'sales_executive'],
+      client_order: ['all', 'client_order', 'client', 'sales_manager', 'company_admin'],
       account_finance: ['all', 'account_finance', 'account', 'company_admin', 'sales_manager'],
       salesperson_management: ['all', 'salesperson_management', 'user_management', 'company_admin'],
       export_overview: ['all', 'export_management', 'sales_manager', 'account', 'purchase_manager', 'administration', 'export_documents', 'company_admin'],
@@ -85,9 +85,9 @@ function Sidebar({
       invoice_backside: ['all', 'export_management', 'sales_manager', 'account', 'purchase_manager', 'administration', 'export_documents', 'company_admin'],
       vgm: ['all', 'export_management', 'sales_manager', 'account', 'purchase_manager', 'administration', 'export_documents', 'company_admin'],
       shipping_instructions: ['all', 'export_management', 'sales_manager', 'account', 'purchase_manager', 'administration', 'export_documents', 'company_admin'],
-      reports_analytics: ['all', 'company_admin', 'sales_manager', 'sales_executive', 'purchase_manager', 'administration'],
-      master_data_management: ['all', 'company_admin', 'administration', 'super_admin', 'sales_manager', 'sales_executive', 'export_documents'],
-      sanitaryware_master_data: ['all', 'company_admin', 'administration', 'super_admin', 'sales_manager', 'sales_executive', 'export_documents'],
+      reports_analytics: ['all', 'company_admin', 'sales_manager', 'purchase_manager', 'administration'],
+      master_data_management: ['all', 'company_admin', 'administration', 'super_admin', 'sales_manager', 'export_documents'],
+      sanitaryware_master_data: ['all', 'company_admin', 'administration', 'super_admin', 'sales_manager', 'export_documents'],
       administration: ['all', 'company_admin'],
     };
 
@@ -134,21 +134,26 @@ function Sidebar({
         'super_admin',
         'company_admin',
         'sales_manager',
-        'sales_executive',
       ],
       qc: ['super_admin', 'company_admin', 'qc', 'qc_inspector', 'sales_manager'],
       client: [
         'super_admin',
         'company_admin',
         'sales_manager',
-        'sales_executive',
       ],
-      supplier: ['super_admin', 'company_admin', 'purchase', 'sales_manager'],
+      supplier: ['super_admin', 'company_admin', 'purchase', 'sales_manager', 'sales_executive'],
       pallet: ['super_admin', 'company_admin', 'purchase'],
       invoice: [
         'super_admin',
         'company_admin',
         'account',
+        'sales_manager',
+      ],
+      order: [
+        'super_admin',
+        'company_admin',
+        'purchase',
+        'purchase_manager',
         'sales_manager',
         'sales_executive',
       ],
@@ -306,7 +311,7 @@ function Sidebar({
             action: () => handleNavigation(() => onNavigate('order-dashboard')),
             active: currentView === 'order-dashboard' || currentView === 'order-form',
             permission: 'proforma_order',
-            addAction: canAdd('invoice') ? () => handleNavigation(() => onNavigate('order-form')) : null,
+            addAction: canAdd('order') ? () => handleNavigation(() => onNavigate('order-form')) : null,
           },
         ],
       },
@@ -685,7 +690,6 @@ function Sidebar({
           },
         ];
       case 'sales_manager':
-      case 'sales_executive':
         return [
           {
             label: 'Lead',
@@ -698,6 +702,17 @@ function Sidebar({
           {
             label: 'Client',
             action: () => handleNavigation(() => onNavigate('client-form')),
+          },
+        ];
+      case 'sales_executive':
+        return [
+          {
+            label: 'Supplier',
+            action: () => handleNavigation(() => onNavigate('supplier-form')),
+          },
+          {
+            label: 'Order',
+            action: () => handleNavigation(() => onNavigate('order-form')),
           },
         ];
       case 'qc':

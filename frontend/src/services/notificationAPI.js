@@ -11,7 +11,7 @@
 
 import { tokenManager } from '../utils/tokenManager';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+const API_BASE = "https://tile-erp-master-production.railway.app/api" || '/api';
 
 export const notificationAPI = {
   /**

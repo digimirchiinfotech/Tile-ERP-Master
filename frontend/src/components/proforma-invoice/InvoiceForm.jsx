@@ -1522,7 +1522,7 @@ function InvoiceForm({ invoice, onBack = () => { }, onNavigate, currentUser, inv
                           isInvalid={!!errors.client}
                         >
                           <option value="">Select Client</option>
-                          {clients.map((client) => (
+                          {clients.filter(client => client.status !== 'Inactive' || client.clientName === formData.client).map((client) => (
                             <option key={client.id} value={client.clientName}>
                               {client.clientName} ({client.country})
                             </option>

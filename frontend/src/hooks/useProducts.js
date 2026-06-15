@@ -42,6 +42,14 @@ export const useProducts = () => {
     },
   });
 
+  const bulkCreateMutation = useMutation({
+    mutationFn: (products) => productService.bulkCreate(products.map(prepareDataForAPI)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products', selectedCompanyId] });
+      dataSyncManager.notifyChange('products');
+    },
+  });
+
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => productService.update(id, prepareDataForAPI(data)),
     onSuccess: () => {
@@ -72,6 +80,7 @@ export const useProducts = () => {
     error, 
     fetchProducts, 
     createProduct: createMutation.mutateAsync, 
+    bulkCreateProducts: bulkCreateMutation.mutateAsync,
     updateProduct: updateMutation.mutateAsync, 
     deleteProduct: deleteMutation.mutateAsync,
     toggleProductStatus: toggleStatusMutation.mutateAsync

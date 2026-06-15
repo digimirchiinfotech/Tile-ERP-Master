@@ -735,3 +735,105 @@ export const uploadImage = async (req, res, next) => {
     next(error);
   }
 };
+
+export const bulkUpsert = async (req, res, next) => {
+  const client = await req.db.getClient();
+  try {
+    const { products } = req.body;
+    const companyId = req.companyFilter;
+
+    if (!companyId) {
+      client.release();
+      return next(new AppError('Company context is required for bulk operations.', 400));
+    }
+
+    if (!products || !Array.isArray(products) || products.length === 0) {
+      client.release();
+      return next(new AppError('No products provided for bulk import', 400));
+    }
+
+    await client.query('BEGIN');
+
+    let insertedCount = 0;
+    let updatedCount = 0;
+
+    // Use synchronous batch inserts
+    // Batch size of 100 to 500 is good for standard parameters limits
+    for (const prod of products) {
+      const finalProductCode = prod.productCode || await generateSequentialId('PROD', 'products', 'product_code', companyId, req.db);
+      
+      const result = await client.query(
+        `INSERT INTO products 
+         (company_id, product_code, item_ref, name, description, category, size, surface,
+          thickness, sqm_per_box, boxes_per_pallet, box_weight, factory_price,
+          selling_price, hs_code, images, status, factory_name, factory_product_name,
+          company_product_name, catalogue_name, application, box_pcs, 
+          default_boxes_per_kathali, default_per_box_weight, default_per_pallet_weight,
+          base_price, margin, created_by, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+         ON CONFLICT (company_id, product_code) 
+         DO UPDATE SET
+            name = EXCLUDED.name,
+            item_ref = COALESCE(EXCLUDED.item_ref, products.item_ref),
+            description = COALESCE(EXCLUDED.description, products.description),
+            category = COALESCE(EXCLUDED.category, products.category),
+            size = COALESCE(EXCLUDED.size, products.size),
+            surface = COALESCE(EXCLUDED.surface, products.surface),
+            thickness = COALESCE(EXCLUDED.thickness, products.thickness),
+            sqm_per_box = COALESCE(EXCLUDED.sqm_per_box, products.sqm_per_box),
+            boxes_per_pallet = COALESCE(EXCLUDED.boxes_per_pallet, products.boxes_per_pallet),
+            box_weight = COALESCE(EXCLUDED.box_weight, products.box_weight),
+            factory_price = COALESCE(EXCLUDED.factory_price, products.factory_price),
+            selling_price = COALESCE(EXCLUDED.selling_price, products.selling_price),
+            hs_code = COALESCE(EXCLUDED.hs_code, products.hs_code),
+            images = COALESCE(EXCLUDED.images, products.images),
+            factory_name = COALESCE(EXCLUDED.factory_name, products.factory_name),
+            factory_product_name = COALESCE(EXCLUDED.factory_product_name, products.factory_product_name),
+            catalogue_name = COALESCE(EXCLUDED.catalogue_name, products.catalogue_name),
+            application = COALESCE(EXCLUDED.application, products.application),
+            box_pcs = COALESCE(EXCLUDED.box_pcs, products.box_pcs),
+            status = COALESCE(EXCLUDED.status, products.status),
+            updated_at = CURRENT_TIMESTAMP
+         RETURNING (xmax = 0) AS inserted`,
+        [
+          companyId, finalProductCode, normalizeEmptyToNull(prod.itemRef), prod.name, normalizeEmptyToNull(prod.description),
+          normalizeEmptyToNull(prod.category), normalizeEmptyToNull(prod.size), normalizeEmptyToNull(prod.surface), normalizeEmptyToNull(prod.thickness),
+          normalizeEmptyToNull(prod.sqmPerBox), normalizeEmptyToNull(prod.boxesPerPallet), normalizeEmptyToNull(prod.boxWeight),
+          normalizeEmptyToNull(prod.factoryPrice), normalizeEmptyToNull(prod.sellingPrice), normalizeEmptyToNull(prod.hsCode),
+          JSON.stringify(prod.images || []), prod.status || 'Active', normalizeEmptyToNull(prod.factoryName), normalizeEmptyToNull(prod.factoryProductName),
+          normalizeEmptyToNull(prod.companyProductName), normalizeEmptyToNull(prod.catalogueName), normalizeEmptyToNull(prod.application),
+          normalizeEmptyToNull(prod.boxPcs), normalizeEmptyToNull(prod.defaultBoxesPerKathali), normalizeEmptyToNull(prod.defaultPerBoxWeight),
+          normalizeEmptyToNull(prod.defaultPerPalletWeight), normalizeEmptyToNull(prod.basePrice), normalizeEmptyToNull(prod.margin),
+          req.user.id
+        ]
+      );
+      if (result.rows[0].inserted) {
+        insertedCount++;
+      } else {
+        updatedCount++;
+      }
+    }
+
+    await client.query('COMMIT');
+
+    // Audit Log
+    logAction({
+      userId: req.user.id, companyId: req.companyFilter, action: 'BULK_UPSERT', entityType: 'product',
+      entityId: 'bulk', newValue: { inserted: insertedCount, updated: updatedCount },
+      ipAddress: req.ip, userAgent: req.get('User-Agent'), method: req.method, url: req.originalUrl
+    }, req.db).catch(e => debugLogger.warn('Audit log failed:', e.message));
+
+    return successResponse(
+      res,
+      { insertedCount, updatedCount },
+      `Successfully processed ${products.length} products (${insertedCount} inserted, ${updatedCount} updated)`,
+      200
+    );
+  } catch (error) {
+    await client.query('ROLLBACK');
+    next(error);
+  } finally {
+    client.release();
+  }
+};
+

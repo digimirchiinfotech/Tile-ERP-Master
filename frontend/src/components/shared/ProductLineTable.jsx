@@ -579,7 +579,7 @@ function ProductLineTable({
                             className={productLine.product ? 'border-success' : 'border-warning'}
                           >
                             <option value="">Select Product</option>
-                            {products.map((product) => (
+                            {products.filter(p => p.status !== 'Inactive' || p.name === productLine.product).map((product) => (
                               <option key={product.id} value={product.name}>
                                 {product.name}
                               </option>

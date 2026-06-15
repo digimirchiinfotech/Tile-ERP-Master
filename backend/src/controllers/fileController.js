@@ -41,11 +41,15 @@ export const serveFile = async (req, res, next) => {
       SELECT 1 FROM (
         SELECT jsonb_array_elements(images)->>'url' as path, company_id FROM products
         UNION ALL
+        SELECT jsonb_array_elements(images)->>'url' as path, company_id FROM sanitaryware_products
+        UNION ALL
         SELECT jsonb_array_elements(photos)->>'url' as path, company_id FROM qc_records
         UNION ALL
         SELECT cover_image_path as path, company_id FROM catalogues
         UNION ALL
         SELECT pdf_file_path as path, company_id FROM catalogues
+        UNION ALL
+        SELECT signature_path as path, company_id FROM company_signatures
       ) AS tenant_files
       WHERE (path = $1 OR path = $2) AND company_id = $3
       LIMIT 1

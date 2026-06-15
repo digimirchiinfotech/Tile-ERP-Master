@@ -505,10 +505,28 @@ function ImportModal({ show, onHide, onImport, moduleType }) {
             {/* Invalid Records */}
             {validationResults.invalid.length > 0 && (
               <div className="validation-section">
-                <h6 className="text-danger mb-3">
-                  <AlertTriangle size={18} className="me-2" />
-                  Invalid Records ({validationResults.invalid.length})
-                </h6>
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h6 className="text-danger mb-0">
+                    <AlertTriangle size={18} className="me-2" />
+                    Invalid Records ({validationResults.invalid.length})
+                  </h6>
+                  <Button 
+                    variant="outline-danger" 
+                    size="sm" 
+                    onClick={() => {
+                      const failedRows = validationResults.invalid.map(row => {
+                        const { rowIndex, errors, ...data } = row;
+                        return { 'Row Number': rowIndex, 'Errors': errors.join('; '), ...data };
+                      });
+                      const ok = exportToCSV(failedRows, `${moduleType}_failed_rows`);
+                      if (ok) showSuccess('Failed rows exported successfully');
+                      else showError('Failed to export rows');
+                    }}
+                  >
+                    <Download size={16} className="me-1" />
+                    Download Failed Rows
+                  </Button>
+                </div>
 
                 <div className="table-container">
                   <Table striped hover size="sm" className="validation-table">

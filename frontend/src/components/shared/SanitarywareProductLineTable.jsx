@@ -210,7 +210,7 @@ export default function SanitarywareProductLineTable({
                      <td>
                       <Form.Select size="sm" value={line.product || ''} onChange={e => handleProductLineChange(idx, 'product', e.target.value)}>
                         <option value="">Select Sanitaryware</option>
-                        {products.map(p => (
+                        {products.filter(p => p.status !== 'Inactive' || p.name === line.product).map(p => (
                           <option key={p.id} value={p.name}>{p.name}</option>
                         ))}
                       </Form.Select>

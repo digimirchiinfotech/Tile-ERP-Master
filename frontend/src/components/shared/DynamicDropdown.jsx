@@ -108,7 +108,12 @@ function DynamicDropdown({
                {typeof value === 'object' ? (value.countryName || value.portName || value.name || value.label || value.value || 'Selected') : value}
              </option>
           )}
-          {options.map((option, index) => {
+          {options.filter(option => {
+            const keyValue = typeof option === 'object' && option !== null ? (option.value || option.id || option.countryName || option.portName || option.name || option.label) : option;
+            if (value === keyValue || (isMultiple && Array.isArray(value) && value.includes(keyValue))) return true;
+            if (typeof option === 'object' && option !== null && typeof option.status === 'string' && option.status.toLowerCase() === 'inactive') return false;
+            return true;
+          }).map((option, index) => {
             const displayValue = typeof option === 'object' && option !== null 
               ? (option.countryName || option.portName || option.name || option.label || option.value || 'Unnamed Option') 
               : option;

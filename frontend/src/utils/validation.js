@@ -986,6 +986,18 @@ export const validateImportData = (data, moduleType) => {
         if (row.boxWeight && isNaN(parseFloat(row.boxWeight))) {
           rowErrors.push('Box weight must be a number');
         }
+        if (row.sqmPerBox && isNaN(parseFloat(row.sqmPerBox))) {
+          rowErrors.push('SQM per box must be a number');
+        }
+        if (row.boxesPerPallet && isNaN(parseInt(row.boxesPerPallet))) {
+          rowErrors.push('Boxes per pallet must be a number');
+        }
+        if (row.factoryPrice && isNaN(parseFloat(row.factoryPrice))) {
+          rowErrors.push('Factory price must be a number');
+        }
+        if (row.sellingPrice && isNaN(parseFloat(row.sellingPrice))) {
+          rowErrors.push('Selling price must be a number');
+        }
         break;
 
       case 'pallets':
@@ -1064,7 +1076,7 @@ const getRequiredFieldsForModule = (moduleType) => {
     'packing-lists': ['packingListNo', 'date', 'piReference', 'clientName', 'country'],
     'account-entries': ['partyName', 'amount', 'type'],
     users: ['name', 'username', 'email_id', 'role'],
-    products: ['factoryName', 'name', 'catalogueName'],
+    products: ['productCode', 'name', 'category'],
     pallets: ['palletId', 'category', 'size', 'status'],
     'qc-records': ['qcId', 'orderNumber', 'clientName', 'productName', 'qcStatus', 'qcDate'],
     companies: ['name', 'email_id', 'industry', 'contact_person_name', 'contact_number', 'country', 'subscriptionPlan', 'status'],

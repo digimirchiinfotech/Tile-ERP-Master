@@ -13,7 +13,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { tokenManager } from '../utils/tokenManager';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+const API_BASE_URL = "https://tile-erp-master-production.railway.app/api" || '/api';
 
 export const useProfile = () => {
   const [profile, setProfile] = useState(null);

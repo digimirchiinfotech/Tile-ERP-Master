@@ -453,7 +453,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                           onChange={(e) => handleInputChange('assignedSales', e.target.value)}
                         >
                           <option value="">Unassigned</option>
-                          {salesStaff.map((staff) => (
+                          {salesStaff.filter(staff => staff.status !== 'Inactive' || staff.id === formData.assignedSales).map((staff) => (
                             <option key={staff.id} value={staff.id}>{staff.name || staff.email}</option>
                           ))}
                         </Form.Select>

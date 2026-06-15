@@ -90,7 +90,7 @@ function UserDashboard({ currentUser, onNavigate, navigationData }) {
     if (filters.status) {
       filtered = filtered.filter((user) => user.status === filters.status);
     }
-    
+
     setFilteredUsers(filtered);
     setCurrentPage(1);
   }, [filters, visibleUsers]);
@@ -133,7 +133,7 @@ function UserDashboard({ currentUser, onNavigate, navigationData }) {
   };
 
   const handlePrintUser = async (user) => {
-    try { await api.post('/document-activity/doc/' + (user?.id || 'unknown') + '/action', { action: 'PRINT' }); } catch(e){}
+    try { await api.post('/document-activity/doc/' + (user?.id || 'unknown') + '/action', { action: 'PRINT' }); } catch (e) { }
     try {
       const response = await UserService.getUserById(user.id);
       const userData = response?.data?.data || response?.data;
@@ -151,7 +151,7 @@ function UserDashboard({ currentUser, onNavigate, navigationData }) {
   };
 
   const handleDownloadPDF = async (user) => {
-    try { await api.post('/document-activity/doc/' + (user?.id || 'unknown') + '/action', { action: 'DOWNLOAD' }); } catch(e){}
+    try { await api.post('/document-activity/doc/' + (user?.id || 'unknown') + '/action', { action: 'DOWNLOAD' }); } catch (e) { }
     try {
       const response = await UserService.getUserById(user.id);
       const userData = response?.data?.data || response?.data;
@@ -343,8 +343,8 @@ function UserDashboard({ currentUser, onNavigate, navigationData }) {
       </Row>
 
       {/* Collapsible Filter Panel */}
-      <FilterPanel 
-        onClear={resetFilters} 
+      <FilterPanel
+        onClear={resetFilters}
         title="Search & Filters"
       >
         <Form>
@@ -390,7 +390,7 @@ function UserDashboard({ currentUser, onNavigate, navigationData }) {
                   value={filters.status}
                   onChange={(e) => handleFilterChange('status', e.target.value)}
                 >
-                                    <option value="">All Status</option>
+                  <option value="">All Status</option>
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
                 </Form.Select>
@@ -734,11 +734,11 @@ function UserDashboard({ currentUser, onNavigate, navigationData }) {
           </Modal.Header>
           <Modal.Body className="p-0 bg-light d-flex flex-column flex-md-row">
             <div className="flex-grow-1 overflow-auto bg-light">
-              
-            <div ref={printRef}>
-              <UserPrintView userData={viewingUser} />
-            </div>
-          
+
+              <div ref={printRef}>
+                <UserPrintView userData={viewingUser} />
+              </div>
+
             </div>
             <div className="no-print bg-white border-start p-3 shadow-sm" style={{ width: '100%', maxWidth: '350px', overflowY: 'auto' }}>
               <ActivityTimeline resourceType="user" resourceId={viewingUser?.id} />

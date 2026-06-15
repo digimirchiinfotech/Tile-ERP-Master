@@ -24,6 +24,10 @@ export const productService = {
     return await api.post('/products', data);
   },
 
+  bulkCreate: async (products) => {
+    return await api.post('/products/bulk', { products });
+  },
+
   update: async (id, data) => {
     return await api.put(`/products/${id}`, data);
   },

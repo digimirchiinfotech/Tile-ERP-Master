@@ -29,10 +29,14 @@ export const resolveImageUrl = (url) => {
     return url;
   }
 
-  // Get API base from environment, default to production if not set
-  const apiBase = import.meta.env.VITE_API_BASE || 'https://tile-erp-master-production.up.railway.app/api';
-  // If VITE_UPLOAD_URL isn't set, deduce it from apiBase
-  const uploadUrl = import.meta.env.VITE_UPLOAD_URL || apiBase.replace(/\/api\/?$/, '/uploads');
+  // Align the upload URL perfectly with the API base URL.
+  // This prevents the issue where api.js uploads to production but the frontend
+  // tries to fetch the image from the local dev server (e.g., /uploads).
+  const apiBase = 'https://tile-erp-master-production.railway.app/api';
+  const isLocalHost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+  
+  // If we are hardcoding apiBase to production in api.js, we MUST hardcode uploadUrl to production too.
+  let uploadUrl = apiBase.replace(/\/api\/?$/, '/uploads');
 
   // Fix common path issues (e.g. backend/uploads/... or uploads/...)
   if (url.includes('uploads')) {

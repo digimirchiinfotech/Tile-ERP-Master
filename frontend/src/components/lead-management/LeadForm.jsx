@@ -596,7 +596,7 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                           isInvalid={!!errors.salesPerson}
                         >
                           <option value="">Select Salesperson</option>
-                          {salespersons.map((person) => (
+                          {salespersons.filter(person => person.status !== 'Inactive' || person.id === formData.salesPerson).map((person) => (
                             <option key={person.id} value={person.id}>
                               {person.name}
                             </option>

@@ -1383,7 +1383,7 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
                   >
                     <option value="">Select Supplier</option>
                     {suppliers && suppliers.length > 0 ? (
-                      suppliers.map((supplier) => (
+                      suppliers.filter(s => s.status !== 'Inactive' || s.name === formData.supplier || s.supplierName === formData.supplier).map((supplier) => (
                         <option
                           key={supplier.id}
                           value={supplier.name || supplier.supplierName || supplier.id}

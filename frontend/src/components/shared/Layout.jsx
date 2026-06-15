@@ -142,7 +142,8 @@ function Layout({
             } ${!currentUser ? 'no-sidebar' : ''}`}
         >
 
-          {/* Content Area with Error Boundary */}
+
+          {/* Content Area with Error Boundary */}
           <div className="content-area">
             {currentUser && <Breadcrumbs currentView={currentView} currentUser={currentUser} onNavigate={onNavigate} />}
             <ErrorBoundary>{children}</ErrorBoundary>

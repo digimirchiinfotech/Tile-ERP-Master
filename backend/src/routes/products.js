@@ -18,7 +18,8 @@ import {
   remove,
   hardDelete,
   toggleStatus,
-  uploadImage
+  uploadImage,
+  bulkUpsert
 } from '../controllers/productController.js';
 import { authenticate, filterByCompany } from '../middleware/auth.js';
 import { requirePermission, requireAdminRole } from '../middleware/rbac.js';
@@ -59,6 +60,16 @@ router.post(
   validateRequest,
   createAuditMiddleware('product', 'CREATE'),
   create
+);
+
+// ADMIN ONLY - Super Admin & Company Admin can bulk upsert
+router.post(
+  '/bulk',
+  authenticate,
+  filterByCompany,
+  requireAdminRole,
+  createAuditMiddleware('product', 'BULK_UPSERT'),
+  bulkUpsert
 );
 
 // ADMIN ONLY - Super Admin & Company Admin can update

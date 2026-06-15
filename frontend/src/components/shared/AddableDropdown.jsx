@@ -64,7 +64,13 @@ function AddableDropdown({
     try {
       const response = await api.get(`/master-data/${masterDataType}`);
       if (response.data.success) {
-        const values = response.data.data.map(item => 
+        const activeItems = response.data.data.filter(item => {
+          if (typeof item === 'object' && item !== null && typeof item.status === 'string') {
+            return item.status.toLowerCase() !== 'inactive';
+          }
+          return true;
+        });
+        const values = activeItems.map(item => 
           typeof item === 'string' ? item : (item.value || item.name || item.portName || item.countryName)
         );
         setOptions([...new Set(values.filter(Boolean))]);

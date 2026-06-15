@@ -24,24 +24,51 @@ export const dbRouter = (req, res, next) => {
      */
     query: async (text, params = []) => {
       const companyId = req.companyFilter;
-      if (!companyId) return await sharedQuery(text, params);
+      // Pass 'super_admin_bypass' context if no companyId is set (for global super_admin queries)
+      if (!companyId) return await sharedQuery(text, params, 'super_admin_bypass');
       return await companyQuery(companyId, text, params);
     },
 
     globalQuery: async (text, params = []) => {
-      return await sharedQuery(text, params);
+      const companyId = req.companyFilter || 'super_admin_bypass';
+      return await sharedQuery(text, params, companyId);
     },
 
     /**
      * Get a client for the global database (shared), bypassing company isolation.
      */
     getGlobalClient: async () => {
-      return getSharedClient();
+      const client = await getSharedClient();
+      const companyId = req.companyFilter || 'super_admin_bypass';
+      
+      // Enforce RLS context on the direct client checkout
+      await client.query("SELECT set_config('app.current_company_id', $1, false)", [companyId]);
+      
+      const originalRelease = client.release;
+      client.release = async () => {
+        client.query(`RESET app.current_company_id`).catch(() => {});
+        client.release = originalRelease;
+        return originalRelease.apply(client);
+      };
+      
+      return client;
     },
 
     getClient: async () => {
       const companyId = req.companyFilter;
-      if (!companyId) return await getSharedClient();
+      if (!companyId) {
+        // Enforce super_admin_bypass on the shared client
+        const client = await getSharedClient();
+        await client.query("SELECT set_config('app.current_company_id', 'super_admin_bypass', false)");
+        
+        const originalRelease = client.release;
+        client.release = async () => {
+          client.query(`RESET app.current_company_id`).catch(() => {});
+          client.release = originalRelease;
+          return originalRelease.apply(client);
+        };
+        return client;
+      }
       
       const pool = await getCompanyDatabase(companyId);
       const client = await pool.connect();

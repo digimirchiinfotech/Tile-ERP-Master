@@ -490,38 +490,43 @@ function ProductDashboard({ currentUser, productsData, navigationData }) {
   const handleImportData = async (importData) => {
     try {
       setIsSaving(true);
-      let successCount = 0;
+      
+      const mappedProducts = importData.map(prod => ({
+        factory_name: prod.factoryName || prod['Factory Name'] || prod.factory || null,
+        factory_product_name: prod.factoryProductName || prod['Factory Product Name'] || null,
+        company_product_name: prod.companyProductName || prod['Company Product Name'] || prod['Product Name'] || prod.name || null,
+        name: prod.name || prod['Product Name'] || prod.companyProductName || prod['Company Product Name'] || 'Imported Product',
+        product_code: prod.productCode || prod['Product Code'] || prod.sku || null,
+        item_ref: prod.itemRef || prod['Item Ref'] || null,
+        catalogue_name: prod.catalogueName || prod['Catalogue Name'] || prod.catalogue || 'Tiles',
+        category: prod.category || prod['Category'] || prod.catalogueName || prod.catalogue || 'Tiles',
+        size: prod.size || prod['Size'] || null,
+        surface: prod.surface || prod['Surface'] || prod.finish || null,
+        thickness: prod.thickness || prod['Thickness'] || null,
+        application: prod.application || prod['Application'] || null,
+        hs_code: prod.hsCode || prod['HS Code'] || prod.hsn || null,
+        box_pcs: prod.boxPcs || prod.boxPC || prod['Box Pcs'] || prod['Pcs/Box'] || 0,
+        sqm_per_box: prod.sqmPerBox || prod['SQM per Box'] || prod['Area/Box'] || 0,
+        box_weight: prod.boxWeight || prod.defaultPerBoxWeight || prod['Box Weight'] || 0,
+        default_per_box_weight: prod.defaultPerBoxWeight || prod.boxWeight || prod['Box Weight'] || 0,
+        boxes_per_pallet: prod.boxesPerPallet || prod.defaultBoxesPerPallet || prod['Boxes per Pallet'] || 0,
+        default_per_pallet_weight: prod.defaultPerPalletWeight || prod['Pallet Weight'] || 0,
+        factory_price: prod.factoryPrice || prod['Factory Price'] || 0,
+        selling_price: prod.sellingPrice || prod['Selling Price'] || 0,
+        base_price: prod.basePrice || prod['Base Price'] || 0,
+        margin: prod.margin || prod['Margin'] || 0,
+        images: prod.images || [],
+        status: prod.status || 'Active',
+        description: prod.description || prod['Description'] || null
+      }));
 
-      for (const prod of importData) {
-        // Robust mapping for common CSV headers to internal keys
-        const mappedProd = {
-          factory_name: prod.factoryName || prod['Factory Name'] || prod.factory || null,
-          factory_product_name: prod.factoryProductName || prod['Factory Product Name'] || null,
-          company_product_name: prod.companyProductName || prod['Company Product Name'] || prod['Product Name'] || prod.name || null,
-          name: prod.name || prod['Product Name'] || prod.companyProductName || prod['Company Product Name'] || 'Imported Product',
-          product_code: prod.productCode || prod['Product Code'] || prod.sku || null,
-          catalogue_name: prod.catalogueName || prod['Catalogue Name'] || prod.catalogue || 'Tiles',
-          category: prod.category || prod['Category'] || prod.catalogueName || prod.catalogue || 'Tiles',
-          size: prod.size || prod['Size'] || null,
-          surface: prod.surface || prod['Surface'] || prod.finish || null,
-          thickness: prod.thickness || prod['Thickness'] || null,
-          application: prod.application || prod['Application'] || null,
-          hs_code: prod.hsCode || prod['HS Code'] || prod.hsn || null,
-          box_pcs: prod.boxPcs || prod.boxPC || prod['Box Pcs'] || prod['Pcs/Box'] || 0,
-          sqm_per_box: prod.sqmPerBox || prod['SQM per Box'] || prod['Area/Box'] || 0,
-          box_weight: prod.boxWeight || prod.defaultPerBoxWeight || prod['Box Weight'] || 0,
-          default_per_box_weight: prod.defaultPerBoxWeight || prod.boxWeight || prod['Box Weight'] || 0,
-          default_boxes_per_pallet: prod.defaultBoxesPerPallet || prod['Boxes per Pallet'] || 0,
-          default_per_pallet_weight: prod.defaultPerPalletWeight || prod['Pallet Weight'] || 0,
-          status: prod.status || 'Active',
-          description: prod.description || prod['Description'] || null
-        };
+      const result = await bulkCreateProducts(mappedProducts);
+      
+      const responseData = result?.data || result;
+      const insertedCount = responseData?.insertedCount || 0;
+      const updatedCount = responseData?.updatedCount || 0;
 
-        await createProduct(mappedProd);
-        successCount++;
-      }
-
-      showSuccess(`✅ Successfully imported ${successCount} products!`);
+      showSuccess(`✅ Successfully processed ${mappedProducts.length} products! (${insertedCount} inserted, ${updatedCount} updated)`);
       fetchProducts();
       setShowImportModal(false);
     } catch (err) {
@@ -753,7 +758,7 @@ function ProductDashboard({ currentUser, productsData, navigationData }) {
                       <td>
                         {product.images?.[0]?.url || product.images?.[0]?.path ? (
                           <img
-                            src={`${(product.images[0].url || product.images[0].path).startsWith('http') ? '' : 'https://tile-erp-master-production.up.railway.app'}${product.images[0].url || product.images[0].path}?token=${tokenManager.getAccessToken() || ''}`}
+                            src={`${(product.images[0].url || product.images[0].path).startsWith('http') ? '' : 'https://tile-erp-master-production.railway.app'}${product.images[0].url || product.images[0].path}?token=${tokenManager.getAccessToken() || ''}`}
                             alt={product.name}
                             onError={(e) => {
                               if (!e.target.dataset.triedToken && !e.target.src.includes('token=')) {
@@ -858,7 +863,7 @@ function ProductDashboard({ currentUser, productsData, navigationData }) {
                       <div className="d-flex align-items-center gap-3">
                         {product.images?.[0]?.url || product.images?.[0]?.path ? (
                           <img
-                            src={`${(product.images[0].url || product.images[0].path).startsWith('http') ? '' : 'https://tile-erp-master-production.up.railway.app'}${product.images[0].url || product.images[0].path}?token=${tokenManager.getAccessToken() || ''}`}
+                            src={`${(product.images[0].url || product.images[0].path).startsWith('http') ? '' : 'https://tile-erp-master-production.railway.app'}${product.images[0].url || product.images[0].path}?token=${tokenManager.getAccessToken() || ''}`}
                             alt={product.name}
                             onError={(e) => {
                               if (!e.target.dataset.triedToken && !e.target.src.includes('token=')) {

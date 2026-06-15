@@ -15,6 +15,7 @@
  */
 
 import { validateImportData } from './validation.js';
+import * as XLSX from 'xlsx';
 
 /**
  * Parse CSV file content into structured data
@@ -97,22 +98,55 @@ export const processImportFile = (file) => {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const content = e.target.result;
-        const parseResult = parseCSV(content);
-        if (parseResult.success) {
-          resolve(parseResult);
-        } else {
-          reject(new Error(parseResult.error));
+    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+          
+          if (jsonData.length > 0) {
+            resolve({
+              success: true,
+              data: jsonData,
+              headers: Object.keys(jsonData[0]),
+              totalRows: jsonData.length
+            });
+          } else {
+            resolve({
+              success: true,
+              data: [],
+              headers: [],
+              totalRows: 0
+            });
+          }
+        } catch (error) {
+          reject(new Error('Failed to parse Excel file: ' + error.message));
         }
-      } catch (error) {
-        reject(new Error('Failed to parse file: ' + error.message));
-      }
-    };
-    reader.onerror = () => reject(new Error('Failed to read file'));
-    reader.readAsText(file);
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsArrayBuffer(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const content = e.target.result;
+          const parseResult = parseCSV(content);
+          if (parseResult.success) {
+            resolve(parseResult);
+          } else {
+            reject(new Error(parseResult.error));
+          }
+        } catch (error) {
+          reject(new Error('Failed to parse file: ' + error.message));
+        }
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsText(file);
+    }
   });
 };
 
@@ -210,16 +244,38 @@ const transformImportData = (validData, moduleType) => {
       }));
 
     case 'products':
-      return validData.map((row, index) => ({
-        id: Date.now() + index,
-        factoryName: row.factoryName,
-        name: row.name,
-        catalogueName: row.catalogueName,
-        boxPcs: parseInt(row.boxPcs) || 0,
-        boxWeight: parseFloat(row.boxWeight) || 0,
-        status: 'Active',
-        importedAt: new Date().toISOString(),
-      }));
+      return validData.map((row, index) => {
+        return {
+          id: Date.now() + index,
+          productCode: row.productCode || row.sku || '',
+          itemRef: row.itemRef || '',
+          factoryName: row.factoryName || '',
+          factoryProductName: row.factoryProductName || '',
+          companyProductName: row.companyProductName || row.name || '',
+          name: row.name || row.companyProductName || '',
+          catalogueName: row.catalogueName || row.category || 'Tiles',
+          category: row.category || row.catalogueName || 'Tiles',
+          description: row.description || '',
+          size: row.size || '',
+          surface: row.surface || '',
+          thickness: row.thickness || '',
+          application: row.application || '',
+          boxPcs: parseInt(row.boxPcs) || 0,
+          sqmPerBox: parseFloat(row.sqmPerBox) || 0,
+          boxWeight: parseFloat(row.boxWeight) || 0,
+          boxesPerPallet: parseInt(row.boxesPerPallet) || 0,
+          defaultPerBoxWeight: parseFloat(row.defaultPerBoxWeight) || parseFloat(row.boxWeight) || 0,
+          defaultPerPalletWeight: parseFloat(row.defaultPerPalletWeight) || 0,
+          factoryPrice: parseFloat(row.factoryPrice) || 0,
+          sellingPrice: parseFloat(row.sellingPrice) || 0,
+          basePrice: parseFloat(row.basePrice) || 0,
+          margin: parseFloat(row.margin) || 0,
+          hsCode: row.hsCode || '',
+          images: row.images ? row.images.split(',').map(url => ({ url: url.trim(), id: Date.now(), name: 'imported_image' })) : [],
+          status: row.status || 'Active',
+          importedAt: new Date().toISOString(),
+        };
+      });
 
     case 'pallets':
       return validData.map((row, index) => ({
@@ -318,8 +374,8 @@ export const validateImportFile = (file, moduleType) => {
   const errors = [];
   const maxSize = 10 * 1024 * 1024; // 10MB
 
-  if (!file.name.endsWith('.csv')) {
-    errors.push('Only CSV files are supported');
+  if (!file.name.endsWith('.csv') && !file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+    errors.push('Only CSV, XLSX, and XLS files are supported');
   }
 
   if (file.size > maxSize) {
@@ -433,11 +489,26 @@ export const getImportTemplate = (moduleType) => {
     products: {
       name: 'Products',
       fields: [
-        { name: 'factoryName', label: 'Factory Name', required: true, example: 'Morbi Factory' },
+        { name: 'productCode', label: 'Product Code (SKU)', required: true, example: 'PROD-001' },
         { name: 'name', label: 'Product Name', required: true, example: 'Ceramic Tile 60x60' },
-        { name: 'catalogueName', label: 'Catalogue', required: true, example: 'Elite Collection' },
+        { name: 'category', label: 'Category', required: true, example: 'Floor Tiles' },
+        { name: 'factoryName', label: 'Factory Name', required: false, example: 'Morbi Factory' },
+        { name: 'factoryProductName', label: 'Factory Product Name', required: false, example: 'Ceramica 60x60' },
+        { name: 'catalogueName', label: 'Catalogue Name', required: false, example: 'Elite Collection' },
+        { name: 'description', label: 'Description', required: false, example: 'Premium quality floor tile' },
+        { name: 'size', label: 'Size', required: false, example: '600x600mm' },
+        { name: 'surface', label: 'Surface', required: false, example: 'Glossy' },
+        { name: 'thickness', label: 'Thickness', required: false, example: '9mm' },
+        { name: 'application', label: 'Application', required: false, example: 'Indoor' },
         { name: 'boxPcs', label: 'Pcs/Box', required: false, example: '4' },
-        { name: 'boxWeight', label: 'Weight/Box', required: false, example: '30' },
+        { name: 'sqmPerBox', label: 'SQM/Box', required: false, example: '1.44' },
+        { name: 'boxWeight', label: 'Weight/Box (KG)', required: false, example: '28' },
+        { name: 'boxesPerPallet', label: 'Boxes/Pallet', required: false, example: '40' },
+        { name: 'factoryPrice', label: 'Factory Price', required: false, example: '150' },
+        { name: 'sellingPrice', label: 'Selling Price', required: false, example: '200' },
+        { name: 'hsCode', label: 'HS Code', required: false, example: '69072100' },
+        { name: 'images', label: 'Images (Comma-separated URLs)', required: false, example: 'https://example.com/img1.jpg, https://example.com/img2.jpg' },
+        { name: 'status', label: 'Status', required: false, example: 'Active' },
       ],
     },
     pallets: {

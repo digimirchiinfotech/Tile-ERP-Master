@@ -35,8 +35,23 @@ import ValidationErrorModal from '../shared/ValidationErrorModal.jsx';
 import StatusBadge from '../common/StatusBadge';
 import ActivityTimeline from '../shared/ActivityTimeline.jsx';
 
-
-
+// Inline edit component for Status
+const InlineStatusEdit = ({ status, onChange, onBlur }) => {
+  return (
+    <Form.Select
+      size="sm"
+      autoFocus
+      value={status}
+      onChange={(e) => onChange(e.target.value)}
+      onBlur={onBlur}
+      style={{ width: 'auto', minWidth: '100px' }}
+    >
+      <option value="Active">Active</option>
+      <option value="Inactive">Inactive</option>
+      <option value="Blacklisted">Blacklisted</option>
+    </Form.Select>
+  );
+};
 function SupplierDashboard({ currentUser, navigationData }) {
   const { suppliers, loading, error, createSupplier, updateSupplier, deleteSupplier, toggleSupplierStatus, fetchSuppliers } = useSuppliers();
   const [currentPage, setCurrentPage] = useState(1);
@@ -48,6 +63,7 @@ function SupplierDashboard({ currentUser, navigationData }) {
   const [editingSupplier, setEditingSupplier] = useState(null);
   const [viewingSupplier, setViewingSupplier] = useState(null);
   const [showPrintModal, setShowPrintModal] = useState(false);
+  const [inlineEditingId, setInlineEditingId] = useState(null);
   const printRef = useRef(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmConfig, setConfirmConfig] = useState({ title: '', message: '', onConfirm: () => { }, variant: 'danger' });
@@ -144,6 +160,28 @@ function SupplierDashboard({ currentUser, navigationData }) {
     return () => window.removeEventListener('suppliers:changed', handleSync);
   }, [fetchSuppliers]);
 
+  // Local Keyboard Shortcuts (Phase 2)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Allow Alt+N to open "Create Supplier" locally, preventing global Alt+N if we catch it
+      if (e.altKey && e.key.toLowerCase() === 'n') {
+        // Skip if user is typing in an input
+        const tag = e.target?.tagName?.toLowerCase();
+        const isEditable = e.target?.isContentEditable;
+        if (['input', 'textarea', 'select'].includes(tag) || isEditable) return;
+        
+        e.preventDefault();
+        e.stopPropagation(); // Try to stop global listener
+        if (canEdit) {
+          handleCreateSupplier();
+        }
+      }
+    };
+    // Use capture phase to intercept before global listener
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
+  }, [canEdit]);
+
   // Deep-link effect: handle navigation from search results
   useEffect(() => {
     if (navigationData?.id && suppliers.length > 0) {
@@ -223,6 +261,22 @@ function SupplierDashboard({ currentUser, navigationData }) {
     } catch (error) {
       console.error(' Toggle status error:', error);
       showError('Failed to toggle supplier status. Please try again.');
+    }
+  };
+
+  const handleInlineStatusChange = async (supplier, newStatus) => {
+    if (supplier.status === newStatus) {
+      setInlineEditingId(null);
+      return;
+    }
+    try {
+      await updateSupplier(supplier.id, { status: newStatus });
+      showSuccess(`Supplier status updated to ${newStatus}`);
+    } catch (err) {
+      console.error('❌ Inline status update error:', err);
+      showError('Failed to update status');
+    } finally {
+      setInlineEditingId(null);
     }
   };
 
@@ -543,7 +597,7 @@ function SupplierDashboard({ currentUser, navigationData }) {
             {canEdit && (
               <Button variant="light" size="sm" className="text-primary fw-bold d-flex align-items-center flex-shrink-0" onClick={handleCreateSupplier} style={{ width: 'auto' }}>
                 <Plus size={16} className="me-1" />
-                <span className="d-none d-sm-inline small">Create Supplier</span>
+                <span className="d-none d-sm-inline small">Create Supplier <span className="ms-1 fw-normal" style={{fontSize: '0.8em', opacity: 0.7}}>(Alt+N)</span></span>
                 <span className="d-sm-none small">Create</span>
               </Button>
             )}
@@ -584,7 +638,21 @@ function SupplierDashboard({ currentUser, navigationData }) {
                           onChange={() => bulk.toggleSelect(supplier.id)}
                         />
                       </td>
-                      <td><StatusBadge status={supplier.status} /></td>
+                      <td 
+                        onDoubleClick={() => canEdit && setInlineEditingId(supplier.id)}
+                        title={canEdit ? "Double-click to quick-edit status" : ""}
+                        style={{ cursor: canEdit ? 'pointer' : 'default' }}
+                      >
+                        {inlineEditingId === supplier.id ? (
+                          <InlineStatusEdit 
+                            status={supplier.status} 
+                            onChange={(newStatus) => handleInlineStatusChange(supplier, newStatus)} 
+                            onBlur={() => setInlineEditingId(null)}
+                          />
+                        ) : (
+                          <StatusBadge status={supplier.status} />
+                        )}
+                      </td>
                       <td className="fw-semibold text-primary">{supplier.name}</td>
                       <td>{supplier.contactPersonName || '-'}</td>
                       <td>{supplier.city || '-'}</td>

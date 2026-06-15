@@ -37,6 +37,23 @@ import { formatPrice } from '../../utils/formatters.js';
 import StatusBadge from '../common/StatusBadge';
 import ActivityTimeline from '../shared/ActivityTimeline.jsx';
 
+// Inline edit component for Status
+const InlineStatusEdit = ({ status, onChange, onBlur }) => {
+  return (
+    <Form.Select
+      size="sm"
+      autoFocus
+      value={status}
+      onChange={(e) => onChange(e.target.value)}
+      onBlur={onBlur}
+      style={{ width: 'auto', minWidth: '100px' }}
+    >
+      <option value="Active">Active</option>
+      <option value="Inactive">Inactive</option>
+      <option value="Blacklisted">Blacklisted</option>
+    </Form.Select>
+  );
+};
 
 function ClientDashboard({ currentUser, clientsData, usersData, navigationData }) {
   // Use props if provided, otherwise call hooks (for backward compatibility)
@@ -57,6 +74,7 @@ function ClientDashboard({ currentUser, clientsData, usersData, navigationData }
   const [confirmPendingData, setConfirmPendingData] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [showPrintModal, setShowPrintModal] = useState(false);
+  const [inlineEditingId, setInlineEditingId] = useState(null);
   const printRef = useRef(null);
 
   // Multi-select hook
@@ -179,6 +197,28 @@ function ClientDashboard({ currentUser, clientsData, usersData, navigationData }
     return () => window.removeEventListener('clients:changed', handleSync);
   }, [fetchClients]);
 
+  // Local Keyboard Shortcuts (Phase 2)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Allow Alt+N to open "Create Client" locally, preventing global Alt+N if we catch it
+      if (e.altKey && e.key.toLowerCase() === 'n') {
+        // Skip if user is typing in an input
+        const tag = e.target?.tagName?.toLowerCase();
+        const isEditable = e.target?.isContentEditable;
+        if (['input', 'textarea', 'select'].includes(tag) || isEditable) return;
+        
+        e.preventDefault();
+        e.stopPropagation(); // Try to stop global listener
+        if (canEdit) {
+          handleCreateClient();
+        }
+      }
+    };
+    // Use capture phase to intercept before global listener
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
+  }, [canEdit]);
+
   // Deep-link effect: handle navigation from search results
   useEffect(() => {
     if (navigationData?.id && clients.length > 0) {
@@ -263,6 +303,24 @@ function ClientDashboard({ currentUser, clientsData, usersData, navigationData }
       }
     });
     setShowConfirmModal(true);
+  };
+
+  const handleInlineStatusChange = async (client, newStatus) => {
+    if (client.status === newStatus) {
+      setInlineEditingId(null);
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await updateClient({ id: client.id, data: { status: newStatus } });
+      showSuccess(`Client status updated to ${newStatus}`);
+    } catch (err) {
+      console.error('❌ Inline status update error:', err);
+      showError('Failed to update status');
+    } finally {
+      setIsSaving(false);
+      setInlineEditingId(null);
+    }
   };
 
   const handleSaveClient = (clientData) => {
@@ -658,7 +716,7 @@ function ClientDashboard({ currentUser, clientsData, usersData, navigationData }
             {canEdit && (
               <Button variant="light" size="sm" className="text-primary fw-bold d-flex align-items-center flex-shrink-0" onClick={handleCreateClient} style={{ width: 'auto' }}>
                 <Plus size={16} className="me-1" />
-                <span className="d-none d-sm-inline small">Create Client</span>
+                <span className="d-none d-sm-inline small">Create Client <span className="ms-1 fw-normal" style={{fontSize: '0.8em', opacity: 0.7}}>(Alt+N)</span></span>
                 <span className="d-sm-none small">Create</span>
               </Button>
             )}
@@ -700,9 +758,21 @@ function ClientDashboard({ currentUser, clientsData, usersData, navigationData }
                           onChange={() => multiSelect.toggleSelect(client.id)}
                         />
                       </td>
-                      <td>
+                      <td 
+                        onDoubleClick={() => canEdit && setInlineEditingId(client.id)}
+                        title={canEdit ? "Double-click to quick-edit status" : ""}
+                        style={{ cursor: canEdit ? 'pointer' : 'default' }}
+                      >
                         <div className="d-flex flex-column gap-1 align-items-start">
-                          <StatusBadge status={client.status} />
+                          {inlineEditingId === client.id ? (
+                            <InlineStatusEdit 
+                              status={client.status} 
+                              onChange={(newStatus) => handleInlineStatusChange(client, newStatus)} 
+                              onBlur={() => setInlineEditingId(null)}
+                            />
+                          ) : (
+                            <StatusBadge status={client.status} />
+                          )}
                           <Badge bg="info" style={{ fontSize: '0.65rem' }} title="External client collaboration enabled">Portal Access</Badge>
                         </div>
                       </td>

@@ -52,7 +52,7 @@ pool.on('error', (err) => {
   process.exit(-1);
 });
 
-export const query = async (text, params) => {
+export const query = async (text, params, companyId = 'super_admin_bypass') => {
   const start = Date.now();
   
   // Tenant Isolation Check
@@ -65,8 +65,12 @@ export const query = async (text, params) => {
       debugLogger.warning('Database Security', `Query potentially missing tenant isolation (company_id)`, { sql: text.substring(0, 150) });
   }
 
+  const client = await pool.connect();
   try {
-    const res = await pool.query(text, params);
+    // Inject tenant context securely into the PostgreSQL session
+    await client.query("SELECT set_config('app.current_company_id', $1, false)", [companyId]);
+    
+    const res = await client.query(text, params);
     const duration = Date.now() - start;
     // Only log slow queries (>500ms) in production for performance
     if (duration > 500) {
@@ -75,6 +79,10 @@ export const query = async (text, params) => {
     return res;
   } catch (error) {
     throw error;
+  } finally {
+    // Reset session variable before returning to the pool to prevent context leakage
+    await client.query("RESET app.current_company_id").catch(() => {});
+    client.release();
   }
 };
 

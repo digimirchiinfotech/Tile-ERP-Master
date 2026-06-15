@@ -248,7 +248,7 @@ function InvoiceDashboard({ onAddNew, onEdit, invoicesData, productsData, client
   const nonRevisedInvoices = (invoices || []).filter(i => i.status !== 'Revised');
   const dashboardStats = {
     total: nonRevisedInvoices.length,
-    approved: nonRevisedInvoices.filter(i => i.status === 'Approved').length,
+    approved: nonRevisedInvoices.filter(i => i.status === 'Approved' || i.status === 'Locked').length,
     submitted: nonRevisedInvoices.filter(i => i.status === 'Submitted' || i.status === 'Pending').length,
     draft: nonRevisedInvoices.filter(i => i.status === 'Draft').length,
     totalAmount: nonRevisedInvoices.reduce((sum, inv) => sum + (parseFloat(inv.totalAmount || inv.total_amount) || 0), 0)

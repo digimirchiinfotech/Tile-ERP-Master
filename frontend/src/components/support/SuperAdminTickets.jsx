@@ -285,7 +285,7 @@ const SuperAdminTickets = () => {
                         headers['x-selected-company-id'] = selectedCompanyId;
                       }
 
-                      const response = await fetch(`${"https://tile-erp-master-production.railway.app/api" || '/api'}/export/support-tickets`, {
+                      const response = await fetch(`${(import.meta.env.DEV || import.meta.env.MODE === 'development' ? '/api' : 'https://tile-erp-master-production.railway.app/api')}/export/support-tickets`, {
                         headers
                       });
                       if (!response.ok) throw new Error('Export failed');

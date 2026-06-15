@@ -31,7 +31,7 @@ export const SocketProvider = ({ children }) => {
     disconnectSocket();
 
     const apiUrl = import.meta.env?.VITE_API_BASE
-      ? "https://tile-erp-master-production.railway.app/api".replace('/api', '')
+      ? (import.meta.env.DEV || import.meta.env.MODE === 'development' ? '/api' : 'https://tile-erp-master-production.railway.app/api').replace('/api', '')
       : '';
 
     const newSocket = io(apiUrl || undefined, {

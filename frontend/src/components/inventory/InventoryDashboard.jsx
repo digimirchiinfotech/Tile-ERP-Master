@@ -23,21 +23,29 @@ const InventoryDashboard = ({ onNavigate, showSuccess, showError }) => {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [summaryRes, stockRes, movRes, resvRes, prodRes] = await Promise.all([
+      const [summaryRes, stockRes, movRes, resvRes, prodRes, sanProdRes] = await Promise.all([
         api.get('/inventory/summary'),
         api.get('/inventory/register?limit=100'),
         api.get('/inventory/movements?limit=20'),
         api.get('/inventory/reservations'),
-        api.get('/products?limit=200'),
+        api.get('/products?limit=1000').catch(() => ({ data: { data: { data: [] } } })),
+        api.get('/sanitaryware-products?limit=1000').catch(() => ({ data: { data: { data: [] } } })),
       ]);
       const stockItems = stockRes.data?.data?.items ?? stockRes.data?.data;
-      const productItems = prodRes.data?.data?.items ?? prodRes.data?.data;
+      
+      const tileProducts = prodRes.data?.data?.data ?? prodRes.data?.data?.items ?? prodRes.data?.data ?? [];
+      const sanProducts = sanProdRes.data?.data?.data ?? sanProdRes.data?.data?.items ?? sanProdRes.data?.data ?? [];
+      
+      const allProducts = [
+        ...(Array.isArray(tileProducts) ? tileProducts : []),
+        ...(Array.isArray(sanProducts) ? sanProducts : [])
+      ];
 
       setSummary(summaryRes.data?.data || summaryRes.data || {});
       setStock(Array.isArray(stockItems) ? stockItems : []);
       setMovements(Array.isArray(movRes.data?.data) ? movRes.data.data : []);
       setReservations(Array.isArray(resvRes.data?.data) ? resvRes.data.data : []);
-      setProducts(Array.isArray(productItems) ? productItems : []);
+      setProducts(allProducts);
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Failed to load inventory';
       if (err.code === 'ERR_NETWORK' || err.message?.includes('Network Error')) {

@@ -14,7 +14,7 @@
  * Provides comprehensive import functionality with validation and error handling for CSV file imports.
  */
 
-import { validateImportData } from './validation.js';
+import { validateImportData } from './validators.js';
 import * as XLSX from 'xlsx';
 
 /**

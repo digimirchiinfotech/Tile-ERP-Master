@@ -283,6 +283,13 @@ export const getById = async (req, res, next) => {
            WHERE l.export_invoice_id = ei.id),
           TO_CHAR(pi.date, 'YYYY-MM-DD')
         ) as proforma_date,
+        COALESCE(
+          (SELECT max(p.updated_at)
+           FROM export_invoice_proforma_links l
+           JOIN proforma_invoices p ON p.id = l.proforma_invoice_id
+           WHERE l.export_invoice_id = ei.id),
+          pi.updated_at
+        ) as pi_updated_at,
         (SELECT array_agg(proforma_invoice_id) FROM export_invoice_proforma_links WHERE export_invoice_id = ei.id) as proforma_invoice_ids,
         (SELECT packing_list_no FROM packing_lists pl WHERE pl.export_invoice_id = ei.id AND pl.deleted_at IS NULL LIMIT 1) as pl_no
        FROM export_invoices ei

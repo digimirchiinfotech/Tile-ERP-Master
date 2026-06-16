@@ -10,8 +10,8 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { Container, Row, Col, Card, Form, Table, Spinner, InputGroup, Badge, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { Save, X, Plus, Trash2, ArrowLeft, FileText, ChevronRight, ChevronDown, ChevronUp, Truck, FileCheck, Scale, Ship, CreditCard, Info, History, Package, Hash, Search, Gift } from 'lucide-react';
+import { Container, Row, Col, Card, Form, Table, Spinner, InputGroup, Badge, OverlayTrigger, Tooltip, Alert } from 'react-bootstrap';
+import { Save, X, Plus, Trash2, ArrowLeft, FileText, ChevronRight, ChevronDown, ChevronUp, Truck, FileCheck, Scale, Ship, CreditCard, Info, History, Package, Hash, Search, Gift, RefreshCw } from 'lucide-react';
 import { showSuccess, showError, showInfo } from '../../shared/NotificationManager.jsx';
 import ConfirmationModal from '../../shared/ConfirmationModal.jsx';
 import Button from '../../shared/Button.jsx';
@@ -84,6 +84,8 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
     iec_no: '',
     supply_declaration: 'SUPPLY MEANT FOR EXPORT WITHOUT PAYMENT OF INTEGRATED TAX UNDER LUT BOND',
     ftp_incentive_declaration: '"I/WE SHALL CLAIM UNDER CHAPTER 3 INCENTIVE OF FTP AS ADMISSIBLE AT TIME POLICY IN FORCE I.E. RODTEP"',
+    pi_updated_at: '',
+    updated_at: ''
   });
 
   const isFormLocked = formData.status === 'Finalized' || formData.status === 'Dispatched' || formData.is_locked;
@@ -416,7 +418,9 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
               lut_date: snakeData.lut_date || (snakeData.company_info && snakeData.company_info.lut_date) || prev.lut_date,
               country_of_origin: snakeData.country_of_origin || prev.country_of_origin || 'INDIA',
               supply_declaration: snakeData.supply_declaration || prev.supply_declaration || 'SUPPLY MEANT FOR EXPORT WITHOUT PAYMENT OF INTEGRATED TAX UNDER LUT BOND',
-              ftp_incentive_declaration: snakeData.ftp_incentive_declaration || prev.ftp_incentive_declaration || '"I/WE SHALL CLAIM UNDER CHAPTER 3 INCENTIVE OF FTP AS ADMISSIBLE AT TIME POLICY IN FORCE I.E. RODTEP"'
+              ftp_incentive_declaration: snakeData.ftp_incentive_declaration || prev.ftp_incentive_declaration || '"I/WE SHALL CLAIM UNDER CHAPTER 3 INCENTIVE OF FTP AS ADMISSIBLE AT TIME POLICY IN FORCE I.E. RODTEP"',
+              pi_updated_at: snakeData.pi_updated_at || prev.pi_updated_at,
+              updated_at: snakeData.updated_at || prev.updated_at
             }));
             setSavedInvoiceId(targetId);
           }
@@ -448,7 +452,9 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
               lut_date: snakeData.lut_date || (snakeData.company_info && snakeData.company_info.lut_date) || (snakeData.proforma_data && snakeData.proforma_data.company_info && snakeData.proforma_data.company_info.lut_date) || prev.lut_date,
               country_of_origin: snakeData.country_of_origin || prev.country_of_origin || 'INDIA',
               supply_declaration: snakeData.supply_declaration || prev.supply_declaration || 'SUPPLY MEANT FOR EXPORT WITHOUT PAYMENT OF INTEGRATED TAX UNDER LUT BOND',
-              ftp_incentive_declaration: snakeData.ftp_incentive_declaration || prev.ftp_incentive_declaration || '"I/WE SHALL CLAIM UNDER CHAPTER 3 INCENTIVE OF FTP AS ADMISSIBLE AT TIME POLICY IN FORCE I.E. RODTEP"'
+              ftp_incentive_declaration: snakeData.ftp_incentive_declaration || prev.ftp_incentive_declaration || '"I/WE SHALL CLAIM UNDER CHAPTER 3 INCENTIVE OF FTP AS ADMISSIBLE AT TIME POLICY IN FORCE I.E. RODTEP"',
+              pi_updated_at: snakeData.pi_updated_at || prev.pi_updated_at,
+              updated_at: snakeData.updated_at || prev.updated_at
             }));
           }
         }
@@ -877,6 +883,15 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
         <Spinner animation="border" />
       </div>
     );
+  const handleSyncPIData = async () => {
+    if (selectedProformaIds.length > 0) {
+      await handleProformaIdsChange(selectedProformaIds);
+      setFormData(prev => ({ ...prev, pi_updated_at: prev.updated_at }));
+      showSuccess('Data auto-fetched from latest Proforma Invoice(s)!');
+    }
+  };
+
+  const piDataOutdated = formData.id && formData.pi_updated_at && formData.updated_at && new Date(formData.pi_updated_at) > new Date(formData.updated_at);
 
   return (
     <Container fluid className="py-4 bg-light min-vh-100">

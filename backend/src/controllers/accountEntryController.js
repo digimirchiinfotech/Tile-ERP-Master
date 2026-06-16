@@ -484,16 +484,16 @@ export const getInvoicesByPartyName = async (req, res, next) => {
       }
     }
 
-    conditions.push(`client_name = $${paramCount}`);
-    values.push(partyName);
+    conditions.push(`TRIM(client_name) ILIKE $${paramCount}`);
+    values.push(`%${partyName.trim()}%`);
     paramCount++;
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     
     const sql = `
-       (SELECT id, invoice_no, invoice_date as date, total_amount, 'Export' as type FROM export_invoices ${whereClause})
+       (SELECT id, invoice_no, CAST(invoice_date AS TEXT) as date, CAST(total_amount AS NUMERIC) as total_amount, 'Export' as type FROM export_invoices ${whereClause})
        UNION ALL
-       (SELECT id, invoice_no, date, total_amount, 'Proforma' as type FROM proforma_invoices ${whereClause})
+       (SELECT id, invoice_no, CAST(date AS TEXT) as date, CAST(total_amount AS NUMERIC) as total_amount, 'Proforma' as type FROM proforma_invoices ${whereClause})
        ORDER BY date DESC`;
 
     const result = await req.db.query(sql, values);

@@ -237,7 +237,8 @@ export const getByExportInvoiceId = async (req, res, next) => {
               ei.payment_terms as payment_terms,
               ei.tariff_code as tariff_code,
               ei.invoice_no as ei_invoice_no,
-              ei.invoice_date as ei_invoice_date
+              ei.invoice_date as ei_invoice_date,
+              ei.updated_at as ei_updated_at
        FROM invoice_backside ib
        LEFT JOIN export_invoice_annexures ia ON ib.export_invoice_id = ia.export_invoice_id AND ia.deleted_at IS NULL
        LEFT JOIN packing_lists pl ON ib.export_invoice_id = pl.export_invoice_id AND pl.deleted_at IS NULL
@@ -449,6 +450,7 @@ export const getById = async (req, res, next) => {
                 ia.container_details as inherited_container_details,
                 ei.invoice_no as ei_invoice_no,
                 ei.invoice_date as ei_invoice_date,
+                ei.updated_at as ei_updated_at,
                 ei.company_id as ei_company_id,
                 ia.company_id as ia_company_id,
                 ia.id as ia_annexure_id

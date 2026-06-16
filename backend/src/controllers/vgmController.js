@@ -159,6 +159,7 @@ export const getByExportInvoiceId = async (req, res, next) => {
         ei.tariff_code as ei_tariff_code,
         ei.buyers_order_no as pi_buyers_order_no,
         ei.product_lines as inherited_product_details,
+        ei.updated_at as ei_updated_at,
         ei.company_id as company_id,
         an.product_description as an_product_description
       FROM export_invoices ei
@@ -694,6 +695,7 @@ export const getById = async (req, res, next) => {
     const result = await req.db.query(
       `SELECT v.*, 
               ei.invoice_no as export_invoice_no,
+              ei.updated_at as ei_updated_at,
               ib.backside_no
        FROM vgm_documents v
        LEFT JOIN export_invoices ei ON v.export_invoice_id = ei.id

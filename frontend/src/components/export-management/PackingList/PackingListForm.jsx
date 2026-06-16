@@ -11,7 +11,7 @@
 
 import { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Form, Button, Table, Alert, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { Save, X, Plus, Trash2, ArrowLeft, Ship, CreditCard, FileText, History, Package, Hash, Info } from 'lucide-react';
+import { Save, X, Plus, Trash2, ArrowLeft, Ship, CreditCard, FileText, History, Package, Hash, Info, RefreshCw } from 'lucide-react';
 import { showSuccess, showError } from '../../shared/NotificationManager.jsx';
 import api from '../../../services/api';
 import { exportMapper } from '../../../utils/exportMapper';
@@ -115,7 +115,9 @@ function PackingListForm({ exportInvoiceId, packingList, packingListData, packin
 		buyers_order_no: '',
 		buyers_order_date: '',
 		container_details: [],
-		country_of_origin: 'INDIA'
+		country_of_origin: 'INDIA',
+		ei_updated_at: '',
+		updated_at: ''
 	});
 
 	const isLocked = formData.status === 'Finalized' || formData.status === 'Dispatched';
@@ -359,7 +361,9 @@ function PackingListForm({ exportInvoiceId, packingList, packingListData, packin
 				buyers_order_date: formatInputDate(dataToLoad.buyers_order_date || dataToLoad.buyersOrderDate || ''),
 				proforma_invoice_date: formatInputDate(dataToLoad.proforma_invoice_date || dataToLoad.proforma_date || dataToLoad.proformaInvoiceDate || ''),
 				export_invoice_date: formatInputDate(dataToLoad.export_invoice_date || dataToLoad.invoice_date || dataToLoad.exportInvoiceDate || ''),
-				container_details: dataToLoad.container_details || dataToLoad.containerDetails || []
+				container_details: dataToLoad.container_details || dataToLoad.containerDetails || [],
+				ei_updated_at: dataToLoad.ei_updated_at || '',
+				updated_at: dataToLoad.updated_at || ''
 			}));
 
 			// If we have an export invoice ID, fetch its full details to populate dependent fields
@@ -522,6 +526,25 @@ function PackingListForm({ exportInvoiceId, packingList, packingListData, packin
 		}
 	};
 
+	const handleSyncPIData = async () => {
+		if (!formData.export_invoice_id) return;
+		try {
+			setSaving(true);
+			const resp = await api.get(`/export-invoices/${formData.export_invoice_id}`);
+			const inv = resp?.data?.data || resp?.data;
+			if (inv) {
+				applyExportToForm(inv);
+				setFormData(prev => ({ ...prev, ei_updated_at: inv.updated_at || prev.ei_updated_at }));
+				showAlertMessage('Data auto-fetched from Export Invoice!', 'success');
+			}
+		} catch (e) {
+			console.error('Sync failed:', e);
+			showError('Failed to sync with latest PI data');
+		} finally {
+			setSaving(false);
+		}
+	};
+
 	const showAlertMessage = (message, type = 'info') => {
 		setAlertMessage(message);
 		setShowAlert(true);
@@ -552,6 +575,8 @@ function PackingListForm({ exportInvoiceId, packingList, packingListData, packin
 		return result.trim();
 	};
 
+	const piDataOutdated = formData.id && formData.ei_updated_at && formData.updated_at && new Date(formData.ei_updated_at) > new Date(formData.updated_at);
+
 	return (
 		<Container fluid className="py-4">
 			<Form onSubmit={handleSubmit}>
@@ -569,6 +594,11 @@ function PackingListForm({ exportInvoiceId, packingList, packingListData, packin
 						<Button variant="outline" onClick={handleCancel} className="shadow-sm px-4 fw-bold bg-white" style={{ height: '55px', borderRadius: '12px' }}>
 							<X size={20} className="me-2" /> Cancel
 						</Button>
+						{formData.export_invoice_id && !isLocked && (
+							<Button variant="info" onClick={handleSyncPIData} className="shadow-sm px-4 fw-bold text-white" style={{ height: '55px', borderRadius: '12px' }}>
+								<RefreshCw size={20} className="me-2" /> Sync Latest PI Data
+							</Button>
+						)}
 						<Button variant="primary" type="submit" disabled={saving || !isFormValid()} className="shadow-sm px-4 fw-bold" style={{ height: '55px', borderRadius: '12px', minWidth: '160px' }}>
 							{saving ? <div className="spinner-border spinner-border-sm me-2" /> : <Save size={20} className="me-2" />}
 							{saving ? 'Saving...' : `${formData.id ? 'Update' : 'Save'} Packing List`}
@@ -584,6 +614,13 @@ function PackingListForm({ exportInvoiceId, packingList, packingListData, packin
 				{showAlert && (
 					<Alert variant="primary" dismissible onClose={() => setShowAlert(false)} className="mb-4">
 						{alertMessage}
+					</Alert>
+				)}
+
+				{piDataOutdated && !isLocked && (
+					<Alert variant="warning" className="mb-4 d-flex align-items-center fw-bold shadow-sm rounded-3">
+						<Info size={20} className="me-2" />
+						PI data has been updated. Please click "Sync Latest PI Data" to refresh connected documents.
 					</Alert>
 				)}
 

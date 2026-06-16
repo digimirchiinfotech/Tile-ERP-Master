@@ -10,8 +10,8 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { Container, Row, Col, Card, Form, Button, Table, Spinner, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { Save, X, Plus, Trash2, ArrowLeft, FileText, ChevronRight, History, Hash, Package, Info } from 'lucide-react';
+import { Container, Row, Col, Card, Form, Button, Table, Spinner, OverlayTrigger, Tooltip, Alert } from 'react-bootstrap';
+import { Save, X, Plus, Trash2, ArrowLeft, FileText, ChevronRight, History, Hash, Package, Info, RefreshCw } from 'lucide-react';
 import api from '../../../services/api';
 import { getAllPorts, getPortsOfLoading, getPortsOfDischarge, getAllCountries } from '../../../services/masterDataService.js';
 import DynamicDropdown from '../../shared/DynamicDropdown.jsx';
@@ -107,6 +107,8 @@ function ExportInvoiceAnnexureForm({ exportInvoiceId: initialExportInvoiceId, an
     product_lines: [],
     pl_totals: { boxes: 0, sqm: 0, net: 0, gross: 0 },
     exists: false,
+    ei_updated_at: '',
+    updated_at: '',
 
     // Exporter & Shipping Details
     company_name: '',
@@ -340,7 +342,9 @@ function ExportInvoiceAnnexureForm({ exportInvoiceId: initialExportInvoiceId, an
               pi_date: mappedData.pi_date || inheritedFields.pi_date || prev.pi_date || '',
               export_invoice_no: mappedData.export_invoice_no || inheritedFields.export_invoice_no || prev.export_invoice_no || '',
               export_invoice_date: mappedData.export_invoice_date || inheritedFields.export_invoice_date || prev.export_invoice_date || '',
-              exists: true
+              exists: true,
+              ei_updated_at: data.ei_updated_at || data.eiUpdatedAt || '',
+              updated_at: data.updated_at || data.updatedAt || ''
             }));
             return;
           }
@@ -450,7 +454,9 @@ function ExportInvoiceAnnexureForm({ exportInvoiceId: initialExportInvoiceId, an
           sqm: parseFloat(rawData.total_sqm || rawData.totalSqm || 0),
           net: parseFloat(rawData.net_weight || rawData.netWeight || 0),
           gross: parseFloat(rawData.gross_weight || rawData.grossWeight || 0)
-        }
+        },
+        ei_updated_at: rawData.ei_updated_at || rawData.eiUpdatedAt || '',
+        updated_at: rawData.updated_at || rawData.updatedAt || ''
       }));
 
       showSuccess('Packing list data loaded successfully');
@@ -622,6 +628,28 @@ function ExportInvoiceAnnexureForm({ exportInvoiceId: initialExportInvoiceId, an
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleSyncPIData = async () => {
+    if (!formData.packing_list_id) return;
+    try {
+      setSaving(true);
+      const rawData = await getAnnexureInheritedData(formData.packing_list_id);
+      if (rawData) {
+        const mappedData = exportMapper.mapPLToAnnexure(rawData);
+        setFormData(prev => ({
+          ...prev,
+          ...mappedData,
+          ei_updated_at: rawData.ei_updated_at || rawData.eiUpdatedAt || prev.ei_updated_at,
+        }));
+        showSuccess('Data auto-fetched from Export Invoice & Packing List!');
+      }
+    } catch (e) {
+      console.error('Sync failed:', e);
+      showError('Failed to sync with latest master data');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // ── Submit ──
   const handleSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
@@ -689,6 +717,7 @@ function ExportInvoiceAnnexureForm({ exportInvoiceId: initialExportInvoiceId, an
   );
 
   const safeNum = (v) => isNaN(parseFloat(v)) ? 0 : parseFloat(v);
+  const piDataOutdated = formData.exists && formData.ei_updated_at && formData.updated_at && new Date(formData.ei_updated_at) > new Date(formData.updated_at);
 
   return (
     <Container fluid className="py-4 bg-light min-vh-100">
@@ -706,6 +735,11 @@ function ExportInvoiceAnnexureForm({ exportInvoiceId: initialExportInvoiceId, an
           </div>
         </div>
         <div className="d-flex gap-2" style={{ flexShrink: 0 }}>
+          {formData.export_invoice_id && (
+             <Button variant="info" onClick={handleSyncPIData} className="fw-bold shadow-sm text-white" style={{ borderRadius: '8px', fontSize: '0.84rem', height: '34px', padding: '0 14px' }}>
+                <RefreshCw size={14} className="me-1" /> Sync Latest PI Data
+             </Button>
+          )}
           <Button variant="primary" type="submit" form="annexure-form" disabled={saving} className="fw-bold shadow-sm" style={{ borderRadius: '8px', fontSize: '0.84rem', height: '34px', padding: '0 14px', minWidth: '120px' }}>
             {saving ? <Spinner animation="border" size="sm" /> : <><Save size={14} className="me-1" />{formData.exists ? 'Update' : 'Save'} Annexure</>}
           </Button>
@@ -713,6 +747,12 @@ function ExportInvoiceAnnexureForm({ exportInvoiceId: initialExportInvoiceId, an
       </div>
 
       <Form id="annexure-form" onSubmit={handleSubmit} className="px-3">
+        {piDataOutdated && (
+          <Alert variant="warning" className="mb-4 d-flex align-items-center fw-bold shadow-sm rounded-3">
+            <Info size={20} className="me-2" />
+            PI data has been updated. Please click "Sync Latest PI Data" to refresh connected documents.
+          </Alert>
+        )}
         {/* ── Basic Information ── */}
         <Card className="mb-4 shadow-sm border-0 rounded-4 overflow-hidden">
           <Card.Header className="bg-primary text-white py-3 border-0 d-flex align-items-center justify-content-start">

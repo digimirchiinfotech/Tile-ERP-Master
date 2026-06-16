@@ -95,6 +95,7 @@ export const getByExportInvoiceId = async (req, res, next) => {
               a.container_details as annexure_container_details, a.total_pallets as annexure_pallets,
               a.shipping_bill_no as inv_sb_no, a.shipping_bill_date as inv_sb_date,
               ei.country_of_origin as inv_country_of_origin,
+              ei.updated_at as ei_updated_at,
               ei.company_id
        FROM export_invoices ei
        LEFT JOIN packing_lists p ON (p.export_invoice_id = ei.id AND p.deleted_at IS NULL)
@@ -747,7 +748,8 @@ export const getById = async (req, res, next) => {
               ei.product_lines as inv_product_lines,
               pi.invoice_no as pi_no,
               pi.date as pi_date,
-              pi.product_lines as pi_product_lines
+              pi.product_lines as pi_product_lines,
+              ei.updated_at as ei_updated_at
        FROM packing_lists p
        LEFT JOIN export_invoices ei ON p.export_invoice_id = ei.id
        LEFT JOIN proforma_invoices pi ON ei.proforma_invoice_id = pi.id

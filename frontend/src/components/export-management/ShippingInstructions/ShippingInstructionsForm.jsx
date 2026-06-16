@@ -11,7 +11,7 @@
 
 import { generateEnterpriseFilename } from '../../../utils/fileNamingUtils';
 import { useState, useEffect, useRef } from 'react';
-import { Container, Card, Form, Row, Col, Table, Spinner, Modal, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Container, Card, Form, Row, Col, Table, Spinner, Modal, OverlayTrigger, Tooltip, Alert } from 'react-bootstrap';
 import api from '../../../services/api';
 import { exportMapper } from '../../../utils/exportMapper';
 import { getAllPorts, getPortsOfLoading, getPortsOfDischarge } from '../../../services/masterDataService.js';
@@ -33,7 +33,8 @@ import {
   ArrowLeft,
   Download,
   History,
-  Info
+  Info,
+  RefreshCw
 } from 'lucide-react';
 import { showSuccess, showError } from '../../shared/NotificationManager.jsx';
 import ShippingInstructionsPrintView from './ShippingInstructionsPrintView.jsx';
@@ -102,7 +103,9 @@ export default function ShippingInstructionsForm({
     vgmId: '',
     siDescription: '',
     exporterRef: '',
-    countryOfOrigin: 'INDIA'
+    countryOfOrigin: 'INDIA',
+    ei_updated_at: '',
+    updated_at: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -199,6 +202,8 @@ export default function ShippingInstructionsForm({
           finalDestination: mappedData.finalDestination || inheritedData.final_destination || inheritedData.finalDestination || prev.finalDestination || '',
           hsCode: mappedData.hsCode || inheritedData.hs_code || inheritedData.hsCode || inheritedData.tariff_code || prev.hsCode || '',
           siDescription: mappedData.siDescription || inheritedData.description_of_goods || inheritedData.goods_description || inheritedData.material_header_description || prev.siDescription || '',
+          ei_updated_at: inheritedData.ei_updated_at || inheritedData.eiUpdatedAt || '',
+          updated_at: inheritedData.updated_at || inheritedData.updatedAt || ''
         }));
 
         const backId = inheritedData.exportInvoiceId || inheritedData.export_invoice_id || inheritedData.invoiceId;
@@ -243,7 +248,9 @@ export default function ShippingInstructionsForm({
               ...prev,
               ...mappedData,
               id: rawData.id || null,
-              exists: !!rawData.id
+              exists: !!rawData.id,
+              ei_updated_at: rawData.ei_updated_at || rawData.eiUpdatedAt || '',
+              updated_at: rawData.updated_at || rawData.updatedAt || ''
             }));
 
             // If it's a fallback (no ID), ensure we fetch a fresh SI number
@@ -371,6 +378,33 @@ export default function ShippingInstructionsForm({
     return Object.keys(e).length === 0;
   };
 
+  const handleSyncPIData = async () => {
+    const vgmId = formData.vgmId;
+    if (!vgmId) return;
+    try {
+      setLoading(true);
+      const inheritedData = await getShippingInheritedData(vgmId);
+      if (inheritedData) {
+        const mappedData = exportMapper.mapVGMToSI(inheritedData);
+        setFormData(prev => ({
+          ...prev,
+          ...mappedData,
+          instructionNo: prev.instructionNo || mappedData.instructionNo || '',
+          vgmId: prev.vgmId,
+          id: prev.id,
+          exists: prev.exists,
+          ei_updated_at: inheritedData.ei_updated_at || inheritedData.eiUpdatedAt || prev.ei_updated_at,
+        }));
+        showSuccess('Data synced from latest PI & VGM!');
+      }
+    } catch (e) {
+      console.error('Sync failed:', e);
+      showError('Failed to sync with latest master data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDownloadPDF = async () => {
     setShowPrintModal(true);
     setTimeout(async () => {
@@ -446,7 +480,11 @@ export default function ShippingInstructionsForm({
             </div>
           </div>
           <div className="d-flex gap-2" style={{ flexShrink: 0 }}>
-
+            {!viewOnly && formData.vgmId && (
+              <Button variant="info" onClick={handleSyncPIData} className="shadow-sm fw-bold text-white" style={{ borderRadius: '8px', fontSize: '0.84rem', height: '34px', padding: '0 14px' }}>
+                <RefreshCw size={14} className="me-1" /> Sync Latest PI Data
+              </Button>
+            )}
             {!viewOnly && (
               <Button variant="primary" onClick={handleSubmit} className="shadow-sm fw-bold" style={{ borderRadius: '8px', fontSize: '0.84rem', height: '34px', padding: '0 14px' }}>
                 <Save size={14} className="me-1" /> {formData.id ? 'Update' : 'Save'} SI
@@ -456,6 +494,12 @@ export default function ShippingInstructionsForm({
         </div>
 
         <Form onSubmit={handleSubmit}>
+          {formData.exists && formData.ei_updated_at && formData.updated_at && new Date(formData.ei_updated_at) > new Date(formData.updated_at) && !viewOnly && (
+            <Alert variant="warning" className="mb-4 d-flex align-items-center fw-bold shadow-sm rounded-3">
+              <Info size={20} className="me-2" />
+              PI data has been updated. Please click "Sync Latest PI Data" to refresh connected documents.
+            </Alert>
+          )}
           {/* BASIC INFORMATION */}
           <Card className="mb-4 shadow-sm border-0 rounded-4 overflow-hidden">
             <Card.Header className="bg-primary text-white py-3 border-0 d-flex align-items-center justify-content-start">

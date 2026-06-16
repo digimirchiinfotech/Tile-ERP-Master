@@ -321,6 +321,7 @@ export const getByExportInvoiceId = async (req, res, next) => {
               pl.product_lines as pl_product_lines, pl.container_details as pl_container_details,
               pl.consignee as pl_consignee, pl.buyer as pl_buyer,
               s.name as inv_manufacturer_name, s.address as inv_manufacturer_address,
+              ei.updated_at as ei_updated_at,
               ei.company_id
         FROM export_invoices ei
         LEFT JOIN LATERAL (
@@ -579,7 +580,8 @@ export const getByAnnexureId = async (req, res, next) => {
               ei.port_of_discharge as inv_port_of_discharge,
               ei.final_destination as inv_final_destination,
               ei.country as inv_country,
-              ei.country_of_origin as inv_country_of_origin
+              ei.country_of_origin as inv_country_of_origin,
+              ei.updated_at as ei_updated_at
        FROM export_invoice_annexures a
        LEFT JOIN export_invoices ei ON a.export_invoice_id = ei.id
        LEFT JOIN proforma_invoices pi ON ei.proforma_invoice_id = pi.id

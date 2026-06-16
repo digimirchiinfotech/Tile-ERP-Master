@@ -10,8 +10,8 @@
  */
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Container, Row, Col, Card, Form, Table, Spinner, InputGroup, Badge } from 'react-bootstrap';
-import { Save, X, Plus, Trash2, ArrowLeft, FileText, ChevronRight, Truck, Info, CheckCircle, History, Hash, Package } from 'lucide-react';
+import { Container, Row, Col, Card, Form, Table, Spinner, InputGroup, Badge, Alert } from 'react-bootstrap';
+import { Save, X, Plus, Trash2, ArrowLeft, FileText, ChevronRight, Truck, Info, CheckCircle, History, Hash, Package, RefreshCw } from 'lucide-react';
 import api from '../../../services/api';
 import { showSuccess, showError } from '../../shared/NotificationManager.jsx';
 import Button from '../../shared/Button.jsx';
@@ -101,7 +101,9 @@ function InvoiceBacksideForm({ exportInvoiceId: initialExportInvoiceId, initialB
         gross_weight: 0,
 
         container_details: [],
-        status: 'Draft'
+        status: 'Draft',
+        ei_updated_at: '',
+        updated_at: ''
     });
 
     // ── Always load all annexures for the dropdown ──
@@ -257,7 +259,9 @@ function InvoiceBacksideForm({ exportInvoiceId: initialExportInvoiceId, initialB
                             }
                             return rawCD;
                         })(),
-                        exists: true
+                        exists: true,
+                        ei_updated_at: foundData.ei_updated_at || foundData.eiUpdatedAt || '',
+                        updated_at: foundData.updated_at || foundData.updatedAt || ''
                     }));
 
                 } else if (isFirstLoad.current) {
@@ -350,6 +354,8 @@ function InvoiceBacksideForm({ exportInvoiceId: initialExportInvoiceId, initialB
                         customs_seal_no: mappedData.customs_seal_no || rawData?.customs_seal_no || rawData?.customsSealNo || prev.customs_seal_no || '',
                         id: prev.id,
                         exists: prev.exists,
+                        ei_updated_at: rawData?.ei_updated_at || rawData?.eiUpdatedAt || '',
+                        updated_at: rawData?.updated_at || rawData?.updatedAt || '',
                         backside_no: finalBacksideNo,
                         invoice_no: finalInvoiceNo,
                         export_invoice_id: mappedData.export_invoice_id || prev.export_invoice_id,
@@ -383,6 +389,29 @@ function InvoiceBacksideForm({ exportInvoiceId: initialExportInvoiceId, initialB
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSyncPIData = async () => {
+        const annexId = (selectedAnnexure && selectedAnnexure !== 'current') ? selectedAnnexure : formData.annexure_id;
+        if (!annexId) return;
+        try {
+            setSaving(true);
+            const rawData = await getBacksideInheritedData(annexId);
+            if (rawData) {
+                const mappedData = exportMapper.mapAnnexureToBackside(rawData);
+                setFormData(prev => ({
+                    ...prev,
+                    ...mappedData,
+                    ei_updated_at: rawData.ei_updated_at || rawData.eiUpdatedAt || prev.ei_updated_at,
+                }));
+                showSuccess('Data auto-fetched from Export Invoice & Annexure!');
+            }
+        } catch (e) {
+            console.error('Sync failed:', e);
+            showError('Failed to sync with latest master data');
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -453,6 +482,8 @@ function InvoiceBacksideForm({ exportInvoiceId: initialExportInvoiceId, initialB
 
     if (loading) return <div className="text-center py-5"><Spinner animation="border" /></div>;
 
+    const piDataOutdated = formData.exists && formData.ei_updated_at && formData.updated_at && new Date(formData.ei_updated_at) > new Date(formData.updated_at);
+
     return (
         <Container fluid className="py-4 bg-light min-vh-100">
             <div className="d-flex flex-row justify-content-between align-items-center gap-2 mb-2 px-3"
@@ -468,12 +499,23 @@ function InvoiceBacksideForm({ exportInvoiceId: initialExportInvoiceId, initialB
                     </div>
                 </div>
                 <div className="d-flex gap-2" style={{ flexShrink: 0 }}>
+                    {formData.export_invoice_id && (
+                        <Button variant="info" onClick={handleSyncPIData} className="fw-bold shadow-sm text-white" style={{ borderRadius: '8px', fontSize: '0.84rem', height: '34px', padding: '0 14px' }}>
+                            <RefreshCw size={14} className="me-1" /> Sync Latest PI Data
+                        </Button>
+                    )}
                     <Button variant="primary" onClick={handleSubmit} disabled={saving} className="fw-bold shadow-sm" style={{ borderRadius: '8px', fontSize: '0.84rem', height: '34px', padding: '0 14px', minWidth: '110px' }}>
                         {saving ? <Spinner animation="border" size="sm" /> : <><Save size={14} className="me-1" /> {formData.id || formData.exists ? 'Update' : 'Save'} Backside</>}
                     </Button>
                 </div>
             </div>
             <Form onSubmit={handleSubmit} onKeyDown={(e) => { if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') e.preventDefault(); }} className="px-3">
+                {piDataOutdated && (
+                    <Alert variant="warning" className="mb-4 d-flex align-items-center fw-bold shadow-sm rounded-3">
+                        <Info size={20} className="me-2" />
+                        PI data has been updated. Please click "Sync Latest PI Data" to refresh connected documents.
+                    </Alert>
+                )}
                 {/* Reference & logistics fields */}
                 <Card className="mb-4 shadow-sm border-0 rounded-4 overflow-hidden">
                     <Card.Header className="bg-primary text-white py-3 border-0 d-flex align-items-center justify-content-start">

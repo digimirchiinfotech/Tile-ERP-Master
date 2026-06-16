@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Container, Row, Col, Card, Form, Table, Spinner, Badge, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Table, Spinner, Badge, OverlayTrigger, Tooltip, Alert } from 'react-bootstrap';
 import { Save, ChevronRight, Scale, RefreshCcw, ArrowLeft, History, Hash, Package, FileText, Info, Check } from 'lucide-react';
 import api from '../../../services/api';
 import { showSuccess, showError } from '../../shared/NotificationManager.jsx';
@@ -74,7 +74,9 @@ function VGMForm({ exportInvoiceId: propExportInvoiceId, onBack, currentUser }) 
     country_of_origin: 'INDIA',
     product_description: 'AS PER ATTACHMENT',
     id: null,
-    status: 'Draft'
+    status: 'Draft',
+    ei_updated_at: '',
+    updated_at: ''
   });
   const [errors, setErrors] = useState({});
 
@@ -103,7 +105,9 @@ function VGMForm({ exportInvoiceId: propExportInvoiceId, onBack, currentUser }) 
           id: targetVgm.id || null, // Preserve real ID for existing records
           exists: !!targetVgm.id && targetVgm.id !== '',
           status: targetVgm.status || 'Draft',
-          export_invoice_id: invoiceId // Explicitly preserve the ID we passed in
+          export_invoice_id: invoiceId, // Explicitly preserve the ID we passed in
+          ei_updated_at: targetVgm.ei_updated_at || targetVgm.eiUpdatedAt || '',
+          updated_at: targetVgm.updated_at || targetVgm.updatedAt || ''
         };
 
         setFormData(prev => ({
@@ -235,7 +239,9 @@ function VGMForm({ exportInvoiceId: propExportInvoiceId, onBack, currentUser }) 
           ...mappedData,
           vgm_no: nextVgmNo,
           invoice_backside_id: id,
-          export_invoice_id: invoiceId
+          export_invoice_id: invoiceId,
+          ei_updated_at: rawData?.ei_updated_at || rawData?.eiUpdatedAt || '',
+          updated_at: rawData?.updated_at || rawData?.updatedAt || ''
         }));
       }
     } catch (err) {
@@ -303,6 +309,30 @@ function VGMForm({ exportInvoiceId: propExportInvoiceId, onBack, currentUser }) 
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSyncPIData = async () => {
+    const backsideId = selectedBackside || formData.invoice_backside_id;
+    if (!backsideId || backsideId === 'current') return;
+    try {
+      setSaving(true);
+      const resp = await api.get(`/export-documents/inherit/vgm/${backsideId}`);
+      const rawData = resp.data?.data;
+      if (rawData) {
+        const mappedData = exportMapper.mapBacksideToVGM(rawData);
+        setFormData(prev => ({
+          ...prev,
+          ...mappedData,
+          ei_updated_at: rawData.ei_updated_at || rawData.eiUpdatedAt || prev.ei_updated_at,
+        }));
+        showSuccess('Data auto-fetched from Export Invoice & Backside!');
+      }
+    } catch (e) {
+      console.error('Sync failed:', e);
+      showError('Failed to sync with latest master data');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -418,6 +448,8 @@ function VGMForm({ exportInvoiceId: propExportInvoiceId, onBack, currentUser }) 
 
   if (loading) return <div className="text-center py-5"><Spinner animation="border" /></div>;
 
+  const piDataOutdated = formData.exists && formData.ei_updated_at && formData.updated_at && new Date(formData.ei_updated_at) > new Date(formData.updated_at);
+
   return (
     <Container fluid className="py-3 bg-white min-vh-100">
       {/* Breadcrumb Area */}
@@ -437,6 +469,11 @@ function VGMForm({ exportInvoiceId: propExportInvoiceId, onBack, currentUser }) 
         </div>
         <div className="d-flex align-items-center gap-2" style={{ flexShrink: 0 }}>
           <DocumentLockHeader isLocked={formData.is_locked} documentType="VGM" documentNo={formData.vgm_no} lockedBy={formData.locked_by_name || formData.locked_by} lockedAt={formData.locked_at} />
+          {formData.export_invoice_id && !formData.is_locked && (
+             <Button variant="info" onClick={handleSyncPIData} className="fw-bold shadow-sm text-white" style={{ borderRadius: '8px', fontSize: '0.84rem', height: '34px', padding: '0 14px' }}>
+                <RefreshCcw size={14} className="me-1" /> Sync Latest PI Data
+             </Button>
+          )}
 
           <OverlayTrigger overlay={formData.is_locked ? <Tooltip>Locked by {formData.locked_by_name || 'Admin'}</Tooltip> : <Tooltip>Save VGM</Tooltip>}>
             <span className="d-inline-block">
@@ -457,7 +494,12 @@ function VGMForm({ exportInvoiceId: propExportInvoiceId, onBack, currentUser }) 
         }}
         className="px-3"
       >
-
+        {piDataOutdated && !formData.is_locked && (
+          <Alert variant="warning" className="mb-4 d-flex align-items-center fw-bold shadow-sm rounded-3">
+            <Info size={20} className="me-2" />
+            PI data has been updated. Please click "Sync Latest PI Data" to refresh connected documents.
+          </Alert>
+        )}
 
         {/* BASIC INFORMATION */}
         <section className="mb-4">

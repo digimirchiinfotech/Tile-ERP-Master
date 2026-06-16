@@ -169,6 +169,7 @@ export const getByExportInvoiceId = async (req, res, next) => {
                COALESCE(si.pl_no, pl.packing_list_no) as pl_no,
                COALESCE(si.annexure_no, an.annexure_no) as annexure_no,
                COALESCE(si.backside_no, ib.backside_no) as backside_no,
+               ei.updated_at as ei_updated_at,
                ei.product_lines as inherited_product_details,
                COALESCE(v.container_sheet, an.container_details, pl.container_details) as inherited_container_details
         FROM shipping_instructions si
@@ -240,6 +241,7 @@ export const getByExportInvoiceId = async (req, res, next) => {
               ib.backside_no as backside_no,
               ib.goods_description as backside_goods,
               ei.country_of_origin as ei_country_of_origin,
+              ei.updated_at as ei_updated_at,
               ei.product_lines as inherited_product_details
        FROM export_invoices ei
        LEFT JOIN proforma_invoices pi ON ei.proforma_invoice_id = pi.id
@@ -590,7 +592,8 @@ export const getById = async (req, res, next) => {
              COALESCE(s.vgm_no, v.vgm_no) as vgm_no,
              COALESCE(s.pl_no, pl.packing_list_no) as pl_no,
              COALESCE(s.annexure_no, an.annexure_no) as annexure_no,
-             COALESCE(s.backside_no, ib.backside_no) as backside_no
+             COALESCE(s.backside_no, ib.backside_no) as backside_no,
+             ei.updated_at as ei_updated_at
       FROM shipping_instructions s
       LEFT JOIN export_invoices ei ON s.export_invoice_id = ei.id
       LEFT JOIN proforma_invoices pi ON ei.proforma_invoice_id = pi.id

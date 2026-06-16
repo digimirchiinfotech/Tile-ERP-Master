@@ -213,6 +213,14 @@ export const runGlobalSchemaMigration = async () => {
           ALTER TABLE packing_lists ADD COLUMN deleted_at timestamp without time zone;
         END IF;
 
+        -- Restore missing column that breaks pg_dump if stale views reference it
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'products' AND column_name = 'default_sqm_per_box'
+        ) THEN
+          ALTER TABLE products ADD COLUMN default_sqm_per_box NUMERIC(10,4);
+        END IF;
+
         -- Account Entries missing column fix
         IF NOT EXISTS (
           SELECT 1 FROM information_schema.columns

@@ -119,10 +119,10 @@ export const recordStockMovement = async (req, res, next) => {
     await client.query('BEGIN');
 
     const productRes = await client.query(
-      `SELECT default_sqm_per_box FROM products WHERE id = $1 AND company_id = $2`,
+      `SELECT sqm_per_box FROM products WHERE id = $1 AND company_id = $2`,
       [product_id, companyId]
     );
-    const productSqm = parseFloat(productRes.rows[0]?.default_sqm_per_box || 0);
+    const productSqm = parseFloat(productRes.rows[0]?.sqm_per_box || 0);
     const actualQuantitySqm = quantity_sqm ? parseFloat(quantity_sqm) : (qty * productSqm);
 
     let stockRes = await client.query(

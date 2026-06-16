@@ -1,6 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Row, Col, Table, Button, Form, Modal, Badge, Spinner } from 'react-bootstrap';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Card, Row, Col, Table, Button, Form, Modal, Badge, Spinner, InputGroup } from 'react-bootstrap';
+import { Download, Search } from 'lucide-react';
 import api from '../../services/api';
+import FilterPanel from '../shared/FilterPanel.jsx';
+import { exportData, createColumnDef } from '../../utils/exportUtils.js';
 
 const MOVEMENT_TYPES = ['IN', 'OUT', 'PRODUCTION', 'DISPATCH', 'ADJUSTMENT', 'TRANSFER'];
 
@@ -12,6 +15,8 @@ const InventoryDashboard = ({ onNavigate, showSuccess, showError }) => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [products, setProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [movementFilter, setMovementFilter] = useState('');
   const [form, setForm] = useState({
     product_id: '',
     movement_type: 'IN',
@@ -19,6 +24,18 @@ const InventoryDashboard = ({ onNavigate, showSuccess, showError }) => {
     warehouse_location: 'Main Warehouse',
     notes: '',
   });
+
+  const getMovementBadgeColor = (type) => {
+    switch (type) {
+      case 'IN': return 'success';
+      case 'OUT': return 'danger';
+      case 'PRODUCTION': return 'warning';
+      case 'DISPATCH': return 'info';
+      case 'ADJUSTMENT': return 'secondary';
+      case 'TRANSFER': return 'primary';
+      default: return 'secondary';
+    }
+  };
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -83,6 +100,54 @@ const InventoryDashboard = ({ onNavigate, showSuccess, showError }) => {
     }
   };
 
+  const filteredStock = useMemo(() => {
+    if (!searchTerm) return stock;
+    const lower = searchTerm.toLowerCase();
+    return stock.filter(item => 
+      (item.productName || '').toLowerCase().includes(lower) ||
+      (item.productCode || '').toLowerCase().includes(lower) ||
+      (item.warehouseLocation || '').toLowerCase().includes(lower)
+    );
+  }, [stock, searchTerm]);
+
+  const filteredMovements = useMemo(() => {
+    let result = movements;
+    if (movementFilter) {
+      result = result.filter(m => m.movementType === movementFilter);
+    }
+    if (searchTerm) {
+      const lower = searchTerm.toLowerCase();
+      result = result.filter(m => (m.productName || '').toLowerCase().includes(lower));
+    }
+    return result;
+  }, [movements, movementFilter, searchTerm]);
+
+  const handleExportStock = () => {
+    const columns = [
+      createColumnDef('Product', row => row.productName || row.productCode),
+      createColumnDef('Size', 'size'),
+      createColumnDef('Surface', 'surface'),
+      createColumnDef('Thickness', 'thickness'),
+      createColumnDef('Warehouse', 'warehouseLocation'),
+      createColumnDef('Boxes', 'quantityBoxes'),
+      createColumnDef('Reserved', 'reservedBoxes'),
+      createColumnDef('Available', 'availableBoxes'),
+      createColumnDef('SQM', 'quantitySqm')
+    ];
+    exportData(filteredStock, columns, 'xlsx', 'stock_register');
+  };
+
+  const handleExportMovements = () => {
+    const columns = [
+      createColumnDef('Movement Type', 'movementType'),
+      createColumnDef('Product', row => row.productName || row.productCode),
+      createColumnDef('Quantity (Boxes)', 'quantityBoxes'),
+      createColumnDef('Location', 'warehouseLocation'),
+      createColumnDef('Date', row => new Date(row.createdAt).toLocaleDateString())
+    ];
+    exportData(filteredMovements, columns, 'xlsx', 'stock_movements');
+  };
+
   if (loading && !summary) {
     return <div className="text-center p-5"><Spinner animation="border" /></div>;
   }
@@ -94,8 +159,40 @@ const InventoryDashboard = ({ onNavigate, showSuccess, showError }) => {
           <h4 className="fw-bold mb-1">Inventory & Stock Register</h4>
           <p className="text-muted mb-0">Warehouse stock, movements, and reservations</p>
         </div>
-        <Button variant="primary" onClick={() => setShowModal(true)}>Record Movement</Button>
+        <div className="d-flex gap-2">
+          <Button variant="outline-success" onClick={handleExportStock} className="d-flex align-items-center gap-2">
+            <Download size={16} /> Export Stock
+          </Button>
+          <Button variant="primary" onClick={() => setShowModal(true)}>Record Movement</Button>
+        </div>
       </div>
+
+      <FilterPanel onClear={() => { setSearchTerm(''); setMovementFilter(''); }}>
+        <Row className="g-3">
+          <Col md={6}>
+            <Form.Group>
+              <Form.Label className="text-muted small fw-bold">Search Product</Form.Label>
+              <InputGroup>
+                <InputGroup.Text className="bg-white"><Search size={16} /></InputGroup.Text>
+                <Form.Control 
+                  placeholder="Search by product name or warehouse..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </InputGroup>
+            </Form.Group>
+          </Col>
+          <Col md={6}>
+            <Form.Group>
+              <Form.Label className="text-muted small fw-bold">Movement Type Filter</Form.Label>
+              <Form.Select value={movementFilter} onChange={(e) => setMovementFilter(e.target.value)}>
+                <option value="">All Movement Types</option>
+                {MOVEMENT_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
+              </Form.Select>
+            </Form.Group>
+          </Col>
+        </Row>
+      </FilterPanel>
 
       <Row className="g-3 mb-4">
         {[
@@ -133,9 +230,9 @@ const InventoryDashboard = ({ onNavigate, showSuccess, showError }) => {
               </tr>
             </thead>
             <tbody>
-              {stock.length === 0 ? (
-                <tr><td colSpan={6} className="text-center text-muted py-4">No stock records yet. Record an IN movement to add stock.</td></tr>
-              ) : stock.map((row) => (
+              {filteredStock.length === 0 ? (
+                <tr><td colSpan={9} className="text-center text-muted py-4">No stock records yet. Record an IN movement to add stock.</td></tr>
+              ) : filteredStock.map((row) => (
                 <tr key={row.id}>
                   <td>{row.productName || row.productCode || row.productId?.slice(0, 8)}</td>
                   <td>{row.size || '—'}</td>
@@ -155,15 +252,22 @@ const InventoryDashboard = ({ onNavigate, showSuccess, showError }) => {
 
       <Row className="g-3">
         <Col md={6}>
-          <Card className="border-0 shadow-sm">
-            <Card.Header className="bg-white fw-bold">Recent Movements</Card.Header>
+          <Card className="border-0 shadow-sm h-100">
+            <Card.Header className="bg-white fw-bold d-flex justify-content-between align-items-center">
+              <span>Recent Movements</span>
+              <Button variant="outline-secondary" size="sm" onClick={handleExportMovements} className="d-flex align-items-center gap-1">
+                <Download size={14} /> Export
+              </Button>
+            </Card.Header>
             <Card.Body className="p-0">
               <Table responsive size="sm" className="mb-0">
                 <thead><tr><th>Type</th><th>Product</th><th>Qty</th><th>Date</th></tr></thead>
                 <tbody>
-                  {movements.map((m) => (
+                  {filteredMovements.length === 0 ? (
+                    <tr><td colSpan={4} className="text-muted text-center py-3">No recent movements</td></tr>
+                  ) : filteredMovements.map((m) => (
                     <tr key={m.id}>
-                      <td><Badge bg={m.movementType === 'IN' ? 'success' : 'warning'}>{m.movementType}</Badge></td>
+                      <td><Badge bg={getMovementBadgeColor(m.movementType)}>{m.movementType}</Badge></td>
                       <td>{m.productName || '—'}</td>
                       <td>{m.quantityBoxes}</td>
                       <td>{new Date(m.createdAt).toLocaleDateString()}</td>
@@ -175,7 +279,7 @@ const InventoryDashboard = ({ onNavigate, showSuccess, showError }) => {
           </Card>
         </Col>
         <Col md={6}>
-          <Card className="border-0 shadow-sm">
+          <Card className="border-0 shadow-sm h-100">
             <Card.Header className="bg-white fw-bold">Active Reservations</Card.Header>
             <Card.Body className="p-0">
               <Table responsive size="sm" className="mb-0">
@@ -216,7 +320,11 @@ const InventoryDashboard = ({ onNavigate, showSuccess, showError }) => {
             <Form.Group className="mb-3">
               <Form.Label>Movement Type</Form.Label>
               <Form.Select value={form.movement_type} onChange={(e) => setForm({ ...form, movement_type: e.target.value })}>
-                {MOVEMENT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                {MOVEMENT_TYPES.map((t) => (
+                  <option key={t} value={t} className={`text-${getMovementBadgeColor(t)} fw-bold`}>
+                    {t}
+                  </option>
+                ))}
               </Form.Select>
             </Form.Group>
             <Form.Group className="mb-3">

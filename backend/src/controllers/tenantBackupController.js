@@ -61,7 +61,7 @@ export const listTenantBackups = async (req, res, next) => {
     for (const f of files) {
       if (f.startsWith('TENANT_BACKUP_') && (f.endsWith('.zip') || f.endsWith('.sql'))) {
         const stat = await fsPromises.stat(path.join(dir, f));
-        backups.push({ name: f, size: stat.size, createdAt: stat.mtime, type: 'Tenant Backup' });
+        backups.push({ name: f, size: stat.size, createdAt: stat.mtime, type: 'Tenant Backup', status: 'Completed' });
       }
     }
 

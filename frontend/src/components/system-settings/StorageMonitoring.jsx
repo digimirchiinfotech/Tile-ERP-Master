@@ -11,7 +11,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, ProgressBar, Spinner, Alert } from 'react-bootstrap';
-import { HardDrive, FileText, Image as ImageIcon, FileSpreadsheet, Paperclip, File } from 'lucide-react';
+import { HardDrive, Database, FileText, Image as ImageIcon, FileSpreadsheet, Paperclip, File as FileIcon } from 'lucide-react';
 import api from '../../services/api';
 
 const StorageMonitoring = () => {
@@ -68,13 +68,21 @@ const StorageMonitoring = () => {
     'Excel': FileSpreadsheet,
     'Images': ImageIcon,
     'QC Attachments': Paperclip,
-    'Documents': File
+    'Documents': FileIcon,
+    'Database': Database
   };
 
   const storageDetails = storageData.details.map(d => ({
     ...d,
-    icon: iconMap[d.type] || File
+    icon: iconMap[d.type] || FileIcon
   }));
+
+  const formatHeaderSize = (size) => {
+    if (size > 0 && size < 1) {
+      return (size * 1024).toFixed(2) + ' MB';
+    }
+    return size.toFixed(2) + ' GB';
+  };
 
   return (
     <div className="storage-monitoring-container">
@@ -93,8 +101,8 @@ const StorageMonitoring = () => {
                   </div>
                 </div>
                 <div className="text-end">
-                  <h4 className="fw-bold mb-0 text-dark">{usedStorage.toFixed(2)} GB <span className="text-muted fw-normal" style={{ fontSize: '1rem' }}>/ {totalLimit} GB</span></h4>
-                  <p className="text-success small fw-bold mb-0">{remainingStorage.toFixed(2)} GB Remaining</p>
+                  <h4 className="fw-bold mb-0 text-dark">{formatHeaderSize(usedStorage)} <span className="text-muted fw-normal" style={{ fontSize: '1rem' }}>/ {totalLimit} GB</span></h4>
+                  <p className="text-success small fw-bold mb-0">{formatHeaderSize(remainingStorage)} Remaining</p>
                 </div>
               </div>
 

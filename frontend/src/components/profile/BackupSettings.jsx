@@ -15,7 +15,9 @@ import { Database, Download, Trash2, Clock, PlayCircle, Settings, Upload, Rotate
 import api from '../../services/api';
 import { showSuccess, showError } from '../shared/NotificationManager';
 
-function BackupSettings() {
+function BackupSettings({ currentUser }) {
+  const isSuperAdmin = currentUser?.role === 'super_admin';
+  const apiPrefix = isSuperAdmin ? '/backups' : '/tenant-backups';
   const [settings, setSettings] = useState({ auto_backup_enabled: false, backup_frequency: 'Weekly', retention_count: 3 });
   const [backups, setBackups] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -31,12 +33,20 @@ function BackupSettings() {
   const fetchSettingsAndBackups = async () => {
     try {
       setLoading(true);
-      const [settingsRes, backupsRes] = await Promise.all([
-        api.get('/backups/settings'),
-        api.get('/backups/list')
-      ]);
-      if (settingsRes.data?.success) setSettings(settingsRes.data.data);
+      const promises = [api.get(`${apiPrefix}/list`)];
+      
+      if (isSuperAdmin) {
+        promises.push(api.get('/backups/settings'));
+      }
+      
+      const results = await Promise.all(promises);
+      const backupsRes = results[0];
+      
       if (backupsRes.data?.success) setBackups(backupsRes.data.data);
+      
+      if (isSuperAdmin && results[1]?.data?.success) {
+        setSettings(results[1].data.data);
+      }
     } catch (err) {
       showError('Failed to load backup data');
     } finally {
@@ -63,7 +73,7 @@ function BackupSettings() {
   const handleTakeBackup = async () => {
     try {
       setIsTakingBackup(true);
-      const res = await api.post('/backups/create');
+      const res = await api.post(`${apiPrefix}/create`);
       if (res.data?.success) {
         showSuccess('Manual backup created successfully');
         fetchSettingsAndBackups();
@@ -78,7 +88,7 @@ function BackupSettings() {
   const handleDeleteBackup = async (filename) => {
     if (!window.confirm('Are you sure you want to delete this backup?')) return;
     try {
-      const res = await api.delete(`/backups/${filename}`);
+      const res = await api.delete(`${apiPrefix}/${filename}`);
       if (res.data?.success) {
         showSuccess('Backup deleted');
         fetchSettingsAndBackups();
@@ -90,7 +100,7 @@ function BackupSettings() {
   
   const handleDownload = async (filename) => {
     try {
-      const response = await api.get(`/backups/download/${filename}`, { responseType: 'blob' });
+      const response = await api.get(`${apiPrefix}/download/${filename}`, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -165,24 +175,25 @@ function BackupSettings() {
   return (
     <div className="backup-settings">
       <Row className="g-4">
-        <Col md={12}>
-          <Card className="border-0 shadow-sm mb-4">
-            <Card.Header className="bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-              <h6 className="fw-bold mb-0 d-flex align-items-center gap-2">
-                <Settings size={18} className="text-primary" /> Backup & Restore Configuration
-              </h6>
-              <Button 
-                variant="primary" 
-                size="sm" 
-                className="d-flex align-items-center"
-                onClick={handleTakeBackup} 
-                disabled={isTakingBackup}
-              >
-                {isTakingBackup ? <Spinner size="sm" className="me-2" /> : <Database size={14} className="me-2" />}
-                Create Backup Now
-              </Button>
-            </Card.Header>
-            <Card.Body>
+        {isSuperAdmin && (
+          <Col md={12}>
+            <Card className="border-0 shadow-sm mb-4">
+              <Card.Header className="bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                <h6 className="fw-bold mb-0 d-flex align-items-center gap-2">
+                  <Settings size={18} className="text-primary" /> Backup & Restore Configuration
+                </h6>
+                <Button 
+                  variant="primary" 
+                  size="sm" 
+                  className="d-flex align-items-center"
+                  onClick={handleTakeBackup} 
+                  disabled={isTakingBackup}
+                >
+                  {isTakingBackup ? <Spinner size="sm" className="me-2" /> : <Database size={14} className="me-2" />}
+                  Create Backup Now
+                </Button>
+              </Card.Header>
+              <Card.Body>
               <Form>
                 <div className="mb-4">
                   <Form.Check
@@ -241,9 +252,10 @@ function BackupSettings() {
                   </Button>
                 </div>
               </Form>
-            </Card.Body>
-          </Card>
-        </Col>
+              </Card.Body>
+            </Card>
+          </Col>
+        )}
 
         <Col md={12}>
           <Card className="border-0 shadow-sm">
@@ -252,16 +264,32 @@ function BackupSettings() {
                 <Clock size={18} className="text-primary" /> Backup History
               </h6>
               <div className="d-flex gap-2">
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  className="d-none" 
-                  accept=".zip" 
-                  onChange={handleFileChange} 
-                />
-                <Button variant="outline-primary" size="sm" className="d-flex align-items-center" onClick={handleUploadClick}>
-                  <Upload size={14} className="me-1"/> Upload Backup
-                </Button>
+                {isSuperAdmin && (
+                  <>
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      className="d-none" 
+                      accept=".zip" 
+                      onChange={handleFileChange} 
+                    />
+                    <Button variant="outline-primary" size="sm" className="d-flex align-items-center" onClick={handleUploadClick}>
+                      <Upload size={14} className="me-1"/> Upload Backup
+                    </Button>
+                  </>
+                )}
+                {!isSuperAdmin && (
+                  <Button 
+                    variant="primary" 
+                    size="sm" 
+                    className="d-flex align-items-center"
+                    onClick={handleTakeBackup} 
+                    disabled={isTakingBackup}
+                  >
+                    {isTakingBackup ? <Spinner size="sm" className="me-2" /> : <Database size={14} className="me-2" />}
+                    Create Backup Now
+                  </Button>
+                )}
                 <Button variant="light" size="sm" onClick={fetchSettingsAndBackups} disabled={loading} title="Refresh">
                   <RotateCcw size={14} className={loading ? 'spin text-primary' : 'text-primary'} />
                 </Button>
@@ -309,16 +337,20 @@ function BackupSettings() {
                               <Download size={14} />
                             </Button>
                           </OverlayTrigger>
-                          <OverlayTrigger overlay={<Tooltip>Restore System</Tooltip>}>
-                            <Button variant="light" size="sm" className="me-2 text-warning" onClick={() => handleRestoreClick(b)}>
-                              <RotateCcw size={14} />
-                            </Button>
-                          </OverlayTrigger>
-                          <OverlayTrigger overlay={<Tooltip>Delete Backup</Tooltip>}>
-                            <Button variant="light" size="sm" className="text-danger" onClick={() => handleDeleteBackup(b.name)}>
-                              <Trash2 size={14} />
-                            </Button>
-                          </OverlayTrigger>
+                          {isSuperAdmin && (
+                            <>
+                              <OverlayTrigger overlay={<Tooltip>Restore System</Tooltip>}>
+                                <Button variant="light" size="sm" className="me-2 text-warning" onClick={() => handleRestoreClick(b)}>
+                                  <RotateCcw size={14} />
+                                </Button>
+                              </OverlayTrigger>
+                              <OverlayTrigger overlay={<Tooltip>Delete Backup</Tooltip>}>
+                                <Button variant="light" size="sm" className="text-danger" onClick={() => handleDeleteBackup(b.name)}>
+                                  <Trash2 size={14} />
+                                </Button>
+                              </OverlayTrigger>
+                            </>
+                          )}
                         </td>
                       </tr>
                     ))}

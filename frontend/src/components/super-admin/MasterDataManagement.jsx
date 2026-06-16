@@ -177,11 +177,11 @@ function MasterDataManagement({ currentUser }) {
 
   const packingSubCategories = [
     { key: 'palletTypes', label: 'Pallet Types', apiType: 'palletTypes' },
-    { key: 'palletCategories', label: 'Pallet Categories', apiType: 'palletCategories' },
-    { key: 'warehouseLocations', label: 'Warehouse Locations', apiType: 'warehouseLocations' },
+    { key: 'boxTypes', label: 'Box Types', apiType: 'boxTypes' },
     { key: 'tilesBack', label: 'Tiles Back', apiType: 'tilesBack' },
     { key: 'boxesMarking', label: 'Boxes Marking', apiType: 'boxesMarking' },
-    { key: 'boxTypes', label: 'Box Types', apiType: 'boxTypes' },
+    { key: 'palletCategories', label: 'Pallet Categories', apiType: 'palletCategories' },
+    { key: 'warehouseLocations', label: 'Warehouse Locations', apiType: 'warehouseLocations' },
   ];
 
   const businessSubCategories = [

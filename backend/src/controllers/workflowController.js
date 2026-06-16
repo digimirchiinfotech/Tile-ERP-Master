@@ -176,21 +176,8 @@ export const getFullWorkflowStatus = async (req, res, next) => {
     const firstPending    = stages.find(s => !s.done);
     const nextAction      = firstPending ? `Create ${firstPending.label}` : 'All stages complete';
 
-    // ── Build rich audit log from document creation timeline ─────────────────
-    // Since users live in global DB (audit_logs JOIN fails on tenant), we build
-    // the timeline directly from document rows — this is always accurate.
-    const auditLogs = stages
-      .filter(s => s.done && s.done_date)
-      .map(s => ({
-        action:        `${s.label} Created`,
-        resource_type: s.label,
-        doc_no:        s.doc_no || '—',
-        user_name:     s.who_done,
-        created_at:    s.done_date,
-      }))
-      .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-
     // Also pull real audit_log rows (updates, status changes) — without the broken user JOIN
+    let allLogs = [];
     try {
       const relevantIds = [piRow?.id, poRow?.id, qcRow?.id, eiRow?.id, plRow?.id, axRow?.id, bsRow?.id, vgmRow?.id, siRow?.id].filter(Boolean);
       if (relevantIds.length > 0) {
@@ -208,20 +195,62 @@ export const getFullWorkflowStatus = async (req, res, next) => {
         await Promise.all(auditUserIds.map(async uid => {
           auditUserMap[uid] = await resolveUser(uid);
         }));
-        const enrichedAudit = rawAudit.rows.map(row => ({
+
+        // Backfill missing document creators from the audit log
+        const creatorMap = {};
+        rawAudit.rows.forEach(row => {
+          if (row.action === 'CREATE' && !creatorMap[row.resource_id]) {
+            creatorMap[row.resource_id] = auditUserMap[row.user_id];
+          }
+        });
+
+        stages.forEach(s => {
+          if (s.who_done === 'System' && s.doc?.id && creatorMap[s.doc.id]) {
+            s.who_done = creatorMap[s.doc.id];
+          }
+        });
+
+        const enrichedAudit = rawAudit.rows
+          .filter(row => row.action !== 'CREATE') // Prevent duplicate 'Created' logs
+          .map(row => ({
           action:        formatAuditAction(row.action, row.resource_type),
           resource_type: humanizeResourceType(row.resource_type),
           doc_no:        null,
           user_name:     auditUserMap[row.user_id] || 'System',
           created_at:    row.created_at,
         }));
+        
+        // Build rich audit log from document creation timeline
+        const auditLogs = stages
+          .filter(s => s.done && s.done_date)
+          .map(s => ({
+            action:        `${s.label} Created`,
+            resource_type: s.label,
+            doc_no:        s.doc_no || '—',
+            user_name:     s.who_done,
+            created_at:    s.done_date,
+          }));
+
         // Merge doc-timeline + raw audit, deduplicate by action+timestamp, sort desc
-        const allLogs = [...auditLogs, ...enrichedAudit]
+        allLogs = [...auditLogs, ...enrichedAudit]
           .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
           .slice(0, 30);
+          
         return successResponse(res, { piNumber, stages, overallProgress, nextAction, completedCount, totalStages: stages.length, auditLogs: allLogs }, 'Full workflow status retrieved successfully');
       }
     } catch { /* fall through */ }
+
+    // Fallback if no audit logs found
+    const auditLogs = stages
+      .filter(s => s.done && s.done_date)
+      .map(s => ({
+        action:        `${s.label} Created`,
+        resource_type: s.label,
+        doc_no:        s.doc_no || '—',
+        user_name:     s.who_done,
+        created_at:    s.done_date,
+      }))
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     return successResponse(res, {
       piNumber, stages, overallProgress, nextAction,

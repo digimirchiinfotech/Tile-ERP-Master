@@ -1042,13 +1042,13 @@ function ProfileSettings({ currentUser: propCurrentUser, onUpdateProfile, initia
                 </Tab>
               )}
 
-              {/* System Backups Tab (Only for Super Admins) */}
-              {(currentUser?.role === 'super_admin') && (
+              {/* System Backups Tab (Only for Super Admins and Company Admins) */}
+              {(currentUser?.role === 'super_admin' || currentUser?.role === 'company_admin') && (
                 <Tab
                   eventKey="backups"
                   title={<span><Database size={16} className="me-1" />System Backups</span>}
                 >
-                  <BackupSettings />
+                  <BackupSettings currentUser={currentUser} />
                 </Tab>
               )}
             </Tabs>

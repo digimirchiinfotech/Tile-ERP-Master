@@ -122,6 +122,9 @@ const InventoryDashboard = ({ onNavigate, showSuccess, showError }) => {
             <thead className="table-light">
               <tr>
                 <th>Product</th>
+                <th>Size</th>
+                <th>Surface</th>
+                <th>Thickness</th>
                 <th>Warehouse</th>
                 <th>Boxes</th>
                 <th>Reserved</th>
@@ -135,6 +138,9 @@ const InventoryDashboard = ({ onNavigate, showSuccess, showError }) => {
               ) : stock.map((row) => (
                 <tr key={row.id}>
                   <td>{row.product_name || row.product_code || row.product_id?.slice(0, 8)}</td>
+                  <td>{row.size || '—'}</td>
+                  <td>{row.surface || '—'}</td>
+                  <td>{row.thickness || '—'}</td>
                   <td>{row.warehouse_location}</td>
                   <td>{row.quantity_boxes}</td>
                   <td>{row.reserved_boxes}</td>
@@ -200,7 +206,11 @@ const InventoryDashboard = ({ onNavigate, showSuccess, showError }) => {
               <Form.Label>Product</Form.Label>
               <Form.Select required value={form.product_id} onChange={(e) => setForm({ ...form, product_id: e.target.value })}>
                 <option value="">Select product</option>
-                {products.map((p) => <option key={p.id} value={p.id}>{p.name || p.product_code}</option>)}
+                {products.map((p) => {
+                  const details = [p.size, p.surface, p.thickness].filter(Boolean).join(' - ');
+                  const label = `${p.name || p.product_code}${details ? ` (${details})` : ''}`;
+                  return <option key={p.id} value={p.id}>{label}</option>;
+                })}
               </Form.Select>
             </Form.Group>
             <Form.Group className="mb-3">

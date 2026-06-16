@@ -15,7 +15,7 @@ export const getStockRegister = async (req, res, next) => {
     const offset = (Math.max(1, parseInt(page, 10)) - 1) * parseInt(limit, 10);
 
     let sql = `
-      SELECT sr.*, p.name AS product_name, p.product_code, p.size, p.sku
+      SELECT sr.*, p.name AS product_name, p.product_code, p.size, p.surface, p.thickness, p.sku
       FROM stock_register sr
       LEFT JOIN products p ON p.id = sr.product_id AND p.company_id = sr.company_id
       WHERE sr.company_id = $1
@@ -32,7 +32,7 @@ export const getStockRegister = async (req, res, next) => {
       params.push(product_id);
     }
     if (search) {
-      sql += ` AND (p.name ILIKE $${idx} OR p.product_code ILIKE $${idx} OR p.sku ILIKE $${idx})`;
+      sql += ` AND (p.name ILIKE $${idx} OR p.product_code ILIKE $${idx} OR p.sku ILIKE $${idx} OR p.size ILIKE $${idx} OR p.surface ILIKE $${idx} OR p.thickness ILIKE $${idx})`;
       params.push(`%${search}%`);
       idx++;
     }

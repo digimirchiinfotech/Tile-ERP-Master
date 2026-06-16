@@ -13,6 +13,7 @@ import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
 import { fileURLToPath } from 'url';
+import env from '../config/env.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,6 +28,7 @@ const getDirSize = async (dir) => {
     Images: 0,
     QCAttachments: 0,
     Documents: 0,
+    Database: 0,
     Other: 0,
     Total: 0
   };
@@ -72,17 +74,37 @@ const getDirSize = async (dir) => {
 
 export const getStorageStats = async (req, res) => {
   try {
-    const uploadsDir = path.join(__dirname, '../../uploads');
+    const uploadsDir = path.join(__dirname, '../../', env.upload?.dir || 'uploads');
     const sizes = await getDirSize(uploadsDir);
     
     // Total limit 10GB
     const limitBytes = 10 * 1024 * 1024 * 1024;
     
+    try {
+      const dbRes = await req.db.query('SELECT pg_database_size(current_database()) AS db_size');
+      if (dbRes.rows.length > 0) {
+        sizes.Database = parseInt(dbRes.rows[0].db_size, 10);
+        sizes.Total += sizes.Database;
+      }
+    } catch (e) {
+      console.error('Error fetching database size:', e);
+      sizes.Database = 0;
+    }
+
     const qcAttachmentsSize = Math.floor(sizes.Images * 0.1);
     sizes.Images -= qcAttachmentsSize;
     sizes.QCAttachments = qcAttachmentsSize;
 
     const toGB = (bytes) => (bytes / (1024 * 1024 * 1024)).toFixed(2);
+    
+    const formatBytes = (bytes) => {
+      if (bytes === 0) return '0.00 MB';
+      const gb = bytes / (1024 * 1024 * 1024);
+      if (gb < 1) {
+        return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+      }
+      return gb.toFixed(2) + ' GB';
+    };
 
     res.status(200).json({
       success: true,
@@ -91,11 +113,12 @@ export const getStorageStats = async (req, res) => {
         limit: 10,
         remaining: toGB(limitBytes - sizes.Total),
         details: [
-          { type: 'PDF', size: toGB(sizes.PDF) + ' GB', color: 'danger', percent: ((sizes.PDF / limitBytes) * 100).toFixed(1) },
-          { type: 'Excel', size: toGB(sizes.Excel) + ' GB', color: 'success', percent: ((sizes.Excel / limitBytes) * 100).toFixed(1) },
-          { type: 'Images', size: toGB(sizes.Images) + ' GB', color: 'info', percent: ((sizes.Images / limitBytes) * 100).toFixed(1) },
-          { type: 'QC Attachments', size: toGB(sizes.QCAttachments) + ' GB', color: 'warning', percent: ((sizes.QCAttachments / limitBytes) * 100).toFixed(1) },
-          { type: 'Documents', size: toGB(sizes.Documents) + ' GB', color: 'primary', percent: ((sizes.Documents / limitBytes) * 100).toFixed(1) },
+          { type: 'Database', size: formatBytes(sizes.Database), color: 'secondary', percent: ((sizes.Database / limitBytes) * 100).toFixed(1) },
+          { type: 'PDF', size: formatBytes(sizes.PDF), color: 'danger', percent: ((sizes.PDF / limitBytes) * 100).toFixed(1) },
+          { type: 'Excel', size: formatBytes(sizes.Excel), color: 'success', percent: ((sizes.Excel / limitBytes) * 100).toFixed(1) },
+          { type: 'Images', size: formatBytes(sizes.Images), color: 'info', percent: ((sizes.Images / limitBytes) * 100).toFixed(1) },
+          { type: 'QC Attachments', size: formatBytes(sizes.QCAttachments), color: 'warning', percent: ((sizes.QCAttachments / limitBytes) * 100).toFixed(1) },
+          { type: 'Documents', size: formatBytes(sizes.Documents), color: 'primary', percent: ((sizes.Documents / limitBytes) * 100).toFixed(1) },
         ]
       }
     });

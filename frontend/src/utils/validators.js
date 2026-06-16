@@ -147,7 +147,27 @@ export const validateUsernameAlphanumeric = (u) => {
 
 export const validateUsername = (u) => validateUsernameAlphanumeric(u);
 
-export const validateFileUpload = (file) => (file ? { isValid: true, error: null } : { isValid: false, error: 'File required' });
+export const validateFileUpload = (file, options = {}) => {
+  if (!file) return { isValid: false, error: options.fieldName ? `${options.fieldName} is required` : 'File required' };
+  const { allowedTypes, maxSizeMB } = options;
+  if (allowedTypes && allowedTypes.length > 0) {
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    if (!allowedTypes.includes(ext)) {
+      return { isValid: false, error: `File type must be one of: ${allowedTypes.join(', ')}` };
+    }
+  }
+  if (maxSizeMB && file.size > maxSizeMB * 1024 * 1024) {
+    return { isValid: false, error: `File size must be less than ${maxSizeMB}MB` };
+  }
+  return { isValid: true, error: null };
+};
+
+// Alias for phone validation used in import validation
+export const validatePhone = (phone) => {
+  if (!phone) return false;
+  const digits = String(phone).replace(/\D/g, '');
+  return digits.length >= 7 && digits.length <= 15;
+};
 
 export const validateDimension = (v, f = 'Dimension') => {
   const n = parseFloat(v);

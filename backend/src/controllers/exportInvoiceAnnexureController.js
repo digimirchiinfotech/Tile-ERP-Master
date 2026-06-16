@@ -278,7 +278,7 @@ export const getByExportInvoiceId = async (req, res, next) => {
       nextParam++;
     }
 
-    const companyFilter = req.hasOwnProperty('companyFilter')
+    const companyFilter = Object.hasOwn(req, 'companyFilter')
       ? (req.companyFilter === null
         ? (req.user?.role === 'super_admin' ? '' : 'AND ei.company_id IS NULL')
         : `AND ei.company_id = $${nextParam}`)
@@ -473,15 +473,12 @@ export const getByExportInvoiceId = async (req, res, next) => {
       })(),
       company_name: a.company_name || row.co_name || '',
       company_address: a.company_address || row.co_address || '',
-      iec_no: mergedRow.company_iec || '',
       booking_no: a.booking_no || row.inv_booking_no || '',
       manufacturer_name: a.manufacturer_name || row.inv_manufacturer_name || '',
       manufacturer_address: a.manufacturer_address || row.inv_manufacturer_address || '',
       factory_address: a.factory_address || 'AT MORBI',
       shipping_bill_no: row.shipping_bill_no || '',
       shipping_bill_date: safeDateToISO(row.shipping_bill_date),
-      lut_arn_no: a.lut_arn_no || row.inv_lut_bond_ref || mergedRow.comp_lut_arn_no || '',
-      lut_date: safeDateToISO(a.lut_date || row.inv_lut_date || row.pi_lut_date || mergedRow.comp_lut_date),
       pi_date: safeDateToISO(row.pi_date || row.proforma_date),
       proforma_date: safeDateToISO(row.pi_date || row.proforma_date),
       export_invoice_date: safeDateToISO(row.inv_export_invoice_date),

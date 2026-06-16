@@ -451,7 +451,7 @@ export const hardDelete = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter') && req.user.role !== 'super_admin') {
+    if (Object.hasOwn(req, 'companyFilter') && req.user.role !== 'super_admin') {
       if (req.companyFilter === null) {
         whereConditions += ` AND company_id IS NULL`;
       } else {

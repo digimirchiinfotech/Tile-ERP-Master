@@ -136,7 +136,7 @@ export const getAll = async (req, res, next) => {
     let values = [];
     let paramCount = 1;
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         conditions.push(`company_id IS NULL`);
       } else {
@@ -211,7 +211,7 @@ export const getById = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ' AND company_id IS NULL';
       } else {
@@ -321,7 +321,7 @@ export const update = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let checkParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ' AND company_id IS NULL';
       } else {
@@ -446,7 +446,7 @@ export const remove = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       whereConditions += ' AND company_id = $2';
       queryParams.push(req.companyFilter);
     }
@@ -487,7 +487,7 @@ export const hardDelete = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       whereConditions += ' AND company_id = $2';
       queryParams.push(req.companyFilter);
     }
@@ -524,7 +524,7 @@ export const toggleStatus = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       whereConditions += ' AND company_id = $2';
       queryParams.push(req.companyFilter);
     }
@@ -586,7 +586,7 @@ export const uploadImage = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       whereConditions += ' AND company_id = $2';
       queryParams.push(req.companyFilter);
     }

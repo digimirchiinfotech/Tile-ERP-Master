@@ -18,7 +18,6 @@ const TABLE_MAPPING = {
   catalogueNames: { table: 'catalogues', column: 'name', global: false },
   palletTypes: { table: 'pallet_types', column: 'type', global: false },
   palletCategories: { table: 'pallet_categories', column: 'category', global: false },
-  countries: { table: 'master_countries', column: 'country_name', global: false },
   warehouseLocations: { table: 'warehouse_locations', column: 'location', global: false },
   tilesBack: { table: 'tiles_back', column: 'type', global: false },
   boxesMarking: { table: 'boxes_marking', column: 'marking', global: false },
@@ -92,7 +91,7 @@ const ensureTableExists = async (queryFn, config) => {
 
 export const getAllMasterData = async (req, res, next) => {
   try {
-    const companyId = req.hasOwnProperty('companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
+    const companyId = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
     const results = {};
     for (const [key, config] of Object.entries(TABLE_MAPPING)) {
       let query;
@@ -133,7 +132,7 @@ export const getAllMasterData = async (req, res, next) => {
 export const getMasterDataByType = async (req, res, next) => {
   try {
     const { type } = req.params;
-    const companyId = req.hasOwnProperty('companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id);
+    const companyId = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id);
     const lookupType = TABLE_MAPPING[type] ? type : (type.endsWith('s') ? type.slice(0, -1) : type + 's');
     const config = TABLE_MAPPING[lookupType] || TABLE_MAPPING[type];
     if (!config) return res.status(400).json({ success: false, message: `Invalid type` });
@@ -190,7 +189,7 @@ export const createMasterData = async (req, res, next) => {
   try {
     const { type } = req.params;
     const body = req.body;
-    const companyId = req.hasOwnProperty('companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
+    const companyId = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
     const config = TABLE_MAPPING[type];
     if (!config) return res.status(400).json({ success: false, message: `Invalid type` });
 
@@ -286,7 +285,7 @@ export const updateMasterData = async (req, res, next) => {
   try {
     const { type, id } = req.params;
     const body = req.body;
-    const companyId = req.hasOwnProperty('companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
+    const companyId = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
     const config = TABLE_MAPPING[type];
     if (!config) return res.status(400).json({ success: false, message: `Invalid type` });
 
@@ -390,7 +389,7 @@ export const updateMasterData = async (req, res, next) => {
 export const deleteMasterData = async (req, res, next) => {
   try {
     const { type, id } = req.params;
-    const companyId = req.hasOwnProperty('companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
+    const companyId = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
     const config = TABLE_MAPPING[type];
     if (!config) return res.status(400).json({ success: false, message: `Invalid type` });
     const queryExecutor = config.global ? (req.db.globalQuery || req.db.query) : req.db.query;
@@ -413,7 +412,7 @@ export const deleteMasterData = async (req, res, next) => {
 export const hardDelete = async (req, res, next) => {
   try {
     const { type, id } = req.params;
-    const companyId = req.hasOwnProperty('companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
+    const companyId = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
     const config = TABLE_MAPPING[type];
     if (!config) return res.status(400).json({ success: false, message: `Invalid type` });
     const queryExecutor = config.global ? (req.db.globalQuery || req.db.query) : req.db.query;
@@ -436,7 +435,7 @@ export const hardDelete = async (req, res, next) => {
 export const toggleStatus = async (req, res, next) => {
   try {
     const { type, id } = req.params;
-    const companyId = req.hasOwnProperty('companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
+    const companyId = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
     const config = TABLE_MAPPING[type];
     if (!config) return res.status(400).json({ success: false, message: `Invalid type` });
     const clientGetter = config.global ? (req.db.getGlobalClient || req.db.getClient) : req.db.getClient;
@@ -473,7 +472,7 @@ export const toggleStatus = async (req, res, next) => {
 
 export const getAllCountries = async (req, res, next) => {
   try {
-    const companyId = req.hasOwnProperty('companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
+    const companyId = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
     const config = TABLE_MAPPING.countries;
     let query = `SELECT id, country_code, country_name, region, iso_alpha_2, iso_alpha_3 FROM master_countries WHERE (status = 'Active' OR status IS NULL)`;
     let params = [];
@@ -559,7 +558,7 @@ export const searchCities = async (req, res, next) => {
 
 export const getAllPorts = async (req, res, next) => {
   try {
-    const companyId = req.hasOwnProperty('companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
+    const companyId = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
     const config = TABLE_MAPPING.ports;
     let query = `SELECT id, name as port_name, country as country_code, status FROM ports WHERE (status = 'Active' OR status IS NULL)`;
     let params = [];
@@ -581,7 +580,7 @@ export const getAllPorts = async (req, res, next) => {
 export const getPortsByCountry = async (req, res, next) => {
   try {
     const { countryCode } = req.params;
-    const companyId = req.hasOwnProperty('companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
+    const companyId = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
     const config = TABLE_MAPPING.ports;
     let query = `SELECT id, name as port_name, country as country_code, status FROM ports WHERE country = $1 AND (status = 'Active' OR status IS NULL)`;
     let params = [countryCode];

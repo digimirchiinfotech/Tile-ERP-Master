@@ -47,7 +47,7 @@ export const getByExportInvoiceId = async (req, res, next) => {
 
     const params = [exportInvoiceId];
     let whereClause = 'WHERE ei.id = $1';
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereClause += ' AND ei.company_id IS NULL';
       } else {
@@ -676,7 +676,7 @@ export const getAll = async (req, res, next) => {
     let paramCount = 1;
     let whereClause = 'WHERE p.deleted_at IS NULL';
     
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereClause += ' AND p.company_id IS NULL';
       } else {
@@ -732,7 +732,7 @@ export const getById = async (req, res, next) => {
     const params = [id];
     let whereClause = 'WHERE p.id = $1';
     
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereClause += ' AND p.company_id IS NULL';
       } else {

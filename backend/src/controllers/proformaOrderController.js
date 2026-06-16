@@ -123,7 +123,7 @@ export const getAll = async (req, res, next) => {
     let values = [];
     let paramCount = 1;
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         conditions.push(`po.company_id IS NULL`);
       } else {
@@ -223,7 +223,7 @@ export const getById = async (req, res, next) => {
     let whereConditions = 'WHERE po.id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ' AND po.company_id IS NULL';
       } else {
@@ -491,7 +491,7 @@ export const update = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let checkParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ' AND company_id IS NULL';
       } else {
@@ -734,7 +734,7 @@ export const remove = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ' AND company_id IS NULL';
       } else {
@@ -783,7 +783,7 @@ export const updateQcStatus = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let checkParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ' AND company_id IS NULL';
       } else {
@@ -802,7 +802,7 @@ export const updateQcStatus = async (req, res, next) => {
     }
 
     const values = [qc_status, id];
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions = `WHERE id = $2 AND company_id IS NULL`;
       } else {
@@ -843,7 +843,7 @@ export const hardDelete = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ' AND company_id IS NULL';
       } else {
@@ -888,7 +888,7 @@ export const toggleStatus = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ' AND company_id IS NULL';
       } else {
@@ -993,7 +993,7 @@ export const getRevisionHistory = async (req, res, next) => {
 
     let companyFilter = '';
     let queryParams = [id];
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         companyFilter = 'AND company_id IS NULL';
       } else {

@@ -23,7 +23,7 @@ export const bulkAction = async (req, res, next) => {
       return next(new AppError('Invalid table for bulk action', 400));
     }
 
-    const companyId = req.hasOwnProperty('companyFilter') ? req.companyFilter : req.user?.companyId;
+    const companyId = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : req.user?.companyId;
 
     let sql;
     let params = [ids, companyId];

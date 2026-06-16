@@ -160,7 +160,7 @@ export const getAll = async (req, res, next) => {
     let paramCount = 1;
 
     // Enforce multi-tenancy
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         conditions.push(`company_id IS NULL`);
       } else {
@@ -300,7 +300,7 @@ export const getById = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ' AND company_id IS NULL';
       } else {
@@ -632,7 +632,7 @@ export const update = async (req, res, next) => {
     // Check ownership & select fields for revision logic
     let ownershipClause = 'WHERE id = $1';
     let queryParams = [id];
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         ownershipClause += ' AND company_id IS NULL';
       } else {
@@ -931,7 +931,7 @@ export const remove = async (req, res, next) => {
 
     let where = 'WHERE id = $1';
     let params = [id];
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         where += ' AND company_id IS NULL';
       } else {
@@ -970,7 +970,7 @@ export const toggleStatus = async (req, res, next) => {
 
     let where = 'WHERE id = $1';
     let params = [id];
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         where += ' AND company_id IS NULL';
       } else {
@@ -1136,7 +1136,7 @@ export const getRevisionHistory = async (req, res, next) => {
 
     let companyFilter = '';
     let queryParams = [id];
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         companyFilter = 'AND company_id IS NULL';
       } else {

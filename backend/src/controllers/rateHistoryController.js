@@ -73,7 +73,7 @@ export const getClientRate = async (req, res, next) => {
     let whereConditions = 'WHERE client_name = $1 AND product_name = $2 AND supplier_name IS NULL';
     let queryParams = [clientName, productName];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ` AND company_id IS NULL`;
       } else {
@@ -118,7 +118,7 @@ export const getClientRateHistory = async (req, res, next) => {
     let whereConditions = 'WHERE client_name = $1 AND product_name = $2 AND supplier_name IS NULL';
     let queryParams = [clientName, productName];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ` AND company_id IS NULL`;
       } else {
@@ -214,7 +214,7 @@ export const getSupplierRate = async (req, res, next) => {
     let whereConditions = 'WHERE supplier_name = $1 AND product_name = $2 AND client_name IS NULL';
     let queryParams = [supplierName, productName];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ` AND company_id IS NULL`;
       } else {
@@ -259,7 +259,7 @@ export const getSupplierRateHistory = async (req, res, next) => {
     let whereConditions = 'WHERE supplier_name = $1 AND product_name = $2 AND client_name IS NULL';
     let queryParams = [supplierName, productName];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ` AND company_id IS NULL`;
       } else {
@@ -313,7 +313,7 @@ export const getAll = async (req, res, next) => {
     let values = [];
     let paramCount = 1;
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       conditions.push(`company_id = $${paramCount}`);
       values.push(req.companyFilter);
       paramCount++;
@@ -370,7 +370,7 @@ export const remove = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ` AND company_id IS NULL`;
       } else {
@@ -405,7 +405,7 @@ export const hardDelete = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ` AND company_id IS NULL`;
       } else {
@@ -445,7 +445,7 @@ export const toggleStatus = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ` AND company_id IS NULL`;
       } else {

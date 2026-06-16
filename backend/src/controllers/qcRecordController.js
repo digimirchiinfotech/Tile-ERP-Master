@@ -159,7 +159,7 @@ export const getAll = async (req, res, next) => {
     let values = [];
     let paramCount = 1;
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       conditions.push(`company_id = $${paramCount}`);
       values.push(req.companyFilter);
       paramCount++;
@@ -221,7 +221,7 @@ export const getAll = async (req, res, next) => {
       [...values, pageLimit, offset]
     );
 
-    const companyId = req.hasOwnProperty('companyFilter') ? req.companyFilter : null;
+    const companyId = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : null;
     const hydratedRows = await Promise.all(
       result.rows.map((row) => hydrateQCRecord(req.db, companyId, { ...row }))
     );
@@ -243,7 +243,7 @@ export const getById = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ` AND company_id IS NULL`;
       } else {
@@ -262,7 +262,7 @@ export const getById = async (req, res, next) => {
     }
 
     await ensureQCBoxTypeColumn(req.db.query);
-    const companyId = req.hasOwnProperty('companyFilter') ? req.companyFilter : null;
+    const companyId = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : null;
     const hydrated = await hydrateQCRecord(req.db, companyId, { ...result.rows[0] });
 
     return successResponse(
@@ -383,7 +383,7 @@ export const update = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let checkParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ` AND company_id IS NULL`;
       } else {
@@ -476,7 +476,7 @@ export const update = async (req, res, next) => {
 
     let linesToSave = product_lines;
     if (product_lines !== undefined) {
-      const companyId = req.hasOwnProperty('companyFilter') ? req.companyFilter : null;
+      const companyId = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : null;
       let resolvedBoxType = box_type || boxType || pickBoxTypeFromLines(product_lines);
       if (!resolvedBoxType || resolvedBoxType === 'N/A') {
         const orderNum = order_number !== undefined
@@ -506,7 +506,7 @@ export const update = async (req, res, next) => {
     updates.push(`updated_at = CURRENT_TIMESTAMP`);
 
     values.push(id);
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       values.push(req.companyFilter);
       whereConditions = `WHERE id = $${paramCount} AND company_id = $${paramCount + 1}`;
     } else {
@@ -570,7 +570,7 @@ export const remove = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ` AND company_id IS NULL`;
       } else {
@@ -610,7 +610,7 @@ export const hardDelete = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ` AND company_id IS NULL`;
       } else {
@@ -650,7 +650,7 @@ export const toggleStatus = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ` AND company_id IS NULL`;
       } else {
@@ -702,7 +702,7 @@ export const updateStatus = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ` AND company_id IS NULL`;
       } else {

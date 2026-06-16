@@ -56,6 +56,28 @@ const InlineStatusEdit = ({ status, onChange, onBlur }) => {
 };
 
 function ClientDashboard({ currentUser, clientsData, usersData, navigationData }) {
+  // Professional Role-Based Access Control (RBAC) with administrative fallbacks
+  const userRole = currentUser?.role?.toLowerCase();
+  const isAdmin = ['super_admin', 'company_admin', 'admin'].includes(userRole);
+  const hasGlobalPermission = currentUser?.permissions?.includes('all') || currentUser?.permissions?.includes('company_all');
+
+  const canManageClients =
+    isAdmin ||
+    hasGlobalPermission ||
+    currentUser?.permissions?.includes('client_management') ||
+    userRole === 'client';
+
+  const canEdit = [
+    'super_admin',
+    'company_admin',
+    'sales_manager',
+    'sales_executive',
+  ].includes(currentUser?.role);
+  
+  const canDelete = ['super_admin', 'company_admin'].includes(
+    currentUser?.role
+  );
+
   // Use props if provided, otherwise call hooks (for backward compatibility)
   const clientsHook = useClients();
   const usersHook = useUsers();
@@ -467,17 +489,6 @@ function ClientDashboard({ currentUser, clientsData, usersData, navigationData }
     }
   };
 
-  // Professional Role-Based Access Control (RBAC) with administrative fallbacks
-  const userRole = currentUser?.role?.toLowerCase();
-  const isAdmin = ['super_admin', 'company_admin', 'admin'].includes(userRole);
-  const hasGlobalPermission = currentUser?.permissions?.includes('all') || currentUser?.permissions?.includes('company_all');
-
-  const canManageClients =
-    isAdmin ||
-    hasGlobalPermission ||
-    currentUser?.permissions?.includes('client_management') ||
-    userRole === 'client';
-
   const totalPages = Math.ceil(filteredClients.length / PAGE_SIZE);
   const paginatedClients = filteredClients.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
@@ -489,16 +500,6 @@ function ClientDashboard({ currentUser, clientsData, usersData, navigationData }
       </div>
     );
   }
-
-  const canEdit = [
-    'super_admin',
-    'company_admin',
-    'sales_manager',
-    'sales_executive',
-  ].includes(currentUser?.role);
-  const canDelete = ['super_admin', 'company_admin'].includes(
-    currentUser?.role
-  );
 
   if (loading) {
     return (

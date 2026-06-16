@@ -53,6 +53,26 @@ const InlineStatusEdit = ({ status, onChange, onBlur }) => {
   );
 };
 function SupplierDashboard({ currentUser, navigationData }) {
+  // Professional Role-Based Access Control (RBAC) with administrative fallbacks
+  const userRole = currentUser?.role?.toLowerCase();
+  const isAdmin = ['super_admin', 'company_admin', 'admin'].includes(userRole);
+  const hasGlobalPermission = currentUser?.permissions?.includes('all') || currentUser?.permissions?.includes('company_all');
+
+  const canManageSuppliers =
+    isAdmin ||
+    hasGlobalPermission ||
+    currentUser?.permissions?.includes('supplier_management');
+
+  const canEdit = [
+    'super_admin',
+    'company_admin',
+    'purchase',
+  ].includes(currentUser?.role);
+  
+  const canDelete = ['super_admin', 'company_admin'].includes(
+    currentUser?.role
+  );
+
   const { suppliers, loading, error, createSupplier, updateSupplier, deleteSupplier, toggleSupplierStatus, fetchSuppliers } = useSuppliers();
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 25;
@@ -361,15 +381,8 @@ function SupplierDashboard({ currentUser, navigationData }) {
     }
   };
 
-  // Professional Role-Based Access Control (RBAC) with administrative fallbacks
-  const userRole = currentUser?.role?.toLowerCase();
-  const isAdmin = ['super_admin', 'company_admin', 'admin'].includes(userRole);
-  const hasGlobalPermission = currentUser?.permissions?.includes('all') || currentUser?.permissions?.includes('company_all');
-
-  const canManageSuppliers =
-    isAdmin ||
-    hasGlobalPermission ||
-    currentUser?.permissions?.includes('supplier_management');
+  const totalPages = Math.ceil(filteredSuppliers.length / PAGE_SIZE);
+  const paginatedSuppliers = filteredSuppliers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   if (!canManageSuppliers) {
     return (
@@ -379,18 +392,6 @@ function SupplierDashboard({ currentUser, navigationData }) {
       </div>
     );
   }
-
-  const canEdit = [
-    'super_admin',
-    'company_admin',
-    'purchase',
-  ].includes(currentUser?.role);
-  const canDelete = ['super_admin', 'company_admin'].includes(
-    currentUser?.role
-  );
-
-  const totalPages = Math.ceil(filteredSuppliers.length / PAGE_SIZE);
-  const paginatedSuppliers = filteredSuppliers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <>

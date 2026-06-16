@@ -58,7 +58,6 @@ const normalizeRow = (row) => ({
   freightForwarder: row.freight_forwarder || row.freightForwarder || row.freight_details || '',
   invoiceReference: row.export_invoice_no || row.invoice_no || row.invoiceReference || '',
   vgmId: row.vgm_id || row.vgm_document_id || null,
-  vgmNo: row.vgm_no || row.vgmNo || '',
   urgency: row.urgency || 'Normal',
   status: row.status || 'Draft',
   siDescription: row.description_of_goods || row.descriptionOfGoods || row.siDescription || row.si_description || row.goods_description || row.material_header_description || row.backside_goods || row.backsideGoods || row.annexure_goods || row.annexureGoods || '',
@@ -180,7 +179,7 @@ export const getByExportInvoiceId = async (req, res, next) => {
         LEFT JOIN invoice_backside ib ON ib.export_invoice_id = ei.id AND ib.deleted_at IS NULL
         LEFT JOIN export_invoice_annexures an ON an.export_invoice_id = ei.id AND an.deleted_at IS NULL
         WHERE si.export_invoice_id = $1 AND si.deleted_at IS NULL
-        ${req.companyFilter ? `AND si.company_id = $2` : (req.hasOwnProperty('companyFilter') ? `AND si.company_id IS NULL` : '')}`,
+        ${req.companyFilter ? `AND si.company_id = $2` : (Object.hasOwn(req, 'companyFilter') ? `AND si.company_id IS NULL` : '')}`,
       req.companyFilter ? [exportInvoiceId, req.companyFilter] : [exportInvoiceId]
     );
 
@@ -249,7 +248,7 @@ export const getByExportInvoiceId = async (req, res, next) => {
        LEFT JOIN packing_lists pl ON pl.export_invoice_id = ei.id AND pl.deleted_at IS NULL
        LEFT JOIN invoice_backside ib ON ib.export_invoice_id = ei.id AND ib.deleted_at IS NULL
        LEFT JOIN export_invoice_annexures an ON ei.id = an.export_invoice_id AND an.deleted_at IS NULL
-       WHERE ei.id = $1 ${req.companyFilter ? `AND ei.company_id = $2` : (req.hasOwnProperty('companyFilter') ? `AND ei.company_id IS NULL` : '')}`,
+       WHERE ei.id = $1 ${req.companyFilter ? `AND ei.company_id = $2` : (Object.hasOwn(req, 'companyFilter') ? `AND ei.company_id IS NULL` : '')}`,
       req.companyFilter ? [exportInvoiceId, req.companyFilter] : [exportInvoiceId]
     );
 
@@ -512,7 +511,7 @@ export const getAll = async (req, res, next) => {
     let whereConditions = 's.deleted_at IS NULL';
     const queryParams = [];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ` AND s.company_id IS NULL`;
       } else {
@@ -602,7 +601,7 @@ export const getById = async (req, res, next) => {
       LEFT JOIN invoice_backside ib ON ib.export_invoice_id = ei.id AND ib.deleted_at IS NULL
       LEFT JOIN export_invoice_annexures an ON an.export_invoice_id = ei.id AND an.deleted_at IS NULL
       WHERE s.id = $1 AND s.deleted_at IS NULL
-      ${req.companyFilter ? `AND s.company_id = $2` : (req.hasOwnProperty('companyFilter') ? `AND s.company_id IS NULL` : '')}
+      ${req.companyFilter ? `AND s.company_id = $2` : (Object.hasOwn(req, 'companyFilter') ? `AND s.company_id IS NULL` : '')}
     `, req.companyFilter ? [id, req.companyFilter] : [id]);
 
     if (result.rows.length === 0) return next(new AppError('Shipping Instruction not found', 404));

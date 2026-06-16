@@ -516,7 +516,7 @@ export const createProducts = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter') && req.companyFilter !== null) {
+    if (Object.hasOwn(req, 'companyFilter') && req.companyFilter !== null) {
       whereConditions += ' AND company_id = $2';
       queryParams.push(req.companyFilter);
     }
@@ -578,7 +578,7 @@ export const removeProducts = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter') && req.companyFilter !== null) {
+    if (Object.hasOwn(req, 'companyFilter') && req.companyFilter !== null) {
       whereConditions += ' AND company_id = $2';
       queryParams.push(req.companyFilter);
     }
@@ -622,7 +622,7 @@ export const updateProductInCatalogue = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter') && req.companyFilter !== null) {
+    if (Object.hasOwn(req, 'companyFilter') && req.companyFilter !== null) {
       whereConditions += ' AND company_id = $2';
       queryParams.push(req.companyFilter);
     }

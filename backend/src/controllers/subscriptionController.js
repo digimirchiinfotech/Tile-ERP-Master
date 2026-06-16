@@ -246,7 +246,7 @@ export const getSubscriptionById = async (req, res, next) => {
     let whereConditions = 'WHERE cs.id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter') && req.companyFilter !== null) {
+    if (Object.hasOwn(req, 'companyFilter') && req.companyFilter !== null) {
       whereConditions += ' AND cs.company_id = $2';
       queryParams.push(req.companyFilter);
     }
@@ -317,7 +317,7 @@ export const updateSubscription = async (req, res, next) => {
 
     let whereConditions = 'WHERE id = $1';
     let checkParams = [id];
-    if (req.hasOwnProperty('companyFilter') && req.companyFilter !== null) {
+    if (Object.hasOwn(req, 'companyFilter') && req.companyFilter !== null) {
       whereConditions += ' AND company_id = $2';
       checkParams.push(req.companyFilter);
     }
@@ -346,7 +346,7 @@ export const updateSubscription = async (req, res, next) => {
 
     updates.push(`updated_at = CURRENT_TIMESTAMP`);
     values.push(id);
-    if (req.hasOwnProperty('companyFilter') && req.companyFilter !== null) {
+    if (Object.hasOwn(req, 'companyFilter') && req.companyFilter !== null) {
       values.push(req.companyFilter);
       whereConditions = `WHERE id = $${paramCount} AND company_id = $${paramCount + 1}`;
     } else {
@@ -365,7 +365,7 @@ export const cancelSubscription = async (req, res, next) => {
     const { id } = req.params;
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
-    if (req.hasOwnProperty('companyFilter') && req.companyFilter !== null) {
+    if (Object.hasOwn(req, 'companyFilter') && req.companyFilter !== null) {
       whereConditions += ' AND company_id = $2';
       queryParams.push(req.companyFilter);
     }
@@ -421,7 +421,7 @@ export const hardDelete = async (req, res, next) => {
     const { id } = req.params;
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
-    if (req.hasOwnProperty('companyFilter') && req.companyFilter !== null) {
+    if (Object.hasOwn(req, 'companyFilter') && req.companyFilter !== null) {
       whereConditions += ' AND company_id = $2';
       queryParams.push(req.companyFilter);
     }
@@ -438,7 +438,7 @@ export const toggleStatus = async (req, res, next) => {
     const { id } = req.params;
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
-    if (req.hasOwnProperty('companyFilter') && req.companyFilter !== null) {
+    if (Object.hasOwn(req, 'companyFilter') && req.companyFilter !== null) {
       whereConditions += ' AND company_id = $2';
       queryParams.push(req.companyFilter);
     }
@@ -471,7 +471,7 @@ export const renewSubscription = async (req, res, next) => {
     
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
-    if (req.hasOwnProperty('companyFilter') && req.companyFilter !== null) {
+    if (Object.hasOwn(req, 'companyFilter') && req.companyFilter !== null) {
       whereConditions += ' AND company_id = $2';
       queryParams.push(req.companyFilter);
     }
@@ -517,7 +517,7 @@ export const getExpiringSubscriptions = async (req, res, next) => {
     let whereConditions = `WHERE status = 'Active' AND end_date <= CURRENT_DATE + INTERVAL '$1 days' AND end_date >= CURRENT_DATE`;
     let queryParams = [parseInt(days)];
 
-    if (req.hasOwnProperty('companyFilter') && req.companyFilter !== null) {
+    if (Object.hasOwn(req, 'companyFilter') && req.companyFilter !== null) {
       whereConditions += ' AND company_id = $2';
       queryParams.push(req.companyFilter);
     }

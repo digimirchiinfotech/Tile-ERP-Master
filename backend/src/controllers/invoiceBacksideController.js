@@ -150,7 +150,7 @@ export const getAll = async (req, res, next) => {
     let whereConditions = 'ib.deleted_at IS NULL';
     const queryParams = [];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ` AND ib.company_id IS NULL`;
       } else {
@@ -212,7 +212,7 @@ export const getByExportInvoiceId = async (req, res, next) => {
     if (!idValidation.isValid) return next(new AppError(idValidation.error, 400));
     let whereConditions = 'WHERE ib.export_invoice_id = $1 AND ib.deleted_at IS NULL';
     let queryParams = [exportInvoiceId];
-    if (req.hasOwnProperty('companyFilter')) { if (req.companyFilter === null) { whereConditions += ' AND ib.company_id IS NULL'; } else { whereConditions += ' AND ib.company_id = $2'; queryParams.push(req.companyFilter); } }
+    if (Object.hasOwn(req, 'companyFilter')) { if (req.companyFilter === null) { whereConditions += ' AND ib.company_id IS NULL'; } else { whereConditions += ' AND ib.company_id = $2'; queryParams.push(req.companyFilter); } }
     const result = await req.db.query(
       `SELECT ib.*, 
               COALESCE(ia.annexure_no, ia.invoice_no) as annexure_invoice_no,
@@ -411,7 +411,7 @@ export const getById = async (req, res, next) => {
     if (!idValidation.isValid) return next(new AppError(idValidation.error, 400));
     let whereConditions = 'WHERE ib.id = $1 AND ib.deleted_at IS NULL';
     let queryParams = [id];
-    if (req.hasOwnProperty('companyFilter')) { if (req.companyFilter === null) { whereConditions += ' AND ib.company_id IS NULL'; } else { whereConditions += ' AND ib.company_id = $2'; queryParams.push(req.companyFilter); } }
+    if (Object.hasOwn(req, 'companyFilter')) { if (req.companyFilter === null) { whereConditions += ' AND ib.company_id IS NULL'; } else { whereConditions += ' AND ib.company_id = $2'; queryParams.push(req.companyFilter); } }
     let result;
     try {
       result = await req.db.query(

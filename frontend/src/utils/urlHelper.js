@@ -35,10 +35,9 @@ export const resolveImageUrl = (url) => {
   // If we are hardcoding apiBase to production in api.js, we MUST hardcode uploadUrl to production too.
   const isDev = import.meta.env.DEV || import.meta.env.MODE === 'development';
   const apiBase = isDev ? '/api' : 'https://tile-erp-master-production.up.railway.app/api';
-  const isLocalHost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
   
   // If we are hardcoding apiBase to production in api.js, we MUST hardcode uploadUrl to production too.
-  let uploadUrl = apiBase.replace(/\/api\/?$/, '/uploads');
+  const uploadUrl = apiBase.replace(/\/api\/?$/, '/uploads');
 
   // Fix common path issues (e.g. backend/uploads/... or uploads/...)
   if (url.includes('uploads')) {

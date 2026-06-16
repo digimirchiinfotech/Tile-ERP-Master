@@ -16,7 +16,7 @@
  * across all controllers. Previously each controller used a different check:
  *
  *   ❌ if ('companyFilter' in req)         ← 'in' returns true even for null
- *   ❌ if (req.hasOwnProperty('companyFilter')) ← same bug as above
+ *   ❌ if (Object.hasOwn(req, 'companyFilter')) ← same bug as above
  *   ❌ if (req.companyFilter !== undefined) ← doesn't handle null
  *   ✅ Use these helpers everywhere instead
  *

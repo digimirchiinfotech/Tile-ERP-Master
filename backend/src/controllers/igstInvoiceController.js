@@ -648,7 +648,7 @@ export const getAll = async (req, res, next) => {
     let whereConditions = 'i.deleted_at IS NULL';
     const queryParams = [];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ` AND i.company_id IS NULL`;
       } else {

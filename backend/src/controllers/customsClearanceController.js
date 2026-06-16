@@ -31,7 +31,7 @@ export const getAll = async (req, res, next) => {
     let values = [];
     let paramCount = 1;
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         conditions.push(`company_id IS NULL`);
       } else {
@@ -86,7 +86,7 @@ export const getById = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ' AND company_id IS NULL';
       } else {
@@ -163,7 +163,7 @@ export const update = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let checkParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ' AND company_id IS NULL';
       } else {
@@ -240,7 +240,7 @@ export const update = async (req, res, next) => {
     updates.push(`updated_at = CURRENT_TIMESTAMP`);
 
     values.push(id);
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       values.push(req.companyFilter);
       whereConditions = `WHERE id = $${paramCount} AND company_id = $${paramCount + 1}`;
     } else {
@@ -272,7 +272,7 @@ export const remove = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ' AND company_id IS NULL';
       } else {
@@ -312,7 +312,7 @@ export const hardDelete = async (req, res, next) => {
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ' AND company_id IS NULL';
       } else {

@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-catch */
 /**
  * TILE EXPORTER ERP SAAS
  * 

@@ -31,7 +31,7 @@ export const getSalesReport = async (req, res, next) => {
   try {
     const { dateFrom, dateTo } = req.query;
     let userCompanyId = req.user?.companyId;
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       userCompanyId = req.companyFilter;
     }
 
@@ -189,7 +189,7 @@ export const getSalesReport = async (req, res, next) => {
 export const getOperationalReport = async (req, res, next) => {
   try {
     let userCompanyId = req.user?.companyId;
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       userCompanyId = req.companyFilter;
     }
 
@@ -325,7 +325,7 @@ export const getOperationalReport = async (req, res, next) => {
 export const getFinancialReport = async (req, res, next) => {
   try {
     let userCompanyId = req.user?.companyId;
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       userCompanyId = req.companyFilter;
     }
 
@@ -418,7 +418,7 @@ export const getFinancialReport = async (req, res, next) => {
 export const getProductPerformanceReport = async (req, res, next) => {
   try {
     let userCompanyId = req.user?.companyId;
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       userCompanyId = req.companyFilter;
     }
 
@@ -598,7 +598,7 @@ export const getOverviewReport = async (req, res, next) => {
   try {
     const { dateFrom, dateTo, status } = req.query;
     let userCompanyId = req.user?.companyId;
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       userCompanyId = req.companyFilter;
     }
 
@@ -752,7 +752,7 @@ export const getPipelineReport = async (req, res, next) => {
   try {
     const { dateFrom, dateTo } = req.query;
     let userCompanyId = req.user?.companyId;
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       userCompanyId = req.companyFilter;
     }
 
@@ -842,7 +842,7 @@ export const downloadAdvancedReport = async (req, res, next) => {
   try {
     const { type } = req.params;
     let userCompanyId = req.user?.companyId;
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       userCompanyId = req.companyFilter;
     }
 

@@ -41,7 +41,7 @@ export const getByExportInvoiceId = async (req, res, next) => {
     let existingWhere = 'v.export_invoice_id = $1 AND v.deleted_at IS NULL';
     const queryParams = [exportInvoiceId];
 
-    if (!isSuperAdmin && req.hasOwnProperty('companyFilter')) {
+    if (!isSuperAdmin && Object.hasOwn(req, 'companyFilter')) {
       if (companyFilterValue === null) {
         existingWhere += ' AND v.company_id IS NULL';
       } else {
@@ -105,7 +105,7 @@ export const getByExportInvoiceId = async (req, res, next) => {
     let fallbackWhere = 'ei.id = $1';
     const fallbackParams = [exportInvoiceId];
 
-    if (!isSuperAdmin && req.hasOwnProperty('companyFilter')) {
+    if (!isSuperAdmin && Object.hasOwn(req, 'companyFilter')) {
       if (companyFilterValue === null) {
         fallbackWhere += ' AND ei.company_id IS NULL';
       } else {
@@ -618,7 +618,7 @@ export const getAll = async (req, res, next) => {
     let whereConditions = 'v.deleted_at IS NULL';
     const queryParams = [];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
         whereConditions += ` AND v.company_id IS NULL`;
       } else {
@@ -701,7 +701,7 @@ export const getById = async (req, res, next) => {
        LEFT JOIN export_invoices ei ON v.export_invoice_id = ei.id
        LEFT JOIN invoice_backside ib ON v.invoice_backside_id = ib.id
        WHERE v.id = $1 AND v.deleted_at IS NULL
-       ${req.companyFilter ? `AND v.company_id = $2` : (req.hasOwnProperty('companyFilter') ? `AND v.company_id IS NULL` : '')}`,
+       ${req.companyFilter ? `AND v.company_id = $2` : (Object.hasOwn(req, 'companyFilter') ? `AND v.company_id IS NULL` : '')}`,
       req.companyFilter ? [id, req.companyFilter] : [id]
     );
     if (result.rows.length === 0) return next(new AppError('VGM not found', 404));
@@ -758,7 +758,7 @@ export const remove = async (req, res, next) => {
     const result = await req.db.query(
       `UPDATE vgm_documents SET deleted_at = NOW() 
        WHERE (export_invoice_id = $1 OR id = $1)
-       ${req.companyFilter ? `AND company_id = $2` : (req.hasOwnProperty('companyFilter') ? `AND company_id IS NULL` : '')}
+       ${req.companyFilter ? `AND company_id = $2` : (Object.hasOwn(req, 'companyFilter') ? `AND company_id IS NULL` : '')}
        RETURNING id`,
       req.companyFilter ? [identifier, req.companyFilter] : [identifier]
     );

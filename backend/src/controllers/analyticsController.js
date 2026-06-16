@@ -25,7 +25,7 @@ const CONTEXT = 'AnalyticsController';
 export const getDashboardAnalytics = async (req, res, next) => {
   try {
     let { companyId } = req.user;
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       companyId = req.companyFilter;
     }
 
@@ -162,7 +162,7 @@ export const getDashboardAnalytics = async (req, res, next) => {
 export const getRevenueAnalytics = async (req, res, next) => {
   try {
     let { companyId } = req.user;
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       companyId = req.companyFilter;
     }
     const { period = 'month' } = req.query;
@@ -206,7 +206,7 @@ export const getRevenueAnalytics = async (req, res, next) => {
 export const getClientAnalytics = async (req, res, next) => {
   try {
     let { companyId } = req.user;
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       companyId = req.companyFilter;
     }
     const { limit = 10 } = req.query;
@@ -247,7 +247,7 @@ export const getClientAnalytics = async (req, res, next) => {
 export const getExportStatusAnalytics = async (req, res, next) => {
   try {
     let { companyId } = req.user;
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       companyId = req.companyFilter;
     }
 
@@ -284,7 +284,7 @@ export const getExportStatusAnalytics = async (req, res, next) => {
 export const getPaymentAnalytics = async (req, res, next) => {
   try {
     let { companyId } = req.user;
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       companyId = req.companyFilter;
     }
 
@@ -323,7 +323,7 @@ export const getSalespersonPerformance = async (req, res, next) => {
   try {
     const { userId } = req.params;
     let { companyId } = req.user;
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       companyId = req.companyFilter;
     }
 

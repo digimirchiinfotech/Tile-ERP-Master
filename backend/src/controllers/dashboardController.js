@@ -24,7 +24,7 @@ export const getDashboardData = async (req, res, next) => {
     const userId = req.user?.id;
     const companyId = req.user?.companyId;
     const userRole = req.user?.role;
-    const companyFilter = req.hasOwnProperty('companyFilter') ? req.companyFilter : 'none';
+    const companyFilter = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : 'none';
     const cacheKey = `${userId}-${companyId}-${userRole}-${companyFilter}`;
 
     if (dashboardCache.has(cacheKey)) {
@@ -45,7 +45,7 @@ export const getDashboardData = async (req, res, next) => {
       let companiesQuery = "SELECT COUNT(*) as count FROM companies WHERE status IN ('Active', 'active')";
       let usersQuery = "SELECT COUNT(*) as count FROM users WHERE status IN ('Active', 'active')";
 
-      if (req.hasOwnProperty('companyFilter')) {
+      if (Object.hasOwn(req, 'companyFilter')) {
         if (req.companyFilter !== null) {
           companyConds = "WHERE company_id = $1";
           vals = [req.companyFilter];
@@ -90,7 +90,7 @@ export const getDashboardData = async (req, res, next) => {
         pendingProformaOrders: parseInt(pendingPO?.rows[0]?.count || 0),
         confirmedProformaOrders: parseInt(confirmedPO?.rows[0]?.count || 0),
         readyProformaOrders: parseInt(readyPO?.rows[0]?.count || 0),
-        dataSource: req.hasOwnProperty('companyFilter') && req.companyFilter !== null ? 'Company data' : 'System-wide'
+        dataSource: Object.hasOwn(req, 'companyFilter') && req.companyFilter !== null ? 'Company data' : 'System-wide'
       };
 
     }
@@ -274,7 +274,7 @@ export const getDashboardData = async (req, res, next) => {
       try {
         let chartConds = "";
         let chartVals = [];
-        if (userRole !== 'super_admin' || (req.hasOwnProperty('companyFilter') && req.companyFilter !== null)) {
+        if (userRole !== 'super_admin' || (Object.hasOwn(req, 'companyFilter') && req.companyFilter !== null)) {
           const targetId = userRole === 'super_admin' ? req.companyFilter : companyId;
           chartConds = "WHERE company_id = $1";
           chartVals = [targetId];

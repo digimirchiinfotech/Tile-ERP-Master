@@ -91,7 +91,7 @@ export const getAll = async (req, res, next) => {
     let values = [];
     let paramCount = 1;
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter !== null) {
         conditions.push(`co.company_id = $${paramCount}`);
         values.push(req.companyFilter);
@@ -178,7 +178,7 @@ export const getById = async (req, res, next) => {
     let whereConditions = 'WHERE co.id = $1';
     let queryParams = [id];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter !== null) {
         whereConditions += ' AND co.company_id = $2';
         queryParams.push(req.companyFilter);
@@ -225,7 +225,7 @@ export const getByClientId = async (req, res, next) => {
     let whereConditions = 'WHERE co.client_id = $1';
     let queryParams = [clientId];
 
-    if (req.hasOwnProperty('companyFilter')) {
+    if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter !== null) {
         whereConditions += ' AND co.company_id = $2';
         queryParams.push(req.companyFilter);

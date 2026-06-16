@@ -77,8 +77,6 @@ export const query = async (text, params, companyId = 'super_admin_bypass') => {
       debugLogger.warning('Database', `Slow query detected - ${duration}ms`, { sql: text.substring(0, 100) });
     }
     return res;
-  } catch (error) {
-    throw error;
   } finally {
     // Reset session variable before returning to the pool to prevent context leakage
     await client.query("RESET app.current_company_id").catch(() => {});

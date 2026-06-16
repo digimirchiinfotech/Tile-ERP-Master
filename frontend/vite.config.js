@@ -32,11 +32,14 @@ export default defineConfig({
       '@assets': '/attached_assets',
     },
   },
-  esbuild: {
-    drop: ['console', 'debugger'],
-  },
   build: {
-    minify: 'esbuild',
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
     chunkSizeWarningLimit: 1500,
     sourcemap: true,
   },

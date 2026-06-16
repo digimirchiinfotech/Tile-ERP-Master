@@ -1194,6 +1194,9 @@ export const provisionCompanyDatabase = async (company) => {
         box_type VARCHAR(100),
         fumigation VARCHAR(50),
         legalisation VARCHAR(50),
+        lc_number VARCHAR(255),
+        lc_date DATE,
+        epcg_no VARCHAR(255),
         other_instructions TEXT,
         product_lines JSONB DEFAULT '[]',
         container_details JSONB DEFAULT '[]',
@@ -1548,6 +1551,9 @@ export const syncCompanyDatabase = async (companyId, db) => {
       // Packing Lists
       { table: 'packing_lists', column: 'is_locked', type: 'BOOLEAN DEFAULT FALSE' },
       { table: 'packing_lists', column: 'snapshot_data', type: 'JSONB' },
+      { table: 'packing_lists', column: 'lc_number', type: 'VARCHAR(255)' },
+      { table: 'packing_lists', column: 'lc_date', type: 'DATE' },
+      { table: 'packing_lists', column: 'epcg_no', type: 'VARCHAR(255)' },
       
       // Shipping Instructions
       { table: 'shipping_instructions', column: 'country_of_origin', type: 'VARCHAR(100)' },
@@ -1806,6 +1812,24 @@ export const syncCompanyDatabase = async (companyId, db) => {
           company_id UUID NOT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           UNIQUE(export_invoice_id, proforma_invoice_id)
+        )`
+      },
+      {
+        name: 'export_document_lock',
+        sql: `CREATE TABLE IF NOT EXISTS export_document_lock (
+          id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+          company_id uuid NOT NULL,
+          exp_no character varying(100) NOT NULL,
+          document_type character varying(100) NOT NULL,
+          document_id uuid NOT NULL,
+          lock_status character varying(50) DEFAULT 'LOCKED',
+          locked_by uuid,
+          locked_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+          unlocked_by uuid,
+          unlocked_at timestamp without time zone,
+          unlock_reason text,
+          created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+          updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
         )`
       }
     ];

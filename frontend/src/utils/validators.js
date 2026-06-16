@@ -52,7 +52,7 @@ export const validateCompanyName = (value) => {
   const trimmed = value.trim();
   if (trimmed.length < 2) return { isValid: false, error: 'Company name must be at least 2 characters' };
   if (trimmed.length > 255) return { isValid: false, error: 'Company name cannot exceed 255 characters' };
-  const companyNamePattern = /^[a-zA-Z0-9\s&.,\-'\"()]+$/;
+  const companyNamePattern = /^[a-zA-Z0-9\s&.,\-'"()]+$/;
   if (!companyNamePattern.test(trimmed)) return { isValid: false, error: 'Company name contains invalid characters' };
   return { isValid: true, error: null };
 };
@@ -162,7 +162,7 @@ export const validateFileUpload = (file, options = {}) => {
   return { isValid: true, error: null };
 };
 
-// Alias for phone validation used in import validation
+// Phone validator used in import validation (returns boolean)
 export const validatePhone = (phone) => {
   if (!phone) return false;
   const digits = String(phone).replace(/\D/g, '');
@@ -179,6 +179,7 @@ export const validateSealNumber = (s) => ({ isValid: true, error: null });
 export const validateTextField = (t) => ({ isValid: true, error: null });
 export const validateCityName = (c) => ({ isValid: true, error: null });
 export const validateClientName = (c) => ({ isValid: true, error: null });
+
 export const validateIEC = (iec) => {
   return /^\d{10}$/.test(String(iec).trim()) ? { isValid: true, error: null } : { isValid: false, error: 'Invalid IEC (must be 10 digits)' };
 };
@@ -266,17 +267,7 @@ export const detectSQLInjection = (input) => {
   return sqlPatterns.some(pattern => pattern.test(input));
 };
 
-export default {
-  validateRequiredType, validateTypeCheck, validateName, validateIndianMobile, validateContactNumber,
-  validateGST, validatePAN, validateDigitsOnly, validateEmail, validateAddress, validatePinCode,
-  validateCityOrState, validateAmount, validateDate, validateURL, validatePassword, validateConfirmPassword,
-  validateUsernameAlphanumeric, validateUsername, validateFileUpload,
-  validateDimension, validateTruckNumber, validateSealNumber, validateTextField, validateCityName,
-  validateClientName, validateNumeric, validateIEC, validateUUID, formatErrorResponse, validateMultipleFields,
-  validateThickness, validateSize, parseThickness, validateCompanyName, validateFullName,
-  validateIFSC, validateAccountNumber, sanitizeHTML, detectSQLInjection
-};
-
+// ─── Import Validation (must be defined BEFORE export default) ───────────────
 
 const getRequiredFieldsForModule = (moduleType) => {
   const fieldMappings = {
@@ -292,7 +283,6 @@ const getRequiredFieldsForModule = (moduleType) => {
     'qc-records': ['qcId', 'orderNumber', 'clientName', 'productName', 'qcStatus', 'qcDate'],
     companies: ['name', 'email_id', 'industry', 'contact_person_name', 'contact_number', 'country', 'subscriptionPlan', 'status'],
   };
-
   return fieldMappings[moduleType] || [];
 };
 
@@ -300,11 +290,7 @@ export const validateImportData = (data, moduleType) => {
   const results = {
     valid: [],
     invalid: [],
-    summary: {
-      total: data.length,
-      validCount: 0,
-      invalidCount: 0,
-    },
+    summary: { total: data.length, validCount: 0, invalidCount: 0 },
   };
 
   const requiredFields = getRequiredFieldsForModule(moduleType);
@@ -312,170 +298,74 @@ export const validateImportData = (data, moduleType) => {
   data.forEach((row, index) => {
     const rowErrors = [];
 
-    // Check required fields
     requiredFields.forEach((field) => {
       if (!row[field] || row[field].toString().trim() === '') {
         rowErrors.push(`${field} is required`);
       }
     });
 
-    // Module-specific validation with comprehensive type checking
     switch (moduleType) {
       case 'proforma-invoice-enhanced':
-        if (row.date && !/^\d{4}-\d{2}-\d{2}$/.test(row.date)) {
-          rowErrors.push('Invalid date format. Use YYYY-MM-DD (e.g., 2025-01-15)');
-        }
-        if (row.amount && (isNaN(parseFloat(row.amount)) || parseFloat(row.amount) <= 0)) {
-          rowErrors.push('Amount must be a positive number');
-        }
+        if (row.date && !/^\d{4}-\d{2}-\d{2}$/.test(row.date)) rowErrors.push('Invalid date format. Use YYYY-MM-DD (e.g., 2025-01-15)');
+        if (row.amount && (isNaN(parseFloat(row.amount)) || parseFloat(row.amount) <= 0)) rowErrors.push('Amount must be a positive number');
         break;
-
       case 'proforma-order':
-        if (row.date && !/^\d{4}-\d{2}-\d{2}$/.test(row.date)) {
-          rowErrors.push('Invalid date format. Use YYYY-MM-DD (e.g., 2025-01-15)');
-        }
-        if (row.amount && (isNaN(parseFloat(row.amount)) || parseFloat(row.amount) <= 0)) {
-          rowErrors.push('Amount must be a positive number');
-        }
+        if (row.date && !/^\d{4}-\d{2}-\d{2}$/.test(row.date)) rowErrors.push('Invalid date format. Use YYYY-MM-DD (e.g., 2025-01-15)');
+        if (row.amount && (isNaN(parseFloat(row.amount)) || parseFloat(row.amount) <= 0)) rowErrors.push('Amount must be a positive number');
         break;
-
       case 'packing-lists':
-        if (row.date && !/^\d{4}-\d{2}-\d{2}$/.test(row.date)) {
-          rowErrors.push('Invalid date format. Use YYYY-MM-DD (e.g., 2025-01-15)');
-        }
-        if (row.totalPallets && isNaN(parseFloat(row.totalPallets))) {
-          rowErrors.push('Total pallets must be a number');
-        }
-        if (row.totalBoxes && isNaN(parseFloat(row.totalBoxes))) {
-          rowErrors.push('Total boxes must be a number');
-        }
-        if (row.totalSQM && isNaN(parseFloat(row.totalSQM))) {
-          rowErrors.push('Total SQM must be a number');
-        }
-        if (row.totalWeight && isNaN(parseFloat(row.totalWeight))) {
-          rowErrors.push('Total weight must be a number');
-        }
+        if (row.date && !/^\d{4}-\d{2}-\d{2}$/.test(row.date)) rowErrors.push('Invalid date format. Use YYYY-MM-DD (e.g., 2025-01-15)');
+        if (row.totalPallets && isNaN(parseFloat(row.totalPallets))) rowErrors.push('Total pallets must be a number');
+        if (row.totalBoxes && isNaN(parseFloat(row.totalBoxes))) rowErrors.push('Total boxes must be a number');
+        if (row.totalSQM && isNaN(parseFloat(row.totalSQM))) rowErrors.push('Total SQM must be a number');
+        if (row.totalWeight && isNaN(parseFloat(row.totalWeight))) rowErrors.push('Total weight must be a number');
         break;
-
       case 'leads':
-        if (row.email && !validateEmail(row.email)) {
-          rowErrors.push('Invalid email format. Use format: user@domain.com');
-        }
-        if (row.contactNumber && !validatePhone(row.contactNumber)) {
-          rowErrors.push('Invalid phone format. Use international format: +1-555-1234');
-        }
-        if (row.leadValue && isNaN(parseFloat(row.leadValue))) {
-          rowErrors.push('Lead value must be a number');
-        }
-        if (row.expectedCloseDate && !/^\d{4}-\d{2}-\d{2}$/.test(row.expectedCloseDate)) {
-          rowErrors.push('Invalid expected close date format. Use YYYY-MM-DD');
-        }
+        if (row.email && !validateEmail(row.email).isValid) rowErrors.push('Invalid email format. Use format: user@domain.com');
+        if (row.contactNumber && !validatePhone(row.contactNumber)) rowErrors.push('Invalid phone format. Use international format: +1-555-1234');
+        if (row.leadValue && isNaN(parseFloat(row.leadValue))) rowErrors.push('Lead value must be a number');
+        if (row.expectedCloseDate && !/^\d{4}-\d{2}-\d{2}$/.test(row.expectedCloseDate)) rowErrors.push('Invalid expected close date format. Use YYYY-MM-DD');
         break;
-
       case 'clients':
-        if (row.email && !validateEmail(row.email)) {
-          rowErrors.push('Invalid email format. Use format: user@domain.com');
-        }
-        if (row.phone && !validatePhone(row.phone)) {
-          rowErrors.push('Invalid phone format. Use international format: +1-555-1234');
-        }
-        if (row.website && row.website.trim()) {
-          try {
-            new URL(row.website);
-          } catch {
-            rowErrors.push('Invalid website URL. Use format: https://example.com');
-          }
-        }
+        if (row.email && !validateEmail(row.email).isValid) rowErrors.push('Invalid email format. Use format: user@domain.com');
+        if (row.phone && !validatePhone(row.phone)) rowErrors.push('Invalid phone format. Use international format: +1-555-1234');
+        if (row.website && row.website.trim()) { try { new URL(row.website); } catch { rowErrors.push('Invalid website URL. Use format: https://example.com'); } }
         break;
-
       case 'account-entries':
-        if (row.date && !/^\d{4}-\d{2}-\d{2}$/.test(row.date)) {
-          rowErrors.push('Invalid date format. Use YYYY-MM-DD (e.g., 2025-01-15)');
-        }
-        if (row.dueDate && !/^\d{4}-\d{2}-\d{2}$/.test(row.dueDate)) {
-          rowErrors.push('Invalid due date format. Use YYYY-MM-DD');
-        }
-        if (row.amount && (isNaN(parseFloat(row.amount)) || parseFloat(row.amount) <= 0)) {
-          rowErrors.push('Amount must be a positive number');
-        }
-        if (row.type && !['Receivable', 'Payable'].includes(row.type)) {
-          rowErrors.push('Type must be either "Receivable" or "Payable"');
-        }
+        if (row.date && !/^\d{4}-\d{2}-\d{2}$/.test(row.date)) rowErrors.push('Invalid date format. Use YYYY-MM-DD (e.g., 2025-01-15)');
+        if (row.dueDate && !/^\d{4}-\d{2}-\d{2}$/.test(row.dueDate)) rowErrors.push('Invalid due date format. Use YYYY-MM-DD');
+        if (row.amount && (isNaN(parseFloat(row.amount)) || parseFloat(row.amount) <= 0)) rowErrors.push('Amount must be a positive number');
+        if (row.type && !['Receivable', 'Payable'].includes(row.type)) rowErrors.push('Type must be either "Receivable" or "Payable"');
         break;
-
       case 'qc-records':
-        if (row.qcDate && !/^\d{4}-\d{2}-\d{2}$/.test(row.qcDate)) {
-          rowErrors.push('Invalid QC date format. Use YYYY-MM-DD (e.g., 2025-01-15)');
-        }
-        if (row.qcStatus && !['Passed', 'Failed', 'Pending', 'Under Process'].includes(row.qcStatus)) {
-          rowErrors.push('QC Status must be: Passed, Failed, Pending, or Under Process');
-        }
+        if (row.qcDate && !/^\d{4}-\d{2}-\d{2}$/.test(row.qcDate)) rowErrors.push('Invalid QC date format. Use YYYY-MM-DD (e.g., 2025-01-15)');
+        if (row.qcStatus && !['Passed', 'Failed', 'Pending', 'Under Process'].includes(row.qcStatus)) rowErrors.push('QC Status must be: Passed, Failed, Pending, or Under Process');
         break;
-
       case 'products':
-        if (row.boxPcs && isNaN(parseInt(row.boxPcs))) {
-          rowErrors.push('Pieces per box must be a number');
-        }
-        if (row.boxWeight && isNaN(parseFloat(row.boxWeight))) {
-          rowErrors.push('Box weight must be a number');
-        }
-        if (row.sqmPerBox && isNaN(parseFloat(row.sqmPerBox))) {
-          rowErrors.push('SQM per box must be a number');
-        }
-        if (row.boxesPerPallet && isNaN(parseInt(row.boxesPerPallet))) {
-          rowErrors.push('Boxes per pallet must be a number');
-        }
-        if (row.factoryPrice && isNaN(parseFloat(row.factoryPrice))) {
-          rowErrors.push('Factory price must be a number');
-        }
-        if (row.sellingPrice && isNaN(parseFloat(row.sellingPrice))) {
-          rowErrors.push('Selling price must be a number');
-        }
+        if (row.boxPcs && isNaN(parseInt(row.boxPcs))) rowErrors.push('Pieces per box must be a number');
+        if (row.boxWeight && isNaN(parseFloat(row.boxWeight))) rowErrors.push('Box weight must be a number');
+        if (row.sqmPerBox && isNaN(parseFloat(row.sqmPerBox))) rowErrors.push('SQM per box must be a number');
+        if (row.boxesPerPallet && isNaN(parseInt(row.boxesPerPallet))) rowErrors.push('Boxes per pallet must be a number');
+        if (row.factoryPrice && isNaN(parseFloat(row.factoryPrice))) rowErrors.push('Factory price must be a number');
+        if (row.sellingPrice && isNaN(parseFloat(row.sellingPrice))) rowErrors.push('Selling price must be a number');
         break;
-
       case 'pallets':
-        if (row.weight && isNaN(parseFloat(row.weight))) {
-          rowErrors.push('Weight must be a number');
-        }
-        if (row.capacity && isNaN(parseFloat(row.capacity))) {
-          rowErrors.push('Capacity must be a number');
-        }
+        if (row.weight && isNaN(parseFloat(row.weight))) rowErrors.push('Weight must be a number');
+        if (row.capacity && isNaN(parseFloat(row.capacity))) rowErrors.push('Capacity must be a number');
         break;
-
       case 'users':
-        if (row.email_id && !validateEmail(row.email_id)) {
-          rowErrors.push('Invalid email format');
-        }
-        if (row.contactNo && !validatePhone(row.contactNo)) {
-          rowErrors.push('Invalid contact number');
-        }
-        if (row.role && !['super_admin', 'company_admin', 'sales', 'purchase', 'logistics', 'accounts', 'qc', 'administration'].includes(row.role)) {
-          rowErrors.push('Invalid user role');
-        }
+        if (row.email_id && !validateEmail(row.email_id).isValid) rowErrors.push('Invalid email format');
+        if (row.contactNo && !validatePhone(row.contactNo)) rowErrors.push('Invalid contact number');
+        if (row.role && !['super_admin', 'company_admin', 'sales', 'purchase', 'logistics', 'accounts', 'qc', 'administration'].includes(row.role)) rowErrors.push('Invalid user role');
         break;
-
       case 'companies':
-        if (row.email && !validateEmail(row.email)) {
-          rowErrors.push('Invalid email format. Use format: user@domain.com');
-        }
-        if (row.phone && !validatePhone(row.phone)) {
-          rowErrors.push('Invalid phone format. Use international format: +1-555-1234');
-        }
-        if (row.status && !['Active', 'Suspended', 'Trial', 'Expired'].includes(row.status)) {
-          rowErrors.push('Status must be: Active, Suspended, Trial, or Expired');
-        }
-        if (row.subscriptionPlan && !['Free', 'Basic', 'Pro', 'Enterprise'].includes(row.subscriptionPlan)) {
-          rowErrors.push('Subscription Plan must be: Free, Basic, Pro, or Enterprise');
-        }
-        if (row.registeredDate && !/^\d{4}-\d{2}-\d{2}$/.test(row.registeredDate)) {
-          rowErrors.push('Invalid registered date format. Use YYYY-MM-DD');
-        }
-        if (row.totalUsers && isNaN(parseInt(row.totalUsers))) {
-          rowErrors.push('Total users must be a number');
-        }
-        if (row.monthlyRevenue && isNaN(parseFloat(row.monthlyRevenue))) {
-          rowErrors.push('Monthly revenue must be a number');
-        }
+        if (row.email && !validateEmail(row.email).isValid) rowErrors.push('Invalid email format. Use format: user@domain.com');
+        if (row.phone && !validatePhone(row.phone)) rowErrors.push('Invalid phone format. Use international format: +1-555-1234');
+        if (row.status && !['Active', 'Suspended', 'Trial', 'Expired'].includes(row.status)) rowErrors.push('Status must be: Active, Suspended, Trial, or Expired');
+        if (row.subscriptionPlan && !['Free', 'Basic', 'Pro', 'Enterprise'].includes(row.subscriptionPlan)) rowErrors.push('Subscription Plan must be: Free, Basic, Pro, or Enterprise');
+        if (row.registeredDate && !/^\d{4}-\d{2}-\d{2}$/.test(row.registeredDate)) rowErrors.push('Invalid registered date format. Use YYYY-MM-DD');
+        if (row.totalUsers && isNaN(parseInt(row.totalUsers))) rowErrors.push('Total users must be a number');
+        if (row.monthlyRevenue && isNaN(parseFloat(row.monthlyRevenue))) rowErrors.push('Monthly revenue must be a number');
         break;
     }
 
@@ -488,6 +378,17 @@ export const validateImportData = (data, moduleType) => {
 
   results.summary.validCount = results.valid.length;
   results.summary.invalidCount = results.invalid.length;
-
   return results;
+};
+
+// ─── Default export (all validators collected) ────────────────────────────────
+export default {
+  validateRequiredType, validateTypeCheck, validateName, validateIndianMobile, validateContactNumber,
+  validateGST, validatePAN, validateDigitsOnly, validateEmail, validateAddress, validatePinCode,
+  validateCityOrState, validateAmount, validateDate, validateURL, validatePassword, validateConfirmPassword,
+  validateUsernameAlphanumeric, validateUsername, validateFileUpload, validatePhone,
+  validateDimension, validateTruckNumber, validateSealNumber, validateTextField, validateCityName,
+  validateClientName, validateNumeric, validateIEC, validateUUID, formatErrorResponse, validateMultipleFields,
+  validateThickness, validateSize, parseThickness, validateCompanyName, validateFullName,
+  validateIFSC, validateAccountNumber, sanitizeHTML, detectSQLInjection, validateImportData
 };

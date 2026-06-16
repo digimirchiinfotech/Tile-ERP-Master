@@ -4499,3 +4499,32 @@ ALTER TABLE public.proforma_orders ADD COLUMN IF NOT EXISTS is_locked BOOLEAN DE
 ALTER TABLE public.export_invoice_annexures ADD COLUMN IF NOT EXISTS is_locked BOOLEAN DEFAULT FALSE;
 ALTER TABLE public.packing_lists ADD COLUMN IF NOT EXISTS is_locked BOOLEAN DEFAULT FALSE;
 ALTER TABLE public.igst_invoices ADD COLUMN IF NOT EXISTS is_locked BOOLEAN DEFAULT FALSE;
+
+
+--
+-- Name: export_document_lock; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.export_document_lock (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    company_id uuid NOT NULL,
+    exp_no character varying(100) NOT NULL,
+    document_type character varying(100) NOT NULL,
+    document_id uuid NOT NULL,
+    lock_status character varying(50) DEFAULT 'LOCKED'::character varying,
+    locked_by uuid,
+    locked_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    unlocked_by uuid,
+    unlocked_at timestamp without time zone,
+    unlock_reason text,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE ONLY public.export_document_lock
+    ADD CONSTRAINT export_document_lock_pkey PRIMARY KEY (id);
+
+CREATE INDEX idx_export_document_lock_company_id ON public.export_document_lock USING btree (company_id);
+CREATE INDEX idx_export_document_lock_exp_no ON public.export_document_lock USING btree (exp_no);
+CREATE INDEX idx_export_document_lock_document_id ON public.export_document_lock USING btree (document_id);
+

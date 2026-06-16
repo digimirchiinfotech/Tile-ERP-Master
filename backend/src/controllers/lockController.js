@@ -102,6 +102,45 @@ export const lockDocument = async (req, res, next) => {
       VALUES ($1, $2, $3, 'LOCK', $4, $5, $6)
     `, [companyId, documentType, documentId, userId, req.ip, JSON.stringify({ browser: req.headers['user-agent'] })]);
 
+    // --- Cascade Lock Logic for EXPORT_INVOICE ---
+    if (documentType === 'EXPORT_INVOICE') {
+      const expNo = currentDoc.rows[0].invoice_no || currentDoc.rows[0].export_invoice_no || 'UNKNOWN';
+      const relatedTables = [
+        { name: 'packing_lists', type: 'PACKING_LIST' },
+        { name: 'export_invoice_annexures', type: 'ANNEXURE' },
+        { name: 'invoice_backside', type: 'INVOICE_BACKSIDE' },
+        { name: 'vgm_documents', type: 'VGM' },
+        { name: 'shipping_instructions', type: 'SHIPPING_INSTRUCTION' }
+      ];
+
+      for (const t of relatedTables) {
+        let updateQuery = `UPDATE ${t.name} SET is_locked = true WHERE export_invoice_id = $1`;
+        let params = [documentId];
+        if (companyId) {
+          updateQuery += ` AND company_id = $2 RETURNING id`;
+          params.push(companyId);
+        } else {
+          updateQuery += ` RETURNING id`;
+        }
+
+        const relatedRes = await req.db.query(updateQuery, params);
+        
+        for (const row of relatedRes.rows) {
+          await req.db.query(`
+            INSERT INTO export_document_lock (company_id, exp_no, document_type, document_id, lock_status, locked_by, locked_at)
+            VALUES ($1, $2, $3, $4, 'LOCKED', $5, CURRENT_TIMESTAMP)
+          `, [companyId || null, expNo, t.type, row.id, userId]);
+        }
+      }
+
+      // Record lock for Export Invoice itself
+      await req.db.query(`
+        INSERT INTO export_document_lock (company_id, exp_no, document_type, document_id, lock_status, locked_by, locked_at)
+        VALUES ($1, $2, $3, $4, 'LOCKED', $5, CURRENT_TIMESTAMP)
+      `, [companyId || null, expNo, 'EXPORT_INVOICE', documentId, userId]);
+    }
+    // ----------------------------------------------
+
     // Notify about the document lock
     notificationService.notifyDocumentLocked(
       companyId, 
@@ -168,6 +207,46 @@ export const unlockDocument = async (req, res, next) => {
       INSERT INTO audit_logs (company_id, resource_type, resource_id, action, user_id, ip_address, changes)
       VALUES ($1, $2, $3, 'UNLOCK', $4, $5, $6)
     `, [companyId, documentType, documentId, userId, req.ip, JSON.stringify({ unlockReason, browser: req.headers['user-agent'] })]);
+
+    // --- Cascade Unlock Logic for EXPORT_INVOICE ---
+    if (documentType === 'EXPORT_INVOICE') {
+      const relatedTables = [
+        { name: 'packing_lists', type: 'PACKING_LIST' },
+        { name: 'export_invoice_annexures', type: 'ANNEXURE' },
+        { name: 'invoice_backside', type: 'INVOICE_BACKSIDE' },
+        { name: 'vgm_documents', type: 'VGM' },
+        { name: 'shipping_instructions', type: 'SHIPPING_INSTRUCTION' }
+      ];
+
+      for (const t of relatedTables) {
+        let updateQuery = `UPDATE ${t.name} SET is_locked = false WHERE export_invoice_id = $1`;
+        let params = [documentId];
+        if (companyId) {
+          updateQuery += ` AND company_id = $2 RETURNING id`;
+          params.push(companyId);
+        } else {
+          updateQuery += ` RETURNING id`;
+        }
+
+        const relatedRes = await req.db.query(updateQuery, params);
+        
+        for (const row of relatedRes.rows) {
+           await req.db.query(`
+            UPDATE export_document_lock 
+            SET lock_status = 'UNLOCKED', unlocked_by = $1, unlocked_at = CURRENT_TIMESTAMP, unlock_reason = $2
+            WHERE document_id = $3 AND lock_status = 'LOCKED'
+          `, [userId, unlockReason, row.id]);
+        }
+      }
+
+      // Unlock for Export Invoice itself in the tracking table
+      await req.db.query(`
+        UPDATE export_document_lock 
+        SET lock_status = 'UNLOCKED', unlocked_by = $1, unlocked_at = CURRENT_TIMESTAMP, unlock_reason = $2
+        WHERE document_id = $3 AND lock_status = 'LOCKED'
+      `, [userId, unlockReason, documentId]);
+    }
+    // ------------------------------------------------
 
     res.json({ success: true, message: 'Document unlocked successfully' });
   } catch (error) {

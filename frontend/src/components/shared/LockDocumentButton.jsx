@@ -80,7 +80,11 @@ export default function LockDocumentButton({ documentType, documentId, isLocked,
               <Modal.Title><Unlock size={20} className="me-2 mb-1"/>Unlock Document</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-              <p className="fw-bold text-danger">You are about to unlock this document.</p>
+              <p className="fw-bold text-danger">
+                {documentType === 'EXPORT_INVOICE' 
+                  ? 'Unlock this Export Invoice and all linked documents?' 
+                  : 'You are about to unlock this document.'}
+              </p>
               <Form.Group className="mt-3">
                 <Form.Label>Reason for unlocking <span className="text-danger">*</span></Form.Label>
                 <Form.Control 
@@ -138,6 +142,9 @@ export default function LockDocumentButton({ documentType, documentId, isLocked,
         </Modal.Header>
         <Modal.Body>
           <p>You are about to lock this document.</p>
+          {documentType === 'EXPORT_INVOICE' && (
+            <p className="text-danger fw-bold">Note: This will also automatically lock all related documents (Packing List, Annexure, VGM, etc.).</p>
+          )}
           <p>Once locked, no future changes from:</p>
           <ul>
             <li>Company Profile</li>

@@ -13,7 +13,7 @@ import DashboardStatusDropdown from '../../shared/DashboardStatusDropdown.jsx';
 import LockDocumentButton from '../../shared/LockDocumentButton.jsx';
 import { generateEnterpriseFilename } from '../../../utils/fileNamingUtils';
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Row, Col, Card, Table, Form, Badge, Spinner, Modal, InputGroup } from 'react-bootstrap';
+import { Row, Col, Card, Table, Form, Badge, Spinner, Modal, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import Button from '../../shared/Button.jsx';
 import '../../shared/DashboardButtons.css';
 import { Power, BarChart3, Plus, Edit, Trash2, Eye, FileText, Printer, Search, FileInput, ClipboardList, FileCheck, Package, Download, Upload, Filter, Calendar, RefreshCcw, RotateCcw, Truck, Clock, FileSpreadsheet, Check } from 'lucide-react';
@@ -231,6 +231,9 @@ function ExportInvoiceDashboard({ currentUser, onCreate, onNavigate, navigationD
           hasVGM: inv.has_vgm,
           hasPL: inv.has_pl,
           hasBackside: inv.has_backside,
+          is_locked: inv.is_locked,
+          locked_by_name: inv.locked_by_name || 'Admin',
+          locked_at: inv.locked_at,
           raw: inv
         };
       });
@@ -707,7 +710,26 @@ function ExportInvoiceDashboard({ currentUser, onCreate, onNavigate, navigationD
                               onSuccess={fetchInvoices} 
                             />
                       </td>
-                      <td className="fw-semibold text-primary">{invoice.invoice_no}</td>
+                      <td className="fw-semibold text-primary">
+                        <div className="d-flex align-items-center gap-2">
+                          {invoice.invoice_no}
+                          {(invoice.is_locked || invoice.isLocked) && (
+                            <OverlayTrigger
+                              placement="top"
+                              overlay={
+                                <Tooltip>
+                                  <strong>Locked By:</strong> {invoice.locked_by_name}<br/>
+                                  <strong>Date:</strong> {invoice.locked_at ? new Date(invoice.locked_at).toLocaleDateString() : 'N/A'}
+                                </Tooltip>
+                              }
+                            >
+                              <Badge bg="danger" className="d-flex align-items-center" style={{ fontSize: '0.65rem' }}>
+                                <Lock size={10} className="me-1" /> LOCKED
+                              </Badge>
+                            </OverlayTrigger>
+                          )}
+                        </div>
+                      </td>
                       <td>{invoice.proforma_invoice_no || '-'}</td>
                       <td>{formatDate(invoice.invoice_date)}</td>
                       <td>{invoice.client_name || '-'}</td>
@@ -772,7 +794,14 @@ function ExportInvoiceDashboard({ currentUser, onCreate, onNavigate, navigationD
                   <Card.Body className="p-4">
                     <div className="d-flex justify-content-between align-items-start mb-4">
                       <div>
-                        <h5 className="fw-bold mb-1 text-dark">{invoice.invoice_no}</h5>
+                        <div className="d-flex align-items-center gap-2">
+                          <h5 className="fw-bold mb-1 text-dark">{invoice.invoice_no}</h5>
+                          {(invoice.is_locked || invoice.isLocked) && (
+                            <Badge bg="danger" className="d-flex align-items-center" style={{ fontSize: '0.65rem' }}>
+                              <Lock size={10} className="me-1" /> LOCKED
+                            </Badge>
+                          )}
+                        </div>
                         <div className="text-muted small">#{index + 1 + (currentPage - 1) * PAGE_SIZE} • {formatDate(invoice.invoice_date)}</div>
                       </div>
                       <div className="status-container">

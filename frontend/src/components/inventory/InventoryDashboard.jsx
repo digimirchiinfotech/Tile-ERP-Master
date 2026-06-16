@@ -99,10 +99,10 @@ const InventoryDashboard = ({ onNavigate, showSuccess, showError }) => {
 
       <Row className="g-3 mb-4">
         {[
-          { label: 'Total SKUs', value: summary?.total_skus ?? 0 },
-          { label: 'Total Boxes', value: summary?.total_boxes ?? 0 },
-          { label: 'Reserved', value: summary?.total_reserved ?? 0 },
-          { label: 'Available', value: summary?.total_available ?? 0 },
+          { label: 'Total SKUs', value: summary?.totalSkus ?? 0 },
+          { label: 'Total Boxes', value: summary?.totalBoxes ?? 0 },
+          { label: 'Reserved', value: summary?.totalReserved ?? 0 },
+          { label: 'Available', value: summary?.totalAvailable ?? 0 },
         ].map((kpi) => (
           <Col md={3} key={kpi.label}>
             <Card className="border-0 shadow-sm">
@@ -137,15 +137,15 @@ const InventoryDashboard = ({ onNavigate, showSuccess, showError }) => {
                 <tr><td colSpan={6} className="text-center text-muted py-4">No stock records yet. Record an IN movement to add stock.</td></tr>
               ) : stock.map((row) => (
                 <tr key={row.id}>
-                  <td>{row.product_name || row.product_code || row.product_id?.slice(0, 8)}</td>
+                  <td>{row.productName || row.productCode || row.productId?.slice(0, 8)}</td>
                   <td>{row.size || '—'}</td>
                   <td>{row.surface || '—'}</td>
                   <td>{row.thickness || '—'}</td>
-                  <td>{row.warehouse_location}</td>
-                  <td>{row.quantity_boxes}</td>
-                  <td>{row.reserved_boxes}</td>
-                  <td><Badge bg={row.available_boxes > 0 ? 'success' : 'secondary'}>{row.available_boxes}</Badge></td>
-                  <td>{row.quantity_sqm}</td>
+                  <td>{row.warehouseLocation}</td>
+                  <td>{row.quantityBoxes}</td>
+                  <td>{row.reservedBoxes}</td>
+                  <td><Badge bg={row.availableBoxes > 0 ? 'success' : 'secondary'}>{row.availableBoxes}</Badge></td>
+                  <td>{row.quantitySqm}</td>
                 </tr>
               ))}
             </tbody>
@@ -163,10 +163,10 @@ const InventoryDashboard = ({ onNavigate, showSuccess, showError }) => {
                 <tbody>
                   {movements.map((m) => (
                     <tr key={m.id}>
-                      <td><Badge bg={m.movement_type === 'IN' ? 'success' : 'warning'}>{m.movement_type}</Badge></td>
-                      <td>{m.product_name || '—'}</td>
-                      <td>{m.quantity_boxes}</td>
-                      <td>{new Date(m.created_at).toLocaleDateString()}</td>
+                      <td><Badge bg={m.movementType === 'IN' ? 'success' : 'warning'}>{m.movementType}</Badge></td>
+                      <td>{m.productName || '—'}</td>
+                      <td>{m.quantityBoxes}</td>
+                      <td>{new Date(m.createdAt).toLocaleDateString()}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -185,9 +185,9 @@ const InventoryDashboard = ({ onNavigate, showSuccess, showError }) => {
                     <tr><td colSpan={4} className="text-muted text-center py-3">No active reservations</td></tr>
                   ) : reservations.map((r) => (
                     <tr key={r.id}>
-                      <td>{r.product_name || '—'}</td>
-                      <td>{r.reserved_boxes}</td>
-                      <td>{r.reference_no || r.reference_type}</td>
+                      <td>{r.productName || '—'}</td>
+                      <td>{r.reservedBoxes}</td>
+                      <td>{r.referenceNo || r.referenceType}</td>
                       <td><Button size="sm" variant="outline-danger" onClick={() => handleRelease(r.id)}>Release</Button></td>
                     </tr>
                   ))}
@@ -208,7 +208,7 @@ const InventoryDashboard = ({ onNavigate, showSuccess, showError }) => {
                 <option value="">Select product</option>
                 {products.map((p) => {
                   const details = [p.size, p.surface, p.thickness].filter(Boolean).join(' - ');
-                  const label = `${p.name || p.product_code}${details ? ` (${details})` : ''}`;
+                  const label = `${p.name || p.productCode}${details ? ` (${details})` : ''}`;
                   return <option key={p.id} value={p.id}>{label}</option>;
                 })}
               </Form.Select>

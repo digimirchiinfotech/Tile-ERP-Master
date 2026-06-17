@@ -145,7 +145,8 @@ function ClientDashboard({ currentUser, clientsData, usersData, navigationData }
     .map(user => ({
       id: user.id,
       name: user.name || user.email,
-      role: user.role
+      role: user.role,
+      status: user.status
     })), [users]);
 
   // Helper function to get salesperson name from ID

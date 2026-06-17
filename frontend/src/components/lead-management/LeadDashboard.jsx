@@ -123,7 +123,8 @@ function LeadDashboard({ currentUser, leadsData, clientsData, usersData, product
     .filter(user => user.role && ['sales_executive', 'sales_manager'].includes(user.role.toLowerCase()))
     .map(user => ({
       id: user.id,
-      name: user.name || user.email
+      name: user.name || user.email,
+      status: user.status
     }));
 
   useEffect(() => {

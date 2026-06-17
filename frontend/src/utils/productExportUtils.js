@@ -274,7 +274,7 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       r++;
 
       // ── Row 3: Column Headers (info layout) ───────────────────────
-      setCell(r, 1, 'SR\n    \n    const lcNumber = documentData.lc_number || documentData.lcNumber || '-';\n    const lcDate = formatDisplayDate(documentData.lc_date || documentData.lcDate);\n    const epcgNo = documentData.epcg_no || documentData.epcgNo || '-';\nNO.', { bold: true, size: 9, align: { horizontal: 'center', vertical: 'middle' } });
+      setCell(r, 1, 'SR\nNO.', { bold: true, size: 9, align: { horizontal: 'center', vertical: 'middle' } });
       mergeRow(r, 'B', 'D');
       setCell(r, 2, 'DETAILS OF INFORMATION', { bold: true, size: 9, align: { horizontal: 'center', vertical: 'middle' } });
       // NOTE: do NOT setBorder on slave cells (C,D) — ExcelJS handles merged border via master
@@ -1777,308 +1777,7 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       mergeRow(r, 'A', r, 'B');
       setCell(r, 1, `POL :\n${pol}`, { bold: true, size: 8, align: { horizontal: 'left', vertical: 'top' } });
       mergeRow(r, 'C', r, 'G');
-      setCell(r, 3, `FINAL DESTINATION :\n
-    // ─────────────────────────────────────────────────────────────────
-    // PROFORMA ORDER: Dedicated Layout
-    // ─────────────────────────────────────────────────────────────────
-    else if (['Proforma Order', 'PROFORMA ORDER', 'proforma_order'].includes(moduleType)) {
-      sheet.columns = [
-        { key: 'A', width: 35 }, // MATERIAL DESCRIPTION
-        { key: 'B', width: 15 }, // DESIGN IMAGE
-        { key: 'C', width: 18 }, // FACTORY PRODUCT NAME
-        { key: 'D', width: 12 }, // HSN CODE
-        { key: 'E', width: 10 }, // NO OF PALLETS
-        { key: 'F', width: 12 }, // QUANTITY BOXES
-        { key: 'G', width: 15 }, // QUANTITY (SQM)
-        { key: 'H', width: 12 }, // RATE PER BOX
-        { key: 'I', width: 15 }  // AMOUNT
-      ];
-
-      // Title
-      sheet.mergeCells('A1:I1');
-      sheet.getCell('A1').value = 'PURCHASE ORDER';
-      sheet.getCell('A1').font = { bold: true, size: 16 };
-      sheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
-      if (logoImageId) {
-        sheet.addImage(logoImageId, { tl: { col: 7, row: 0.1 }, ext: { width: 150, height: 40 } });
-      }
-      sheet.getRow(1).height = 40;
-
-      // Row 2: Buyer & PO No / SC Ref
-      sheet.mergeCells('A2:D5');
-      sheet.getCell('A2').value = `BUYER:-\n${exporterName}\n${exporterAddress}\nGSTN : ${gstn}\n\nSUPPLIER:\n${documentData.supplier || documentData.supplier_name || documentData.supplierDetails || 'NO SUPPLIER DETAILS'}`;
-      sheet.getCell('A2').font = { size: 8 };
-      sheet.getCell('A2').alignment = { horizontal: 'left', vertical: 'top', wrapText: true };
-      
-      sheet.mergeCells('E2:G3');
-      sheet.getCell('E2').value = `PURCHASE ORDER NO. & DATE\n${invNo} Dt.${invDate}`;
-      sheet.getCell('E2').font = { bold: true, size: 8 };
-      sheet.getCell('E2').alignment = { horizontal: 'left', vertical: 'top', wrapText: true };
-      
-      sheet.mergeCells('H2:I3');
-      sheet.getCell('H2').value = `SC REF. NO.\n${documentData.scRefNo || documentData.pi_reference || documentData.piReference || 'N/A'}`;
-      sheet.getCell('H2').font = { bold: true, size: 8 };
-      sheet.getCell('H2').alignment = { horizontal: 'left', vertical: 'top', wrapText: true };
-
-      sheet.mergeCells('E4:I4');
-      sheet.getCell('E4').value = `DELIVERY TERMS:          ${deliveryTerms}`;
-      sheet.getCell('E4').font = { bold: true, size: 8 };
-      sheet.getCell('E4').alignment = { horizontal: 'left', vertical: 'middle' };
-      
-      sheet.mergeCells('E5:I5');
-      sheet.getCell('E5').value = `PAYMENT TERMS:           ${paymentTerms}`;
-      sheet.getCell('E5').font = { bold: true, size: 8 };
-      sheet.getCell('E5').alignment = { horizontal: 'left', vertical: 'middle' };
-
-      // Row 6: Compliance Text
-      sheet.mergeCells('A6:I6');
-      sheet.getCell('A6').value = `PRODUCTS MANUFACTURED & SUPPLIED BY THE SUPPLIER SHALL CONFIRM & COMPLY IN ALL DIMENSIONAL, PHYSICAL & CHEMICAL PARAMETERS TO THE REQUIREMENTS, STANDARDS & SPECIFICATIONS AS PRESCRIBED IN THE BS EN ISO 14411 STANDARDS. IN THE EVENT THAT THE PRODUCTS DELIVERED DO NOT CONFIRM TO THE SPECIFICATIONS AS AGREED, THE SUPPLIER SHALL BE LIABLE TO THE BUYER IN RESPECT OF ANY CLAIMS AND EXPENSES ENSUING FROM JUSTIFIED LIABILITIES TO RECOURSE AND ADDITIONAL COSTS ARISING THEREFROM (E.G. BREAKAGE, REPLACEMENT, REDUCTION IN PURCHASE PRICE AND COSTS FOR RESTORING TO ORIGINAL CONDITION, COSTS FOR PROCESSING COMPLAINTS, CONTRACTUAL PENALTIES, COST OF RESORTING AND/OR REPACKAGING, ETC). ALL OTHER REASONS OF DEFECT, INCLUDING BREAKAGES AND SURFACE CHIPPING QUANTITY WILL BE FULLY BORNE BY THE SELLER.`;
-      sheet.getCell('A6').font = { size: 6.5 };
-      sheet.getCell('A6').alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
-      sheet.getRow(6).height = 45;
-
-      // Borders for top section
-      for(let r=1; r<=6; r++) { for(let c=1; c<=9; c++) { applyBorder(r, c); } }
-
-      // Table Header
-      let r = 7;
-      const headers = ['MATERIAL DESCRIPTION', 'DESIGN IMAGE', 'FACTORY PRODUCT NAME', 'HSN\nCODE', 'NO OF\nPALLETS', 'QUANTITY\nBOXES', 'QUANTITY\n(SQM)', 'RATE PER\nBOX', 'AMOUNT'];
-      headers.forEach((h, i) => {
-        sheet.getCell(r, i + 1).value = h;
-        sheet.getCell(r, i + 1).font = { bold: true, size: 7.5 };
-        sheet.getCell(r, i + 1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8F9FA' } };
-        sheet.getCell(r, i + 1).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-        applyBorder(r, i + 1);
-      });
-      sheet.getRow(r).height = 30;
-      r++;
-
-      // Product Lines
-      let pTotalPallets = 0;
-      let pTotalBoxes = 0;
-      let pTotalSQM = 0;
-      let pTotalAmount = 0;
-      let pTotalNetWt = 0;
-      let pTotalGrossWt = 0;
-
-      tileProducts.forEach((p, idx) => {
-        const isSanitaryware = p.product_type === 'sanitaryware' || p.productType === 'sanitaryware';
-        const pallets = parseFloat(p.totalPallet || p.total_pallet || p.pallets || 0) || 0;
-        const boxes = parseFloat(isSanitaryware ? (p.pieces || p.totalBoxes || 0) : (p.totalBoxes || p.total_boxes || p.boxes || 0)) || 0;
-        const sqm = parseFloat(p.sqmAuto || p.sqm_auto || p.sqm || 0) || 0;
-        const rate = parseFloat(p.rate || 0) || 0;
-        const amt = parseFloat(p.amount || 0) || 0;
-        
-        pTotalPallets += pallets;
-        pTotalBoxes += boxes;
-        pTotalSQM += sqm;
-        pTotalAmount += amt;
-        pTotalNetWt += parseFloat(p.netWeight || p.net_weight || 0) || 0;
-        pTotalGrossWt += parseFloat(p.grossWeight || p.gross_weight || 0) || 0;
-
-        const desc = `${p.product || p.productName || p.itemDescription || p.product_name || ''}\n${p.description || p.productDescription || p.product_description || ''}`;
-        sheet.getCell(r, 1).value = desc;
-        sheet.getCell(r, 1).font = { size: 7 };
-        sheet.getCell(r, 1).alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
-        
-        // Image logic
-        if (p.image && window && window.productImages && window.productImages[p.image]) {
-          // This might be problematic if productImages is not defined here.
-          // Wait, productImages is fetched in the dashboard, we might not have it here.
-          // Let's rely on the URL or skip for excel.
-        }
-        
-        sheet.getCell(r, 3).value = p.factoryProductName || p.factory_product_name || p.itemRef || p.item_ref || p.factoryReference || '';
-        sheet.getCell(r, 3).font = { size: 7.5 };
-        sheet.getCell(r, 3).alignment = { horizontal: 'center', vertical: 'middle' };
-        
-        sheet.getCell(r, 4).value = p.hsnCode || p.hsn_code || '';
-        sheet.getCell(r, 4).font = { size: 6.5 };
-        sheet.getCell(r, 4).alignment = { horizontal: 'center', vertical: 'middle' };
-        
-        sheet.getCell(r, 5).value = pallets;
-        sheet.getCell(r, 5).font = { size: 7.5 };
-        sheet.getCell(r, 5).alignment = { horizontal: 'center', vertical: 'middle' };
-        
-        sheet.getCell(r, 6).value = boxes;
-        sheet.getCell(r, 6).font = { size: 7.5 };
-        sheet.getCell(r, 6).alignment = { horizontal: 'center', vertical: 'middle' };
-        
-        sheet.getCell(r, 7).value = sqm;
-        sheet.getCell(r, 7).font = { size: 7.5 };
-        sheet.getCell(r, 7).alignment = { horizontal: 'center', vertical: 'middle' };
-        sheet.getCell(r, 7).numFmt = '#,##0.00';
-        
-        sheet.getCell(r, 8).value = rate;
-        sheet.getCell(r, 8).font = { size: 7.5 };
-        sheet.getCell(r, 8).alignment = { horizontal: 'center', vertical: 'middle' };
-        sheet.getCell(r, 8).numFmt = '#,##0.00';
-        
-        sheet.getCell(r, 9).value = amt;
-        sheet.getCell(r, 9).font = { size: 7.5 };
-        sheet.getCell(r, 9).alignment = { horizontal: 'center', vertical: 'middle' };
-        sheet.getCell(r, 9).numFmt = '#,##0.00';
-
-        sheet.getRow(r).height = 60;
-        for(let c=1; c<=9; c++) { applyBorder(r, c); }
-        r++;
-      });
-
-      // Total Row
-      sheet.mergeCells(`A${r}:D${r}`);
-      sheet.getCell(r, 1).value = 'TOTAL';
-      sheet.getCell(r, 1).font = { bold: true, size: 7.5 };
-      sheet.getCell(r, 1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8F9FA' } };
-      sheet.getCell(r, 1).alignment = { horizontal: 'right', vertical: 'middle' };
-      
-      sheet.getCell(r, 5).value = pTotalPallets;
-      sheet.getCell(r, 5).font = { bold: true, size: 7.5 };
-      sheet.getCell(r, 5).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8F9FA' } };
-      sheet.getCell(r, 5).alignment = { horizontal: 'center', vertical: 'middle' };
-      
-      sheet.getCell(r, 6).value = pTotalBoxes;
-      sheet.getCell(r, 6).font = { bold: true, size: 7.5 };
-      sheet.getCell(r, 6).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8F9FA' } };
-      sheet.getCell(r, 6).alignment = { horizontal: 'center', vertical: 'middle' };
-      
-      sheet.getCell(r, 7).value = pTotalSQM;
-      sheet.getCell(r, 7).font = { bold: true, size: 7.5 };
-      sheet.getCell(r, 7).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8F9FA' } };
-      sheet.getCell(r, 7).alignment = { horizontal: 'center', vertical: 'middle' };
-      sheet.getCell(r, 7).numFmt = '#,##0.00';
-      
-      sheet.getCell(r, 8).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8F9FA' } };
-      
-      sheet.getCell(r, 9).value = pTotalAmount;
-      sheet.getCell(r, 9).font = { bold: true, size: 7.5 };
-      sheet.getCell(r, 9).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8F9FA' } };
-      sheet.getCell(r, 9).alignment = { horizontal: 'center', vertical: 'middle' };
-      sheet.getCell(r, 9).numFmt = '#,##0.00';
-      
-      for(let c=1; c<=9; c++) { applyBorder(r, c); }
-      r++;
-
-      // GST Row
-      const gstRate = parseFloat(documentData.gst_rate !== undefined ? documentData.gst_rate : (documentData.gstRate !== undefined ? documentData.gstRate : 0));
-      const gstAmount = documentData.gst_amount !== undefined ? documentData.gst_amount : (documentData.gstAmount !== undefined ? documentData.gstAmount : (pTotalAmount * (gstRate / 100)));
-      const poValue = documentData.poValue || documentData.total_amount || (pTotalAmount + gstAmount);
-
-      sheet.mergeCells(`A${r}:H${r}`);
-      sheet.getCell(r, 1).value = `GST @ ${gstRate.toFixed(2)} %`;
-      sheet.getCell(r, 1).font = { bold: true, size: 7.5 };
-      sheet.getCell(r, 1).alignment = { horizontal: 'right', vertical: 'middle' };
-      
-      sheet.getCell(r, 9).value = gstAmount;
-      sheet.getCell(r, 9).font = { bold: true, size: 7.5 };
-      sheet.getCell(r, 9).alignment = { horizontal: 'center', vertical: 'middle' };
-      sheet.getCell(r, 9).numFmt = '#,##0.00';
-      for(let c=1; c<=9; c++) { applyBorder(r, c); }
-      r++;
-
-      // PO Value Row
-      sheet.mergeCells(`A${r}:H${r}`);
-      sheet.getCell(r, 1).value = `PO VALUE (${documentData.currency || 'INR (₹)'})`;
-      sheet.getCell(r, 1).font = { bold: true, size: 8 };
-      sheet.getCell(r, 1).alignment = { horizontal: 'right', vertical: 'middle' };
-      
-      sheet.getCell(r, 9).value = poValue;
-      sheet.getCell(r, 9).font = { bold: true, size: 8 };
-      sheet.getCell(r, 9).alignment = { horizontal: 'center', vertical: 'middle' };
-      sheet.getCell(r, 9).numFmt = '#,##0.00';
-      for(let c=1; c<=9; c++) { applyBorder(r, c); }
-      r++;
-
-      // Instructions, Words, Wt
-      sheet.mergeCells(`A${r}:E${r+2}`);
-      sheet.getCell(r, 1).value = `1. PALLETS :- ${documentData.palletType || ''} ${documentData.notes || documentData.pallet_details || ''}\n2. MADE IN INDIA :-\n    TILES BACK :- ${documentData.tilesBack || 'MADE IN INDIA'}\n    BOXES :- ${documentData.boxesMarking || 'MADE IN INDIA'}\n3. BOXES :- ${documentData.boxType || ''}\n4. LEGALISATION :- ${documentData.legalisation || 'NO'}       5. FUMIGATION :- ${documentData.fumigation || 'YES'}\n6. OTHER INSTRUCTIONS :-\n${documentData.otherInstructions || ''}`;
-      sheet.getCell(r, 1).font = { size: 8 };
-      sheet.getCell(r, 1).alignment = { horizontal: 'left', vertical: 'top', wrapText: true };
-      
-      if (boxTypeImageUrl && boxImageId) {
-        sheet.addImage(boxImageId, { tl: { col: 4, row: r - 1 }, ext: { width: 60, height: 60 } });
-      }
-
-      sheet.mergeCells(`F${r}:I${r}`);
-      sheet.getCell(r, 6).value = `AMOUNT IN WORDS :- ${numberToWords(Math.floor(poValue))} ${poValue > 0 && Math.round((poValue % 1) * 100) > 0 ? `AND ${numberToWords(Math.round((poValue % 1) * 100))} PAISA` : ''} ONLY.`;
-      sheet.getCell(r, 6).font = { bold: true, size: 8 };
-      sheet.getCell(r, 6).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-      r++;
-
-      sheet.mergeCells(`F${r}:G${r}`);
-      sheet.getCell(r, 6).value = 'NET WEIGHT';
-      sheet.getCell(r, 6).font = { bold: true, size: 8 };
-      sheet.getCell(r, 6).alignment = { horizontal: 'left', vertical: 'middle' };
-      
-      sheet.getCell(r, 8).value = pTotalNetWt;
-      sheet.getCell(r, 8).font = { bold: true, size: 8 };
-      sheet.getCell(r, 8).alignment = { horizontal: 'center', vertical: 'middle' };
-      sheet.getCell(r, 8).numFmt = '#,##0.00';
-      
-      sheet.getCell(r, 9).value = 'KGS';
-      sheet.getCell(r, 9).font = { bold: true, size: 8 };
-      sheet.getCell(r, 9).alignment = { horizontal: 'right', vertical: 'middle' };
-      r++;
-
-      sheet.mergeCells(`F${r}:G${r}`);
-      sheet.getCell(r, 6).value = 'GROSS WEIGHT';
-      sheet.getCell(r, 6).font = { bold: true, size: 8 };
-      sheet.getCell(r, 6).alignment = { horizontal: 'left', vertical: 'middle' };
-      
-      sheet.getCell(r, 8).value = pTotalGrossWt;
-      sheet.getCell(r, 8).font = { bold: true, size: 8 };
-      sheet.getCell(r, 8).alignment = { horizontal: 'center', vertical: 'middle' };
-      sheet.getCell(r, 8).numFmt = '#,##0.00';
-      
-      sheet.getCell(r, 9).value = 'KGS';
-      sheet.getCell(r, 9).font = { bold: true, size: 8 };
-      sheet.getCell(r, 9).alignment = { horizontal: 'right', vertical: 'middle' };
-      
-      // Apply borders to the footer cells manually to fix merged cell borders
-      for(let rr=r-2; rr<=r; rr++) { for(let cc=1; cc<=9; cc++) { applyBorder(rr, cc); } }
-      sheet.getRow(r-2).height = 40;
-      r++;
-
-      // Companies Row
-      sheet.mergeCells(`A${r}:E${r}`);
-      sheet.getCell(r, 1).value = `FOR, ${documentData.supplier || (documentData.supplierDetails ? documentData.supplierDetails.split('\n')[0] : 'SUPPLIER NAME')}`;
-      sheet.getCell(r, 1).font = { bold: true, size: 8 };
-      sheet.getCell(r, 1).alignment = { horizontal: 'left', vertical: 'middle' };
-      
-      sheet.mergeCells(`F${r}:I${r}`);
-      sheet.getCell(r, 6).value = `FOR, ${exporterName}`;
-      sheet.getCell(r, 6).font = { bold: true, size: 8 };
-      sheet.getCell(r, 6).alignment = { horizontal: 'right', vertical: 'middle' };
-      sheet.getRow(r).height = 25;
-      r++;
-
-      // Signatures
-      sheet.mergeCells(`A${r}:B${r}`);
-      sheet.getCell(r, 1).value = '(AUTHORIZED SIGNATORY)';
-      sheet.getCell(r, 1).font = { bold: true, size: 8 };
-      sheet.getCell(r, 1).alignment = { horizontal: 'center', vertical: 'bottom' };
-      
-      sheet.mergeCells(`C${r}:E${r}`);
-      sheet.getCell(r, 3).value = '(PREPARED BY)';
-      sheet.getCell(r, 3).font = { bold: true, size: 8 };
-      sheet.getCell(r, 3).alignment = { horizontal: 'center', vertical: 'bottom' };
-      
-      sheet.mergeCells(`F${r}:G${r}`);
-      sheet.getCell(r, 6).value = '(CHECKED BY)';
-      sheet.getCell(r, 6).font = { bold: true, size: 8 };
-      sheet.getCell(r, 6).alignment = { horizontal: 'center', vertical: 'bottom' };
-      
-      sheet.mergeCells(`H${r}:I${r}`);
-      sheet.getCell(r, 8).value = '(AUTHORIZED SIGNATORY)';
-      sheet.getCell(r, 8).font = { bold: true, size: 8 };
-      sheet.getCell(r, 8).alignment = { horizontal: 'right', vertical: 'bottom' };
-      sheet.getRow(r).height = 60;
-      
-      const buffer = await workbook.xlsx.writeBuffer();
-      const filename = generateEnterpriseFilename({ moduleName: 'PROFORMA-ORDER', documentNo: invNo, clientName: documentData.supplier || 'Supplier', date: invDate, extension: 'xlsx', isProductExport: true });
-      saveAs(new Blob([buffer]), filename);
-      return true;
-    }
-\n    \n${dest}`, { bold: true, size: 8, align: { horizontal: 'left', vertical: 'top' } });
+      setCell(r, 3, `FINAL DESTINATION :\n${dest}`, { bold: true, size: 8, align: { horizontal: 'left', vertical: 'top' } });
       sheet.getRow(r).height = 30;
       r++;
 
@@ -2228,300 +1927,6 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       return true;
     }
 
-    // ─────────────────────────────────────────────────────────────────
-    // PROFORMA ORDER: Dedicated Layout
-    // ─────────────────────────────────────────────────────────────────
-    if (['Proforma Order', 'PROFORMA ORDER', 'proforma_order', 'PROFORMA-ORDER'].includes(moduleType)) {
-      sheet.columns = [
-        { key: 'A', width: 35 }, // MATERIAL DESCRIPTION
-        { key: 'B', width: 15 }, // DESIGN IMAGE
-        { key: 'C', width: 18 }, // FACTORY PRODUCT NAME
-        { key: 'D', width: 12 }, // HSN CODE
-        { key: 'E', width: 10 }, // NO OF PALLETS
-        { key: 'F', width: 12 }, // QUANTITY BOXES
-        { key: 'G', width: 15 }, // QUANTITY (SQM)
-        { key: 'H', width: 12 }, // RATE PER BOX
-        { key: 'I', width: 15 }  // AMOUNT
-      ];
-
-      // Title
-      sheet.mergeCells('A1:I1');
-      sheet.getCell('A1').value = 'PURCHASE ORDER';
-      sheet.getCell('A1').font = { bold: true, size: 16 };
-      sheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
-      if (logoImageId) {
-        sheet.addImage(logoImageId, { tl: { col: 7, row: 0.1 }, ext: { width: 150, height: 40 } });
-      }
-      sheet.getRow(1).height = 40;
-
-      // Row 2: Buyer & PO No / SC Ref
-      sheet.mergeCells('A2:D5');
-      sheet.getCell('A2').value = `BUYER:-\n${exporterName}\n${exporterAddress}\nGSTN : ${gstn}\n\nSUPPLIER:\n${documentData.supplier || documentData.supplier_name || documentData.supplierDetails || 'NO SUPPLIER DETAILS'}`;
-      sheet.getCell('A2').font = { size: 8 };
-      sheet.getCell('A2').alignment = { horizontal: 'left', vertical: 'top', wrapText: true };
-      
-      sheet.mergeCells('E2:G3');
-      sheet.getCell('E2').value = `PURCHASE ORDER NO. & DATE\n${invNo} Dt.${invDate}`;
-      sheet.getCell('E2').font = { bold: true, size: 8 };
-      sheet.getCell('E2').alignment = { horizontal: 'left', vertical: 'top', wrapText: true };
-      
-      sheet.mergeCells('H2:I3');
-      sheet.getCell('H2').value = `SC REF. NO.\n${documentData.scRefNo || documentData.pi_reference || documentData.piReference || 'N/A'}`;
-      sheet.getCell('H2').font = { bold: true, size: 8 };
-      sheet.getCell('H2').alignment = { horizontal: 'left', vertical: 'top', wrapText: true };
-
-      sheet.mergeCells('E4:I4');
-      sheet.getCell('E4').value = `DELIVERY TERMS:          ${deliveryTerms}`;
-      sheet.getCell('E4').font = { bold: true, size: 8 };
-      sheet.getCell('E4').alignment = { horizontal: 'left', vertical: 'middle' };
-      
-      sheet.mergeCells('E5:I5');
-      sheet.getCell('E5').value = `PAYMENT TERMS:           ${paymentTerms}`;
-      sheet.getCell('E5').font = { bold: true, size: 8 };
-      sheet.getCell('E5').alignment = { horizontal: 'left', vertical: 'middle' };
-
-      // Row 6: Compliance Text
-      sheet.mergeCells('A6:I6');
-      sheet.getCell('A6').value = `PRODUCTS MANUFACTURED & SUPPLIED BY THE SUPPLIER SHALL CONFIRM & COMPLY IN ALL DIMENSIONAL, PHYSICAL & CHEMICAL PARAMETERS TO THE REQUIREMENTS, STANDARDS & SPECIFICATIONS AS PRESCRIBED IN THE BS EN ISO 14411 STANDARDS. IN THE EVENT THAT THE PRODUCTS DELIVERED DO NOT CONFIRM TO THE SPECIFICATIONS AS AGREED, THE SUPPLIER SHALL BE LIABLE TO THE BUYER IN RESPECT OF ANY CLAIMS AND EXPENSES ENSUING FROM JUSTIFIED LIABILITIES TO RECOURSE AND ADDITIONAL COSTS ARISING THEREFROM (E.G. BREAKAGE, REPLACEMENT, REDUCTION IN PURCHASE PRICE AND COSTS FOR RESTORING TO ORIGINAL CONDITION, COSTS FOR PROCESSING COMPLAINTS, CONTRACTUAL PENALTIES, COST OF RESORTING AND/OR REPACKAGING, ETC). ALL OTHER REASONS OF DEFECT, INCLUDING BREAKAGES AND SURFACE CHIPPING QUANTITY WILL BE FULLY BORNE BY THE SELLER.`;
-      sheet.getCell('A6').font = { size: 6.5 };
-      sheet.getCell('A6').alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
-      sheet.getRow(6).height = 45;
-
-      // Borders for top section
-      for(let r=1; r<=6; r++) { for(let c=1; c<=9; c++) { applyBorder(r, c); } }
-
-      // Table Header
-      let r = 7;
-      const headers = ['MATERIAL DESCRIPTION', 'DESIGN IMAGE', 'FACTORY PRODUCT NAME', 'HSN\nCODE', 'NO OF\nPALLETS', 'QUANTITY\nBOXES', 'QUANTITY\n(SQM)', 'RATE PER\nBOX', 'AMOUNT'];
-      headers.forEach((h, i) => {
-        sheet.getCell(r, i + 1).value = h;
-        sheet.getCell(r, i + 1).font = { bold: true, size: 7.5 };
-        sheet.getCell(r, i + 1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8F9FA' } };
-        sheet.getCell(r, i + 1).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-        applyBorder(r, i + 1);
-      });
-      sheet.getRow(r).height = 30;
-      r++;
-
-      // Product Lines
-      let pTotalPallets = 0;
-      let pTotalBoxes = 0;
-      let pTotalSQM = 0;
-      let pTotalAmount = 0;
-      let pTotalNetWt = 0;
-      let pTotalGrossWt = 0;
-
-      tileProducts.forEach((p, idx) => {
-        const isSanitaryware = p.product_type === 'sanitaryware' || p.productType === 'sanitaryware';
-        const pallets = parseFloat(p.totalPallet || p.total_pallet || p.pallets || 0) || 0;
-        const boxes = parseFloat(isSanitaryware ? (p.pieces || p.totalBoxes || 0) : (p.totalBoxes || p.total_boxes || p.boxes || 0)) || 0;
-        const sqm = parseFloat(p.sqmAuto || p.sqm_auto || p.sqm || 0) || 0;
-        const rate = parseFloat(p.rate || 0) || 0;
-        const amt = parseFloat(p.amount || 0) || 0;
-        
-        pTotalPallets += pallets;
-        pTotalBoxes += boxes;
-        pTotalSQM += sqm;
-        pTotalAmount += amt;
-        pTotalNetWt += parseFloat(p.netWeight || p.net_weight || 0) || 0;
-        pTotalGrossWt += parseFloat(p.grossWeight || p.gross_weight || 0) || 0;
-
-        const desc = `${p.product || p.productName || p.itemDescription || p.product_name || ''}\n${p.description || p.productDescription || p.product_description || ''}`;
-        sheet.getCell(r, 1).value = desc;
-        sheet.getCell(r, 1).font = { size: 7 };
-        sheet.getCell(r, 1).alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
-        
-        sheet.getCell(r, 3).value = p.factoryProductName || p.factory_product_name || p.itemRef || p.item_ref || p.factoryReference || '';
-        sheet.getCell(r, 3).font = { size: 7.5 };
-        sheet.getCell(r, 3).alignment = { horizontal: 'center', vertical: 'middle' };
-        
-        sheet.getCell(r, 4).value = p.hsnCode || p.hsn_code || '';
-        sheet.getCell(r, 4).font = { size: 6.5 };
-        sheet.getCell(r, 4).alignment = { horizontal: 'center', vertical: 'middle' };
-        
-        sheet.getCell(r, 5).value = pallets;
-        sheet.getCell(r, 5).font = { size: 7.5 };
-        sheet.getCell(r, 5).alignment = { horizontal: 'center', vertical: 'middle' };
-        
-        sheet.getCell(r, 6).value = boxes;
-        sheet.getCell(r, 6).font = { size: 7.5 };
-        sheet.getCell(r, 6).alignment = { horizontal: 'center', vertical: 'middle' };
-        
-        sheet.getCell(r, 7).value = sqm;
-        sheet.getCell(r, 7).font = { size: 7.5 };
-        sheet.getCell(r, 7).alignment = { horizontal: 'center', vertical: 'middle' };
-        sheet.getCell(r, 7).numFmt = '#,##0.00';
-        
-        sheet.getCell(r, 8).value = rate;
-        sheet.getCell(r, 8).font = { size: 7.5 };
-        sheet.getCell(r, 8).alignment = { horizontal: 'center', vertical: 'middle' };
-        sheet.getCell(r, 8).numFmt = '#,##0.00';
-        
-        sheet.getCell(r, 9).value = amt;
-        sheet.getCell(r, 9).font = { size: 7.5 };
-        sheet.getCell(r, 9).alignment = { horizontal: 'center', vertical: 'middle' };
-        sheet.getCell(r, 9).numFmt = '#,##0.00';
-
-        sheet.getRow(r).height = 60;
-        for(let c=1; c<=9; c++) { applyBorder(r, c); }
-        r++;
-      });
-
-      // Total Row
-      sheet.mergeCells(`A${r}:D${r}`);
-      sheet.getCell(r, 1).value = 'TOTAL';
-      sheet.getCell(r, 1).font = { bold: true, size: 7.5 };
-      sheet.getCell(r, 1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8F9FA' } };
-      sheet.getCell(r, 1).alignment = { horizontal: 'right', vertical: 'middle' };
-      
-      sheet.getCell(r, 5).value = pTotalPallets;
-      sheet.getCell(r, 5).font = { bold: true, size: 7.5 };
-      sheet.getCell(r, 5).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8F9FA' } };
-      sheet.getCell(r, 5).alignment = { horizontal: 'center', vertical: 'middle' };
-      
-      sheet.getCell(r, 6).value = pTotalBoxes;
-      sheet.getCell(r, 6).font = { bold: true, size: 7.5 };
-      sheet.getCell(r, 6).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8F9FA' } };
-      sheet.getCell(r, 6).alignment = { horizontal: 'center', vertical: 'middle' };
-      
-      sheet.getCell(r, 7).value = pTotalSQM;
-      sheet.getCell(r, 7).font = { bold: true, size: 7.5 };
-      sheet.getCell(r, 7).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8F9FA' } };
-      sheet.getCell(r, 7).alignment = { horizontal: 'center', vertical: 'middle' };
-      sheet.getCell(r, 7).numFmt = '#,##0.00';
-      
-      sheet.getCell(r, 8).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8F9FA' } };
-      
-      sheet.getCell(r, 9).value = pTotalAmount;
-      sheet.getCell(r, 9).font = { bold: true, size: 7.5 };
-      sheet.getCell(r, 9).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8F9FA' } };
-      sheet.getCell(r, 9).alignment = { horizontal: 'center', vertical: 'middle' };
-      sheet.getCell(r, 9).numFmt = '#,##0.00';
-      
-      for(let c=1; c<=9; c++) { applyBorder(r, c); }
-      r++;
-
-      // GST Row
-      const gstRate = parseFloat(documentData.gst_rate !== undefined ? documentData.gst_rate : (documentData.gstRate !== undefined ? documentData.gstRate : 0));
-      const gstAmount = documentData.gst_amount !== undefined ? documentData.gst_amount : (documentData.gstAmount !== undefined ? documentData.gstAmount : (pTotalAmount * (gstRate / 100)));
-      const poValue = documentData.poValue || documentData.total_amount || (pTotalAmount + gstAmount);
-
-      sheet.mergeCells(`A${r}:H${r}`);
-      sheet.getCell(r, 1).value = `GST @ ${gstRate.toFixed(2)} %`;
-      sheet.getCell(r, 1).font = { bold: true, size: 7.5 };
-      sheet.getCell(r, 1).alignment = { horizontal: 'right', vertical: 'middle' };
-      
-      sheet.getCell(r, 9).value = gstAmount;
-      sheet.getCell(r, 9).font = { bold: true, size: 7.5 };
-      sheet.getCell(r, 9).alignment = { horizontal: 'center', vertical: 'middle' };
-      sheet.getCell(r, 9).numFmt = '#,##0.00';
-      for(let c=1; c<=9; c++) { applyBorder(r, c); }
-      r++;
-
-      // PO Value Row
-      sheet.mergeCells(`A${r}:H${r}`);
-      sheet.getCell(r, 1).value = `PO VALUE (${documentData.currency || 'INR (₹)'})`;
-      sheet.getCell(r, 1).font = { bold: true, size: 8 };
-      sheet.getCell(r, 1).alignment = { horizontal: 'right', vertical: 'middle' };
-      
-      sheet.getCell(r, 9).value = poValue;
-      sheet.getCell(r, 9).font = { bold: true, size: 8 };
-      sheet.getCell(r, 9).alignment = { horizontal: 'center', vertical: 'middle' };
-      sheet.getCell(r, 9).numFmt = '#,##0.00';
-      for(let c=1; c<=9; c++) { applyBorder(r, c); }
-      r++;
-
-      // Instructions, Words, Wt
-      sheet.mergeCells(`A${r}:E${r+2}`);
-      sheet.getCell(r, 1).value = `1. PALLETS :- ${documentData.palletType || ''} ${documentData.notes || documentData.pallet_details || ''}\n2. MADE IN INDIA :-\n    TILES BACK :- ${documentData.tilesBack || 'MADE IN INDIA'}\n    BOXES :- ${documentData.boxesMarking || 'MADE IN INDIA'}\n3. BOXES :- ${documentData.boxType || ''}\n4. LEGALISATION :- ${documentData.legalisation || 'NO'}       5. FUMIGATION :- ${documentData.fumigation || 'YES'}\n6. OTHER INSTRUCTIONS :-\n${documentData.otherInstructions || ''}`;
-      sheet.getCell(r, 1).font = { size: 8 };
-      sheet.getCell(r, 1).alignment = { horizontal: 'left', vertical: 'top', wrapText: true };
-      
-      if (boxTypeImageUrl && boxImageId) {
-        sheet.addImage(boxImageId, { tl: { col: 4, row: r - 1 }, ext: { width: 60, height: 60 } });
-      }
-
-      sheet.mergeCells(`F${r}:I${r}`);
-      sheet.getCell(r, 6).value = `AMOUNT IN WORDS :- ${numberToWords(Math.floor(poValue))} ${poValue > 0 && Math.round((poValue % 1) * 100) > 0 ? `AND ${numberToWords(Math.round((poValue % 1) * 100))} PAISA` : ''} ONLY.`;
-      sheet.getCell(r, 6).font = { bold: true, size: 8 };
-      sheet.getCell(r, 6).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-      r++;
-
-      sheet.mergeCells(`F${r}:G${r}`);
-      sheet.getCell(r, 6).value = 'NET WEIGHT';
-      sheet.getCell(r, 6).font = { bold: true, size: 8 };
-      sheet.getCell(r, 6).alignment = { horizontal: 'left', vertical: 'middle' };
-      
-      sheet.getCell(r, 8).value = pTotalNetWt;
-      sheet.getCell(r, 8).font = { bold: true, size: 8 };
-      sheet.getCell(r, 8).alignment = { horizontal: 'center', vertical: 'middle' };
-      sheet.getCell(r, 8).numFmt = '#,##0.00';
-      
-      sheet.getCell(r, 9).value = 'KGS';
-      sheet.getCell(r, 9).font = { bold: true, size: 8 };
-      sheet.getCell(r, 9).alignment = { horizontal: 'right', vertical: 'middle' };
-      r++;
-
-      sheet.mergeCells(`F${r}:G${r}`);
-      sheet.getCell(r, 6).value = 'GROSS WEIGHT';
-      sheet.getCell(r, 6).font = { bold: true, size: 8 };
-      sheet.getCell(r, 6).alignment = { horizontal: 'left', vertical: 'middle' };
-      
-      sheet.getCell(r, 8).value = pTotalGrossWt;
-      sheet.getCell(r, 8).font = { bold: true, size: 8 };
-      sheet.getCell(r, 8).alignment = { horizontal: 'center', vertical: 'middle' };
-      sheet.getCell(r, 8).numFmt = '#,##0.00';
-      
-      sheet.getCell(r, 9).value = 'KGS';
-      sheet.getCell(r, 9).font = { bold: true, size: 8 };
-      sheet.getCell(r, 9).alignment = { horizontal: 'right', vertical: 'middle' };
-      
-      // Apply borders to the footer cells manually to fix merged cell borders
-      for(let rr=r-2; rr<=r; rr++) { for(let cc=1; cc<=9; cc++) { applyBorder(rr, cc); } }
-      sheet.getRow(r-2).height = 40;
-      r++;
-
-      // Companies Row
-      sheet.mergeCells(`A${r}:E${r}`);
-      sheet.getCell(r, 1).value = `FOR, ${documentData.supplier || (documentData.supplierDetails ? documentData.supplierDetails.split('\n')[0] : 'SUPPLIER NAME')}`;
-      sheet.getCell(r, 1).font = { bold: true, size: 8 };
-      sheet.getCell(r, 1).alignment = { horizontal: 'left', vertical: 'middle' };
-      
-      sheet.mergeCells(`F${r}:I${r}`);
-      sheet.getCell(r, 6).value = `FOR, ${exporterName}`;
-      sheet.getCell(r, 6).font = { bold: true, size: 8 };
-      sheet.getCell(r, 6).alignment = { horizontal: 'right', vertical: 'middle' };
-      sheet.getRow(r).height = 25;
-      r++;
-
-      // Signatures
-      sheet.mergeCells(`A${r}:B${r}`);
-      sheet.getCell(r, 1).value = '(AUTHORIZED SIGNATORY)';
-      sheet.getCell(r, 1).font = { bold: true, size: 8 };
-      sheet.getCell(r, 1).alignment = { horizontal: 'center', vertical: 'bottom' };
-      
-      sheet.mergeCells(`C${r}:E${r}`);
-      sheet.getCell(r, 3).value = '(PREPARED BY)';
-      sheet.getCell(r, 3).font = { bold: true, size: 8 };
-      sheet.getCell(r, 3).alignment = { horizontal: 'center', vertical: 'bottom' };
-      
-      sheet.mergeCells(`F${r}:G${r}`);
-      sheet.getCell(r, 6).value = '(CHECKED BY)';
-      sheet.getCell(r, 6).font = { bold: true, size: 8 };
-      sheet.getCell(r, 6).alignment = { horizontal: 'center', vertical: 'bottom' };
-      
-      sheet.mergeCells(`H${r}:I${r}`);
-      sheet.getCell(r, 8).value = '(AUTHORIZED SIGNATORY)';
-      sheet.getCell(r, 8).font = { bold: true, size: 8 };
-      sheet.getCell(r, 8).alignment = { horizontal: 'right', vertical: 'bottom' };
-      sheet.getRow(r).height = 60;
-      
-      const buffer = await workbook.xlsx.writeBuffer();
-      const filename = generateEnterpriseFilename({ moduleName: 'PROFORMA-ORDER', documentNo: invNo, clientName: documentData.supplier || 'Supplier', date: invDate, extension: 'xlsx', isProductExport: true });
-      saveAs(new Blob([buffer]), filename);
-      return true;
-    }
-
     // Supply Declaration (Only for Invoices)
 
     if (!['Packing List', 'PACKING LIST', 'VGM', 'Shipping Instructions', 'SHIPPING INSTRUCTIONS', 'Annexure', 'ANNEXURE', 'Invoice Backside', 'INVOICE BACKSIDE', 'IGST Invoice', 'IGST INVOICE', 'igst_invoice'].includes(moduleType)) {
@@ -2574,8 +1979,11 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
     sheet.getCell('D4').value = `EXPORTER REF. / PI NO.\n${piNo}    ${piDate}`;
     sheet.getCell('D4').alignment = { vertical: 'top', wrapText: true };
     sheet.mergeCells('E4:F4');
-    sheet.getCell('E4').value = `I.E.C. NO.\n    // Buyer (A5:C6)
-    sheet.mergeCells('A5:C6');
+    sheet.getCell('E4').value = `I.E.C. NO.\n${iecNo}`;
+    sheet.getCell('E4').alignment = { vertical: 'top', wrapText: true };
+
+    // Buyer (A5:C5)
+    sheet.mergeCells('A5:C5');
     const buyerCell = sheet.getCell('A5');
     buyerCell.value = `BUYER (IF OTHER THAN CONSIGNEE) :-\n${buyer}`;
     buyerCell.alignment = { vertical: 'top', wrapText: true };
@@ -2588,62 +1996,55 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
     sheet.getCell('E5').value = `GSTIN\n${gstn}`;
     sheet.getCell('E5').alignment = { vertical: 'top', wrapText: true };
 
-    // LC No / EPCG No (D6:F6)
-    sheet.getCell('D6').value = `LC NO. & DATE\n${lcNumber}    ${lcDate}`;
+    // Logistics Row 6
+    sheet.getCell('A6').value = `PRE-CARRIAGE BY\n${preCarriage}`;
+    sheet.getCell('A6').alignment = { vertical: 'top', wrapText: true };
+    sheet.mergeCells('B6:C6');
+    sheet.getCell('B6').value = `PLACE OF RECEIPT\n${receiptPlace}`;
+    sheet.getCell('B6').alignment = { vertical: 'top', wrapText: true };
+    sheet.getCell('D6').value = `SHIPMENT TERMS\n${deliveryTerms}`;
     sheet.getCell('D6').alignment = { vertical: 'top', wrapText: true };
+    sheet.getCell('D6').font = { bold: true };
     sheet.mergeCells('E6:F6');
-    sheet.getCell('E6').value = `EPCG NO.\n${epcgNo}`;
+    sheet.getCell('E6').value = `TARIFF CODE\n${tariffCode}`;
     sheet.getCell('E6').alignment = { vertical: 'top', wrapText: true };
+    sheet.getCell('E6').font = { bold: true };
 
     // Logistics Row 7
-    sheet.getCell('A7').value = `PRE-CARRIAGE BY\n${preCarriage}`;
+    sheet.getCell('A7').value = `VESSEL / FLIGHT NO.\n${vessel}`;
     sheet.getCell('A7').alignment = { vertical: 'top', wrapText: true };
-    sheet.mergeCells('B7:C7');
-    sheet.getCell('B7').value = `PLACE OF RECEIPT\n${receiptPlace}`;
+    sheet.mergeCells('B7:D7');
+    sheet.getCell('B7').value = `PORT OF LOADING\n${pol}`;
     sheet.getCell('B7').alignment = { vertical: 'top', wrapText: true };
-    sheet.getCell('D7').value = `SHIPMENT TERMS\n${deliveryTerms}`;
-    sheet.getCell('D7').alignment = { vertical: 'top', wrapText: true };
-    sheet.getCell('D7').font = { bold: true };
-    sheet.mergeCells('E7:F7');
-    sheet.getCell('E7').value = `TARIFF CODE\n${tariffCode}`;
-    sheet.getCell('E7').alignment = { vertical: 'top', wrapText: true };
-    sheet.getCell('E7').font = { bold: true };
-
-    // Logistics Row 8
-    sheet.getCell('A8').value = `VESSEL / FLIGHT NO.\n${vessel}`;
-    sheet.getCell('A8').alignment = { vertical: 'top', wrapText: true };
-    sheet.mergeCells('B8:D8');
-    sheet.getCell('B8').value = `PORT OF LOADING\n${pol}`;
-    sheet.getCell('B8').alignment = { vertical: 'top', wrapText: true };
     
     // Bank Details
-    sheet.mergeCells('E8:F10');
-    sheet.getCell('E8').value = `OUR BANK DETAILS :-\nA/C NAME: ${accName}\nA/C NO.: ${accNo}\nBANK NAME: ${bankName}\nADDRESS: ${bankAddr}\nSWIFT CODE: ${swift}`;
-    sheet.getCell('E8').alignment = { vertical: 'top', wrapText: true };
-    sheet.getCell('E8').font = { size: 9 };
+    sheet.mergeCells('E7:F9');
+    sheet.getCell('E7').value = `OUR BANK DETAILS :-\nA/C NAME: ${accName}\nA/C NO.: ${accNo}\nBANK NAME: ${bankName}\nADDRESS: ${bankAddr}\nSWIFT CODE: ${swift}`;
+    sheet.getCell('E7').alignment = { vertical: 'top', wrapText: true };
+    sheet.getCell('E7').font = { size: 9 };
+
+    // Logistics Row 8
+    sheet.getCell('A8').value = `PORT OF DISCHARGE\n${pod}`;
+    sheet.getCell('A8').alignment = { vertical: 'top', wrapText: true };
+    sheet.mergeCells('B8:D8');
+    sheet.getCell('B8').value = `FINAL DESTINATION\n${dest}`;
+    sheet.getCell('B8').alignment = { vertical: 'top', wrapText: true };
 
     // Logistics Row 9
-    sheet.getCell('A9').value = `PORT OF DISCHARGE\n${pod}`;
+    sheet.getCell('A9').value = `COUNTRY OF ORIGIN\n${origin}`;
     sheet.getCell('A9').alignment = { vertical: 'top', wrapText: true };
+    sheet.getCell('A9').font = { bold: true };
     sheet.mergeCells('B9:D9');
     sheet.getCell('B9').value = `FINAL DESTINATION\n${dest}`;
     sheet.getCell('B9').alignment = { vertical: 'top', wrapText: true };
+    sheet.getCell('B9').font = { bold: true };
 
-    // Logistics Row 10
-    sheet.getCell('A10').value = `COUNTRY OF ORIGIN\n${origin}`;
-    sheet.getCell('A10').alignment = { vertical: 'top', wrapText: true };
-    sheet.getCell('A10').font = { bold: true };
-    sheet.mergeCells('B10:D10');
-    sheet.getCell('B10').value = `FINAL DESTINATION\n${dest}`;
-    sheet.getCell('B10').alignment = { vertical: 'top', wrapText: true };
-    sheet.getCell('B10').font = { bold: true };
-
-    // Payment Terms (Row 11)
-    sheet.mergeCells('A11:D11'); // Leave blank
-    sheet.mergeCells('E11:F11');
-    sheet.getCell('E11').value = `PAYMENT TERMS\n${paymentTerms}`;
-    sheet.getCell('E11').alignment = { vertical: 'top', wrapText: true };
-    sheet.getCell('E11').font = { bold: true };
+    // Payment Terms (Row 10)
+    sheet.mergeCells('A10:D10'); // Leave blank
+    sheet.mergeCells('E10:F10');
+    sheet.getCell('E10').value = `PAYMENT TERMS\n${paymentTerms}`;
+    sheet.getCell('E10').alignment = { vertical: 'top', wrapText: true };
+    sheet.getCell('E10').font = { bold: true };
 
     // Apply borders to header cells properly ignoring missing cells inside merged ranges
     const applyBorderToRange = (r, startCol, endCol) => {
@@ -2659,43 +2060,57 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
     applyBorderToRange(4, 4, 4); // D4
     applyBorderToRange(4, 5, 6); // E4:F4
     // Row 5
-    applyBorderToRange(5, 1, 3); // A5:C6
+    applyBorderToRange(5, 1, 3); // A5:C5
     applyBorderToRange(5, 4, 4); // D5
     applyBorderToRange(5, 5, 6); // E5:F5
     // Row 6
+    applyBorderToRange(6, 1, 1); // A6
+    applyBorderToRange(6, 2, 3); // B6:C6
     applyBorderToRange(6, 4, 4); // D6
     applyBorderToRange(6, 5, 6); // E6:F6
     // Row 7
     applyBorderToRange(7, 1, 1); // A7
-    applyBorderToRange(7, 2, 3); // B7:C7
-    applyBorderToRange(7, 4, 4); // D7
-    applyBorderToRange(7, 5, 6); // E7:F7
+    applyBorderToRange(7, 2, 4); // B7:D7
+    applyBorderToRange(7, 5, 6); // E7:F9
     // Row 8
     applyBorderToRange(8, 1, 1); // A8
     applyBorderToRange(8, 2, 4); // B8:D8
-    applyBorderToRange(8, 5, 6); // E8:F10
     // Row 9
     applyBorderToRange(9, 1, 1); // A9
     applyBorderToRange(9, 2, 4); // B9:D9
     // Row 10
-    applyBorderToRange(10, 1, 1); // A10
-    applyBorderToRange(10, 2, 4); // B10:D10
-    // Row 11
-    applyBorderToRange(11, 1, 4); // A11:D11
-    applyBorderToRange(11, 5, 6); // E11:F11
+    applyBorderToRange(10, 1, 4); // A10:D10
+    applyBorderToRange(10, 5, 6); // E10:F10
 
     // Set heights to accommodate text dynamically
     sheet.getRow(3).height = Math.max(45, (exporterName.length + exporterAddress.length) / 50 * 15 + 20);
     sheet.getRow(4).height = Math.max(45, consignee.length / 50 * 15 + 20);
     sheet.getRow(5).height = Math.max(45, buyer.length / 50 * 15 + 20);
     sheet.getRow(6).height = 40;
-    sheet.getRow(7).height = 40;
+    sheet.getRow(7).height = 30;
     sheet.getRow(8).height = 30;
     sheet.getRow(9).height = 30;
     sheet.getRow(10).height = 30;
-    sheet.getRow(11).height = 30;
 
-    let currentRow = 13;\n';
+    let currentRow = 12;
+
+    // --- Products Processing (Matching Print View Logic) ---
+    // Combine tile and sanitary products
+    const allProductsRaw = [...tileProducts, ...sanitaryProducts];
+
+    const productLines = allProductsRaw.map(line => {
+      const isFoc = !!(line.is_foc || line.isFoc);
+      const isSanitaryware = line.product_type === 'sanitaryware' || line.productType === 'sanitaryware' || line.type === 'sanitaryware' || line.item_name;
+      const boxes = parseInt(line.totalBoxes || line.total_boxes || line.boxes || line.pieces || line.cartons || line.pcs || 0, 10);
+      const sqm = isSanitaryware ? 0 : parseFloat(line.sqmAuto || line.sqm_auto || line.sqm || 0);
+      const rate = parseFloat(line.rate || line.unit_price || line.price || 0);
+      const amount = isFoc ? 0 : parseFloat(line.amount || line.total_price || (isSanitaryware ? (boxes * rate) : (sqm * rate)));
+
+      const productName = line.product || line.product_name || line.name || line.item_name || line.type || 'Unknown';
+      const description = line.description || line.productDescription || line.materialDescription || [line.size, line.surface, line.color].filter(Boolean).join(' ') || '';
+      
+      let finalDescription = '';
+      if (isFoc) finalDescription += 'FREE OF COST SAMPLE NO COMMERCIAL VALUE\n';
       
       if (description && description !== productName && description.toLowerCase() !== 'name' && description.toLowerCase() !== 'unknown' && description !== '-') {
         finalDescription += `${productName}\n${description}`;
@@ -2707,12 +2122,222 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       const factoryProductName = line.factoryProductName || line.factory_product_name;
       const pallets = line.pallets || line.totalPallets || line.total_pallets || line.no_of_pallets || line.noOfPallets;
       if (factoryProductName && factoryProductName !== '-' && factoryProductName !== productName) finalDescription += `\nFACTORY PROD: ${factoryProductName}`;
-      if (pallets && pallets !== '0' && pallets !== 0) finalDescription += `\n      const docTotalPallets = documentData.total_pallets || documentData.totalPallets || productLines.reduce((sum, p) => sum + (parseFloat(p.pallets || p.totalPallets || p.total_pallets || p.no_of_pallets || p.noOfPallets || 0) || 0), 0);
+      if (pallets && pallets !== '0' && pallets !== 0) finalDescription += `\nPALLETS: ${pallets}`;
+
+      return {
+        ...line,
+        isFoc,
+        isSanitaryware,
+        hsnCode: line.hsnCode || line.hsn_code || line.hsCode || line.hs_code || '',
+        finalDescription: finalDescription.trim(),
+        totalBoxes: boxes,
+        sqmAuto: sqm,
+        rate,
+        amount
+      };
+    });
+
+    const groups = [];
+    let groupStart = 0;
+    for (let i = 0; i < productLines.length; i++) {
+      if (i === 0) {
+        groups[i] = { 
+          rowSpan: 1, 
+          mergedBoxes: productLines[i].totalBoxes, 
+          mergedSqm: productLines[i].sqmAuto, 
+          mergedAmount: productLines[i].amount,
+          mergedNetWeight: parseFloat(productLines[i].netWeight || productLines[i].net_weight || 0),
+          mergedGrossWeight: parseFloat(productLines[i].grossWeight || productLines[i].gross_weight || 0)
+        };
+        continue;
+      }
+      const prev = productLines[i - 1];
+      const curr = productLines[i];
+      const prevKey = `${prev.finalDescription}|${prev.rate}`;
+      const currKey = `${curr.finalDescription}|${curr.rate}`;
+      if (prevKey === currKey && prevKey !== '|0') {
+        groups[groupStart].rowSpan += 1;
+        groups[groupStart].mergedBoxes += curr.totalBoxes;
+        groups[groupStart].mergedSqm += curr.sqmAuto;
+        groups[groupStart].mergedAmount += curr.amount;
+        groups[groupStart].mergedNetWeight += parseFloat(curr.netWeight || curr.net_weight || 0);
+        groups[groupStart].mergedGrossWeight += parseFloat(curr.grossWeight || curr.gross_weight || 0);
+        groups[i] = { rowSpan: 0, mergedBoxes: 0, mergedSqm: 0, mergedAmount: 0, mergedNetWeight: 0, mergedGrossWeight: 0 };
+      } else {
+        groupStart = i;
+        groups[i] = { 
+          rowSpan: 1, 
+          mergedBoxes: curr.totalBoxes, 
+          mergedSqm: curr.sqmAuto, 
+          mergedAmount: curr.amount,
+          mergedNetWeight: parseFloat(curr.netWeight || curr.net_weight || 0),
+          mergedGrossWeight: parseFloat(curr.grossWeight || curr.gross_weight || 0)
+        };
+      }
+    }
+
+    if (productLines.length > 0) {
+      sheet.mergeCells(`A${currentRow}:F${currentRow}`);
+      const headerTitle = sheet.getCell(`A${currentRow}`);
+      headerTitle.value = 'PRODUCT LIST';
+      headerTitle.font = { name: 'Arial', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+      headerTitle.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF6C757D' } };
+      headerTitle.alignment = { horizontal: 'center', vertical: 'middle' };
+      currentRow++;
+
+      // Row 1 of headers
+      sheet.getCell(`A${currentRow}`).value = 'MATERIAL DESCRIPTION';
+      sheet.getCell(`B${currentRow}`).value = moduleType === 'Packing List' ? 'BOXES/PCS' : 'HSN CODE';
+      sheet.getCell(`C${currentRow}`).value = moduleType === 'Packing List' ? 'QUANTITY (SQM)' : 'QUANTITY';
+      if (moduleType === 'Packing List') {
+        sheet.getCell(`D${currentRow}`).value = 'NET WEIGHT (KGS)';
+        sheet.getCell(`E${currentRow}`).value = 'GROSS WEIGHT (KGS)';
+        sheet.getCell(`F${currentRow}`).value = 'PALLETS';
+      } else {
+        sheet.getCell(`E${currentRow}`).value = 'RATE FOB USD/SQM';
+        sheet.getCell(`F${currentRow}`).value = 'AMOUNT FOB USD';
+      }
       
+      // Merge cells for headers that span 2 rows
+      sheet.mergeCells(`A${currentRow}:A${currentRow+1}`);
+      if (moduleType === 'Packing List') {
+        sheet.mergeCells(`B${currentRow}:B${currentRow+1}`);
+        sheet.mergeCells(`C${currentRow}:C${currentRow+1}`);
+        sheet.mergeCells(`D${currentRow}:D${currentRow+1}`);
+        sheet.mergeCells(`E${currentRow}:E${currentRow+1}`);
+        sheet.mergeCells(`F${currentRow}:F${currentRow+1}`);
+      } else {
+        sheet.mergeCells(`B${currentRow}:B${currentRow+1}`);
+        sheet.mergeCells(`C${currentRow}:D${currentRow}`); // QUANTITY spans 2 columns
+        sheet.mergeCells(`E${currentRow}:E${currentRow+1}`);
+        sheet.mergeCells(`F${currentRow}:F${currentRow+1}`);
+
+        // Row 2 of headers
+        sheet.getCell(`C${currentRow+1}`).value = 'BOXES/PCS';
+        sheet.getCell(`D${currentRow+1}`).value = 'SQM';
+      }
+
+      // Style headers
+      for (let r = currentRow; r <= currentRow + 1; r++) {
+        const row = sheet.getRow(r);
+        row.font = { bold: true };
+        for (let c = 1; c <= 6; c++) {
+          const cell = row.getCell(c);
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8F9FA' } };
+          applyBorder(r, c);
+          cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        }
+      }
+      currentRow += 2;
+
+      let totalBoxesAll = 0;
+      let totalSqmAll = 0;
+      let totalAmountAll = 0;
+      let totalNetWeightAll = 0;
+      let totalGrossWeightAll = 0;
+
+      productLines.forEach((p, i) => {
+        const grp = groups[i];
+        if (grp.rowSpan === 0) return; // Skip merged rows
+
+        totalBoxesAll += grp.mergedBoxes;
+        totalSqmAll += grp.mergedSqm;
+        totalAmountAll += grp.mergedAmount;
+        totalNetWeightAll += grp.mergedNetWeight;
+        totalGrossWeightAll += grp.mergedGrossWeight;
+
+        const rowData = moduleType === 'Packing List'
+          ? [
+              p.finalDescription,
+              grp.mergedBoxes,
+              p.isSanitaryware ? 0 : grp.mergedSqm,
+              grp.mergedNetWeight,
+              grp.mergedGrossWeight,
+              p.pallets || p.totalPallets || p.total_pallets || '-'
+            ]
+          : [
+              p.finalDescription,
+              p.hsnCode,
+              grp.mergedBoxes,
+              p.isSanitaryware ? 0 : grp.mergedSqm,
+              p.isFoc ? 0 : p.rate,
+              p.isFoc ? 0 : grp.mergedAmount
+            ];
+
+        const row = sheet.addRow(rowData);
+        row.eachCell((cell, colNumber) => {
+          applyBorder(row.number, colNumber);
+          cell.alignment = { vertical: 'middle' };
+          
+          if (colNumber === 1) cell.alignment.wrapText = true;
+          
+          if ([3, 4, 5, 6].includes(colNumber)) {
+            cell.alignment.horizontal = 'right';
+            if (colNumber === 5 || colNumber === 6) {
+              cell.numFmt = '#,##0.00';
+            } else if (colNumber === 4) {
+              cell.numFmt = '#,##0.00'; 
+            } else {
+              cell.numFmt = '#,##0';
+            }
+          } else {
+            cell.alignment.horizontal = 'left';
+          }
+        });
+        currentRow++;
+      });
+
+      // Total Row
+      const totalRowData = moduleType === 'Packing List'
+        ? ['TOTAL :-', totalBoxesAll, totalSqmAll, totalNetWeightAll, totalGrossWeightAll, '']
+        : ['TOTAL :-', '', totalBoxesAll, totalSqmAll, '', totalAmountAll];
+      const totalRow = sheet.addRow(totalRowData);
+      totalRow.font = { bold: true };
+      totalRow.eachCell((cell, colNumber) => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0F0F0' } };
+        applyBorder(totalRow.number, colNumber);
+        if (colNumber === 1) {
+          cell.alignment = { horizontal: 'right', vertical: 'middle' };
+        }
+        if ([3, 4, 5, 6].includes(colNumber)) {
+          cell.alignment = { horizontal: 'right', vertical: 'middle' };
+          if (colNumber === 6) cell.numFmt = '#,##0.00';
+          if (colNumber === 4) cell.numFmt = '#,##0.00';
+          if (colNumber === 3) cell.numFmt = '#,##0';
+        }
+      });
+      sheet.mergeCells(`A${currentRow}:B${currentRow}`);
+      currentRow++;
+
+      // Footer details (Logistics/Packing + Signatory)
+      currentRow++;
+      
+      const palletType = documentData.pallet_type || 'NORMAL WOODEN PALLETS';
+      const tilesBack = documentData.tiles_back || 'YES';
+      const boxesMarking = documentData.boxes_marking || 'YES';
+      const boxType = documentData.box_type || 'NON BRANDED';
+      const fumigation = documentData.fumigation || 'YES';
+      const legalisation = documentData.legalisation || 'NO';
+      const otherInstr = documentData.other_instructions || '-';
+
+      const amountWhole = Math.floor(totalAmountAll);
+      const amountCents = Math.round((totalAmountAll - amountWhole) * 100);
+      const amountWords = `TOTAL FOB VALUE :- USD ${numberToWords(amountWhole)}${amountCents > 0 ? ` AND CENTS ${numberToWords(amountCents)}` : ''} ONLY.`;
+
       sheet.mergeCells(`A${currentRow}:D${currentRow+1}`);
-      sheet.getCell(`A${currentRow}`).value = `1. PALLETS :- ${docTotalPallets > 0 ? docTotalPallets + ' ' : ''}${palletType}\n2. MADE IN INDIA :-\n   TILES BACK: ${tilesBack}\n   BOXES: ${boxesMarking}\n3. BOXES :- ${boxType}\n4. FUMIGATION :- ${fumigation}\n5. LEGALISATION :- ${legalisation}\n6. OTHER :- ${otherInstr}`;
+      sheet.getCell(`A${currentRow}`).value = `1. PALLETS :- ${palletType}\n2. MADE IN INDIA :-\n   TILES BACK: ${tilesBack}\n   BOXES: ${boxesMarking}\n3. BOXES :- ${boxType}\n4. FUMIGATION :- ${fumigation}\n5. LEGALISATION :- ${legalisation}\n6. OTHER :- ${otherInstr}`;
       sheet.getCell(`A${currentRow}`).alignment = { vertical: 'top', wrapText: true };
-      sheet.getCell(`A${currentRow}`).font = { size: 9 };\n\nFOR, ${exporterName}\n\n\n(AUTHORIZED SIGNATORY)`;
+      sheet.getCell(`A${currentRow}`).font = { size: 9 };
+
+      if (boxImageId !== null) {
+        sheet.addImage(boxImageId, {
+          tl: { col: 2.8, row: currentRow - 0.8 }, // Align right side of A-D merge
+          ext: { width: 50, height: 50 }
+        });
+      }
+      
+      sheet.mergeCells(`E${currentRow}:F${currentRow+1}`);
+      sheet.getCell(`E${currentRow}`).value = `${amountWords}\n\nFOR, ${exporterName}\n\n\n(AUTHORIZED SIGNATORY)`;
       sheet.getCell(`E${currentRow}`).alignment = { vertical: 'top', horizontal: 'right', wrapText: true };
       sheet.getCell(`E${currentRow}`).font = { bold: true };
 
@@ -2966,7 +2591,6 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
 
       // Custom Footer for Invoice Backside / Container Lists
       currentRow++;
-      const docTotalPallets = documentData.total_pallets || documentData.totalPallets || productLines.reduce((sum, p) => sum + (parseFloat(p.pallets || p.totalPallets || p.total_pallets || p.no_of_pallets || p.noOfPallets || 0) || 0), 0);
       const palletType = documentData.pallet_type || 'NORMAL WOODEN PALLETS';
       const tilesBack = documentData.tiles_back || 'YES';
       const boxesMarking = documentData.boxes_marking || 'YES';
@@ -2976,7 +2600,7 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       const otherInstr = documentData.other_instructions || '-';
 
       sheet.mergeCells(`A${currentRow}:D${currentRow+1}`);
-      sheet.getCell(`A${currentRow}`).value = `1. PALLETS :- ${docTotalPallets > 0 ? docTotalPallets + ' ' : ''}${palletType}\n2. MADE IN INDIA :-\n   TILES BACK: ${tilesBack}\n   BOXES: ${boxesMarking}\n3. BOXES :- ${boxType}\n4. FUMIGATION :- ${fumigation}\n5. LEGALISATION :- ${legalisation}\n6. OTHER :- ${otherInstr}`;
+      sheet.getCell(`A${currentRow}`).value = `1. PALLETS :- ${palletType}\n2. MADE IN INDIA :-\n   TILES BACK: ${tilesBack}\n   BOXES: ${boxesMarking}\n3. BOXES :- ${boxType}\n4. FUMIGATION :- ${fumigation}\n5. LEGALISATION :- ${legalisation}\n6. OTHER :- ${otherInstr}`;
       sheet.getCell(`A${currentRow}`).alignment = { vertical: 'top', wrapText: true };
       sheet.getCell(`A${currentRow}`).font = { size: 9 };
 

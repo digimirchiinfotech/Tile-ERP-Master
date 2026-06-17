@@ -27,7 +27,7 @@ import { tokenManager } from '../../utils/tokenManager.js';
 import { rolePermissions } from '../../config/rolePermissions.js';
 import './SimpleLoginForm.css';
 
-function SimpleLoginForm({ onLogin, onShowForgotPassword }) {
+function SimpleLoginForm({ onLogin, onShowForgotPassword, onNavigate }) {
   const [formData, setFormData] = useState({
     emailOrUsername: '',
     password: '',
@@ -168,16 +168,23 @@ function SimpleLoginForm({ onLogin, onShowForgotPassword }) {
                 />
                 Remember me
               </label>
-              <a 
-                href="#" 
-                className="forgot-link" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (onShowForgotPassword) onShowForgotPassword();
-                }}
-              >
-                Forgot Password?
-              </a>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                <a 
+                  href="#" 
+                  className="forgot-link" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (onShowForgotPassword) onShowForgotPassword();
+                  }}
+                >
+                  Forgot Password?
+                </a>
+                <div style={{ fontSize: '12px', color: '#6b7280', display: 'flex', gap: '8px' }}>
+                  <a href="#" onClick={(e) => { e.preventDefault(); onNavigate && onNavigate('terms'); }} style={{ color: '#4b5563', textDecoration: 'none' }}>Terms</a>
+                  <span>|</span>
+                  <a href="#" onClick={(e) => { e.preventDefault(); onNavigate && onNavigate('privacy'); }} style={{ color: '#4b5563', textDecoration: 'none' }}>Privacy Policy</a>
+                </div>
+              </div>
             </div>
 
             <button

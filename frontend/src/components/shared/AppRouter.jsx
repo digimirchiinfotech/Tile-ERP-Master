@@ -17,6 +17,10 @@ import SearchResults from './SearchResults.jsx';
 import AccessDenied from './AccessDenied.jsx';
 import NotFound from './NotFound.jsx';
 
+// Legal Components
+const TermsAndConditions = React.lazy(() => import('../legal/TermsAndConditions.jsx'));
+const PrivacyPolicy = React.lazy(() => import('../legal/PrivacyPolicy.jsx'));
+
 // Dashboard Components
 const SuperAdminDashboard = React.lazy(() => import('../super-admin/SuperAdminDashboard.jsx'));
 const CompanyManagement = React.lazy(() => import('../super-admin/CompanyManagement.jsx'));
@@ -355,10 +359,17 @@ const AppRouter = ({
   }
   
   if (!currentUser) {
+    if (currentView === 'terms') {
+      return <TermsAndConditions onBack={() => handleNavigate('login')} />;
+    }
+    if (currentView === 'privacy') {
+      return <PrivacyPolicy onBack={() => handleNavigate('login')} />;
+    }
     return (
       <SimpleLoginForm
         onLogin={handleLogin}
         onShowForgotPassword={() => setShowForgotPassword(true)}
+        onNavigate={handleNavigate}
       />
     );
   }

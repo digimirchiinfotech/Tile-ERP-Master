@@ -155,8 +155,8 @@ function Layout({
                 © {new Date().getFullYear()} Tile Exporter. <span className="d-none d-md-inline">All rights reserved. ||</span> Developed by <span className="brand-name">DigiMirchi</span>
               </p>
               <div className="footer-links d-flex gap-3" style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
-                <span className="footer-link-item small text-muted" style={{ cursor: 'pointer' }} onClick={() => onNavigate('help-center')}>Privacy</span>
-                <span className="footer-link-item small text-muted" style={{ cursor: 'pointer' }} onClick={() => onNavigate('help-center')}>Terms</span>
+                <span className="footer-link-item small text-muted hover:text-blue-600 transition-colors" style={{ cursor: 'pointer' }} onClick={() => onNavigate('privacy')}>Privacy</span>
+                <span className="footer-link-item small text-muted hover:text-blue-600 transition-colors" style={{ cursor: 'pointer' }} onClick={() => onNavigate('terms')}>Terms</span>
               </div>
             </div>
           </footer>

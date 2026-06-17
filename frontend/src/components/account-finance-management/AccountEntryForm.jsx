@@ -62,12 +62,7 @@ function AccountEntryForm({ entry, onSave, onCancel, viewOnly = false }) {
         remarks: entry.remarks || '',
       });
     } else {
-      const newEntryNo = `ACC/${String(new Date().getMonth() + 1).padStart(
-        2,
-        '0'
-      )}/${String(new Date().getFullYear()).slice(-2)}/${String(
-        Math.floor(Math.random() * 1000) + 1
-      ).padStart(3, '0')}`;
+      const newEntryNo = `ACC/${String(new Date().getMonth() + 1).padStart(2, '0')}/${String(new Date().getFullYear()).slice(-2)}/Auto`;
       setFormData((prev) => ({
         ...prev,
         entryNo: newEntryNo,
@@ -441,4 +436,4 @@ export default AccountEntryForm;
 
 
 
-
+

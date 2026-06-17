@@ -309,7 +309,8 @@ export const getByExportInvoiceId = async (req, res, next) => {
             exchange_rate: exchangeRate,
             rate: rate,
             taxable_amount: parseFloat(taxableAmount.toFixed(2)),
-            igst_rate: igstPercent,
+            igst_percentage: igstPercent,
+        igst_rate: igstPercent,
             igst_amount: parseFloat(igstAmt.toFixed(2)),
             total_amount: parseFloat(totalAmt.toFixed(2))
           };
@@ -507,7 +508,7 @@ export const createOrUpdate = async (req, res, next) => {
         taxableAmount = sqm > 0 ? (sqm * rate) : (pcs * rate);
       }
 
-      const igstPercent = parseFloat(l.igst_rate || l.igst_percent || 18.00);
+      const igstPercent = parseFloat(l.igst_percentage || l.igst_percent || l.igst_rate || 18.00);
       const igstAmt = taxableAmount * (igstPercent / 100);
       const totalAmt = taxableAmount + igstAmt;
 

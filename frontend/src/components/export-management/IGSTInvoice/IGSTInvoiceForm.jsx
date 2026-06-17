@@ -195,7 +195,8 @@ function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, current
             exchange_rate: parseFloat(l.exchange_rate || l.exchangeRate || docExchangeRate),
             rate: parseFloat(l.rate || 0),
             taxable_amount: parseFloat(l.taxableAmount || l.taxable_amount || 0),
-            igst_rate: parseFloat(l.igstRate || l.igst_rate || 18.00),
+            igst_percentage: parseFloat(l.igst_percentage || l.igst_percent || l.igstRate || l.igst_rate || 18.00),
+            igst_rate: parseFloat(l.igst_percentage || l.igst_percent || l.igstRate || l.igst_rate || 18.00),
             igst_amount: parseFloat(l.igstAmount || l.igst_amount || 0),
             total_amount: parseFloat(l.totalAmount || l.total_amount || 0)
           }));
@@ -296,7 +297,7 @@ function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, current
         taxable = sqm > 0 ? (sqm * rate) : (pcs * rate);
       }
 
-      const igstRate = parseFloat(l.igst_rate || 18.00);
+      const igstRate = parseFloat(l.igst_percentage !== undefined ? l.igst_percentage : (l.igst_rate || 18.00));
       const igstAmt = taxable * (igstRate / 100);
       const totalAmt = taxable + igstAmt;
 
@@ -385,6 +386,7 @@ function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, current
       usd_rate: 0,
       exchange_rate: parseFloat(formData.exchange_rate || 87.35274),
       taxable_amount: 0,
+      igst_percentage: 18.00,
       igst_rate: 18.00,
       igst_amount: 0,
       total_amount: 0
@@ -850,7 +852,22 @@ function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, current
                         ₹{parseFloat(l.taxable_amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </td>
                       <td className="font-monospace text-info fw-semibold">
-                        {parseFloat(l.igst_rate || 18.00).toFixed(2)}%
+                        <Form.Control
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="100"
+                          value={l.igst_percentage !== undefined ? l.igst_percentage : (l.igst_rate || '')}
+                          onChange={e => {
+                            let val = parseFloat(e.target.value);
+                            if (isNaN(val)) val = 0;
+                            if (val < 0) val = 0;
+                            if (val > 100) val = 100;
+                            handleLineFieldChange(i, 'igst_percentage', val);
+                          }}
+                          className="fw-bold text-center border-info border-opacity-25"
+                          size="sm"
+                        />
                       </td>
                       <td className="font-monospace fw-medium text-info">
                         ₹{parseFloat(l.igst_amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}

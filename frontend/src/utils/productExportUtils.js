@@ -596,7 +596,7 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
         const taxCell = setCell(r, 7, isFoc ? 0 : parseFloat(p.taxableAmount || p.taxable_amount || 0), { bold: true, align: { horizontal: 'right', vertical: 'top' } });
         taxCell.numFmt = '#,##0.00';
         
-        setCell(r, 8, `${p.igstRate || p.igst_rate || '18.00'}%`, { align: { horizontal: 'center', vertical: 'top' } });
+        setCell(r, 8, `${parseFloat(p.igst_percentage || p.igst_rate || p.igstRate || '18.00').toFixed(2)}%`, { align: { horizontal: 'center', vertical: 'top' } });
         
         const igstAmtCell = setCell(r, 9, isFoc ? 0 : parseFloat(p.igstAmount || p.igst_amount || 0), { bold: true, align: { horizontal: 'right', vertical: 'top' } });
         igstAmtCell.numFmt = '#,##0.00';

@@ -1333,7 +1333,9 @@ export const provisionCompanyDatabase = async (company) => {
         
         -- Calculations
         taxable_amount NUMERIC(15,2) DEFAULT 0,
-        igst_rate NUMERIC(5,2) DEFAULT 18.00,
+        igst_percentage DECIMAL(5,2) DEFAULT 18.00,
+        igst_percentage DECIMAL(5,2) DEFAULT 18.00,
+          igst_rate NUMERIC(5,2) DEFAULT 18.00,
         igst_amount NUMERIC(15,2) DEFAULT 0,
         total_amount_after_tax NUMERIC(15,2) DEFAULT 0,
         total_before_tax NUMERIC(15,2) DEFAULT 0,

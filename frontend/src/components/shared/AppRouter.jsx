@@ -247,6 +247,8 @@ const AppRouter = ({
       'notifications': [],
       'help-center': [],
       'search-results': [],
+      'terms': [],
+      'privacy': [],
 
       'access-denied': [],
     };
@@ -428,6 +430,8 @@ const AppRouter = ({
     case 'company-management': return <CompanyManagement currentUser={currentUser} onNavigate={handleNavigate} />;
     case 'subscription-management': return <SubscriptionManagement currentUser={currentUser} onNavigate={handleNavigate} />;
     case 'session-management': return <SessionManagement currentUser={currentUser} onNavigate={handleNavigate} />;
+    case 'terms': return <TermsAndConditions onBack={() => handleNavigate('help-center')} />;
+    case 'privacy': return <PrivacyPolicy onBack={() => handleNavigate('help-center')} />;
     case 'reports-analytics': return <ReportsAnalytics currentUser={currentUser} onNavigate={handleNavigate} />;
     case 'master-data-management': return <MasterDataManagement currentUser={currentUser} onNavigate={handleNavigate} />;
     case 'size-packing-master': return <SizePackingMaster currentUser={currentUser} onNavigate={handleNavigate} />;

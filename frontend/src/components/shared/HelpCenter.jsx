@@ -148,9 +148,15 @@ const HelpCenter = ({ onNavigate }) => {
                       <Lock size={20} className="me-2" /> Privacy Policy
                     </h5>
                     <div className="ps-4 border-start border-3 border-success-subtle">
-                      <p className="small text-muted"><strong>Data Ownership:</strong> Every company on this platform owns their data 100%. We act only as a processor. We will never share your client lists or pricing with any third party.</p>
-                      <p className="small text-muted"><strong>Data Security:</strong> Your business is protected by <b>AES-256 Encryption</b>. All database passwords and sensitive credentials are encrypted at the field level.</p>
-                      <p className="small text-muted"><strong>Isolation:</strong> We use a <b>Multi-Tenant Isolated Architecture</b>. Your data lives in a physically separate database from other companies, ensuring zero leakage.</p>
+                      <p className="small text-muted mb-2"><strong>Data Ownership:</strong> Every company on this platform owns their data 100%. We act only as a processor. We will never share your client lists or pricing with any third party.</p>
+                      <p className="small text-muted mb-2"><strong>Data Security:</strong> Your business is protected by <b>AES-256 Encryption</b>. All database passwords and sensitive credentials are encrypted at the field level.</p>
+                      <p className="small text-muted mb-3"><strong>Isolation:</strong> We use a <b>Multi-Tenant Isolated Architecture</b>. Your data lives in a physically separate database from other companies, ensuring zero leakage.</p>
+                      <button 
+                        className="btn btn-outline-success btn-sm fw-medium rounded-pill px-3"
+                        onClick={() => onNavigate('privacy')}
+                      >
+                        Read Full Privacy Policy
+                      </button>
                     </div>
                   </div>
 
@@ -159,9 +165,15 @@ const HelpCenter = ({ onNavigate }) => {
                       <Scale size={20} className="me-2" /> Terms of Service
                     </h5>
                     <div className="ps-4 border-start border-3 border-primary-subtle">
-                      <p className="small text-muted"><strong>Usage License:</strong> Access is provided per-company. Unauthorized redistribution or "cloning" of this project is strictly prohibited under intellectual property laws.</p>
-                      <p className="small text-muted"><strong>Regulatory Liability:</strong> While the system automates documentation, the <b>Client is responsible</b> for verifying the accuracy of VGM and Shipping Instructions before final submission to ports.</p>
-                      <p className="small text-muted"><strong>Service Availability:</strong> We target a <b>99.9% uptime</b>. Maintenance windows will be notified 24 hours in advance.</p>
+                      <p className="small text-muted mb-2"><strong>Usage License:</strong> Access is provided per-company. Unauthorized redistribution or "cloning" of this project is strictly prohibited under intellectual property laws.</p>
+                      <p className="small text-muted mb-2"><strong>Regulatory Liability:</strong> While the system automates documentation, the <b>Client is responsible</b> for verifying the accuracy of VGM and Shipping Instructions before final submission to ports.</p>
+                      <p className="small text-muted mb-3"><strong>Service Availability:</strong> We target a <b>99.9% uptime</b>. Maintenance windows will be notified 24 hours in advance.</p>
+                      <button 
+                        className="btn btn-outline-primary btn-sm fw-medium rounded-pill px-3"
+                        onClick={() => onNavigate('terms')}
+                      >
+                        Read Full Terms of Service
+                      </button>
                     </div>
                   </div>
                 </div>

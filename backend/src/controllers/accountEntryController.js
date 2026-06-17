@@ -484,7 +484,7 @@ export const getInvoicesByPartyName = async (req, res, next) => {
       }
     }
 
-    conditions.push(`(TRIM(c.name) ILIKE $${paramCount} OR TRIM(inv.client_name) ILIKE $${paramCount})`);
+    conditions.push(`(TRIM(c.name) ILIKE ${paramCount} OR TRIM(inv.client_name) ILIKE ${paramCount} OR TRIM(inv.party_name) ILIKE ${paramCount})`);
     values.push(`%${partyName.trim()}%`);
     paramCount++;
 
@@ -494,13 +494,13 @@ export const getInvoicesByPartyName = async (req, res, next) => {
        (SELECT inv.id, inv.invoice_no, CAST(inv.invoice_date AS TEXT) as date, CAST(inv.total_amount AS NUMERIC) as total_amount, 'Export' as type 
         FROM export_invoices inv
         LEFT JOIN clients c ON inv.client_id = c.id
-        ${whereClause} AND inv.invoice_no NOT IN (SELECT invoice_ref FROM account_entries WHERE invoice_ref IS NOT NULL AND invoice_ref != '')
+        ${whereClause}
        )
        UNION ALL
        (SELECT inv.id, inv.invoice_no, CAST(inv.date AS TEXT) as date, CAST(inv.total_amount AS NUMERIC) as total_amount, 'Proforma' as type 
         FROM proforma_invoices inv
         LEFT JOIN clients c ON inv.client_id = c.id
-        ${whereClause} AND inv.invoice_no NOT IN (SELECT invoice_ref FROM account_entries WHERE invoice_ref IS NOT NULL AND invoice_ref != '')
+        ${whereClause}
        )
        ORDER BY date DESC`;
 

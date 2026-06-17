@@ -15,7 +15,7 @@
  */
 
 const ALLOWED_TYPES = ['PI', 'PO', 'PL', 'NP', 'EXP', 'INV', 'VGM', 'BL', 'ACC', 'QC', 'SI', 'ANX', 'IB', 'BS', 'CLI', 'SUP', 'LEAD', 'PROD', 'SPROD', 'CAT', 'TKT', 'CERT', 'CC', 'PSD', 'IGST', 'PS', 'OS'];
-const EXPORT_STANDARD_TYPES = ['EXP', 'INV', 'VGM', 'SI', 'ANX', 'IB', 'PL', 'QC', 'ACC', 'BL', 'CLI', 'SUP', 'LEAD', 'PROD', 'SPROD', 'CAT', 'TKT', 'CERT', 'CC', 'PSD', 'PS', 'OS'];
+const EXPORT_STANDARD_TYPES = ['EXP', 'INV', 'VGM', 'SI', 'ANX', 'IB', 'PL', 'QC', 'BL', 'CLI', 'SUP', 'LEAD', 'PROD', 'SPROD', 'CAT', 'TKT', 'CERT', 'CC', 'PSD', 'PS', 'OS'];
 
 /**
  * Preview the next document number without incrementing the counter

@@ -27,7 +27,7 @@ import {
   sanitizeEmail 
 } from '../../utils/inputHelpers.js';
 import { FIELD_PLACEHOLDERS } from '../../config/fieldPlaceholders.js';
-import ValidationErrorModal from '../shared/ValidationErrorModal.jsx';
+
 
 const userRoles = {
   company_admin: 'Company Admin',
@@ -54,7 +54,7 @@ function UserForm({ user, onSave, onCancel }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
-  const [showErrorModal, setShowErrorModal] = useState(false);
+
 
   useEffect(() => {
     if (user) {
@@ -162,7 +162,6 @@ function UserForm({ user, onSave, onCancel }) {
 
     if (!validateForm()) {
       scrollToFirstError();
-      setShowErrorModal(true);
       return;
     }
 
@@ -466,12 +465,7 @@ function UserForm({ user, onSave, onCancel }) {
         </Form>
       </Modal.Body>
 
-      <ValidationErrorModal 
-        show={showErrorModal} 
-        errors={errors} 
-        onClose={() => setShowErrorModal(false)}
-        title="User Form Validation Error"
-      />
+
 
       <Modal.Footer>
         <Button

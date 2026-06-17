@@ -476,24 +476,32 @@ export const getInvoicesByPartyName = async (req, res, next) => {
 
     if (Object.hasOwn(req, 'companyFilter')) {
       if (req.companyFilter === null) {
-        conditions.push(`company_id IS NULL`);
+        conditions.push(`inv.company_id IS NULL`);
       } else {
-        conditions.push(`company_id = $${paramCount}`);
+        conditions.push(`inv.company_id = $${paramCount}`);
         values.push(req.companyFilter);
         paramCount++;
       }
     }
 
-    conditions.push(`TRIM(client_name) ILIKE $${paramCount}`);
+    conditions.push(`(TRIM(c.name) ILIKE $${paramCount} OR TRIM(inv.client_name) ILIKE $${paramCount})`);
     values.push(`%${partyName.trim()}%`);
     paramCount++;
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     
     const sql = `
-       (SELECT id, invoice_no, CAST(invoice_date AS TEXT) as date, CAST(total_amount AS NUMERIC) as total_amount, 'Export' as type FROM export_invoices ${whereClause})
+       (SELECT inv.id, inv.invoice_no, CAST(inv.invoice_date AS TEXT) as date, CAST(inv.total_amount AS NUMERIC) as total_amount, 'Export' as type 
+        FROM export_invoices inv
+        LEFT JOIN clients c ON inv.client_id = c.id
+        ${whereClause} AND inv.invoice_no NOT IN (SELECT invoice_ref FROM account_entries WHERE invoice_ref IS NOT NULL AND invoice_ref != '')
+       )
        UNION ALL
-       (SELECT id, invoice_no, CAST(date AS TEXT) as date, CAST(total_amount AS NUMERIC) as total_amount, 'Proforma' as type FROM proforma_invoices ${whereClause})
+       (SELECT inv.id, inv.invoice_no, CAST(inv.date AS TEXT) as date, CAST(inv.total_amount AS NUMERIC) as total_amount, 'Proforma' as type 
+        FROM proforma_invoices inv
+        LEFT JOIN clients c ON inv.client_id = c.id
+        ${whereClause} AND inv.invoice_no NOT IN (SELECT invoice_ref FROM account_entries WHERE invoice_ref IS NOT NULL AND invoice_ref != '')
+       )
        ORDER BY date DESC`;
 
     const result = await req.db.query(sql, values);

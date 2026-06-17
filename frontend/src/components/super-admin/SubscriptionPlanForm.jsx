@@ -137,10 +137,10 @@ function SubscriptionPlanForm({ plan, onSave, onCancel }) {
                           type="text"
                           value={formData.name}
                           onChange={(e) =>
-                            handleInputChange('name', e.target.value)
+                            handleInputChange('name', e.target.value.toUpperCase())
                           }
                           isInvalid={!!errors.name}
-                          placeholder={FIELD_PLACEHOLDERS.name.placeholder}
+                          placeholder="Enter plan name"
                         />
                         <Form.Control.Feedback type="invalid">
                           {errors.name}
@@ -265,9 +265,9 @@ function SubscriptionPlanForm({ plan, onSave, onCancel }) {
                           rows={3}
                           value={formData.description}
                           onChange={(e) =>
-                            handleInputChange('description', e.target.value)
+                            handleInputChange('description', e.target.value.toUpperCase())
                           }
-                          placeholder={FIELD_PLACEHOLDERS.description.placeholder}
+                          placeholder="Enter description"
                         />
                       </Form.Group>
                     </Col>

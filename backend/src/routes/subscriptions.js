@@ -109,6 +109,7 @@ router.patch(
 router.get(
   '/',
   authenticate,
+  filterByCompany,
   getAllSubscriptionsValidator,
   validateRequest,
   getAllSubscriptions

@@ -255,7 +255,7 @@ const InventoryDashboard = ({ onNavigate, showSuccess, showError }) => {
           <Card className="border-0 shadow-sm h-100">
             <Card.Header className="bg-white fw-bold d-flex justify-content-between align-items-center">
               <span>Recent Movements</span>
-              <Button variant="outline-secondary" size="sm" onClick={handleExportMovements} className="d-flex align-items-center gap-1">
+              <Button variant="light" size="sm" onClick={handleExportMovements} className="text-primary fw-bold d-flex align-items-center gap-1">
                 <Download size={14} /> Export
               </Button>
             </Card.Header>

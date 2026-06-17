@@ -221,9 +221,6 @@ function UserForm({ user, onSave, onCancel }) {
                         <Form.Control.Feedback type="invalid">
                           {errors.name}
                         </Form.Control.Feedback>
-                        <Form.Text className="text-muted d-block mt-2">
-                          {FIELD_PLACEHOLDERS.name.validation}
-                        </Form.Text>
                       </Form.Group>
                     </Col>
 
@@ -246,9 +243,6 @@ function UserForm({ user, onSave, onCancel }) {
                         <Form.Control.Feedback type="invalid">
                           {errors.emailId}
                         </Form.Control.Feedback>
-                        <Form.Text className="text-muted d-block mt-2">
-                          {FIELD_PLACEHOLDERS.emailId.validation}
-                        </Form.Text>
                       </Form.Group>
                     </Col>
 
@@ -273,9 +267,6 @@ function UserForm({ user, onSave, onCancel }) {
                         <Form.Control.Feedback type="invalid">
                           {errors.contactNumber}
                         </Form.Control.Feedback>
-                        <Form.Text className="text-muted d-block mt-2">
-                          {FIELD_PLACEHOLDERS.contactNumber.validation}
-                        </Form.Text>
                       </Form.Group>
                     </Col>
                   </Row>
@@ -428,9 +419,6 @@ function UserForm({ user, onSave, onCancel }) {
                         <Form.Control.Feedback type="invalid">
                           {errors.password}
                         </Form.Control.Feedback>
-                        <Form.Text className="text-muted d-block mt-2">
-                          {FIELD_PLACEHOLDERS.password.validation}
-                        </Form.Text>
                       </Form.Group>
                     </Col>
 
@@ -467,9 +455,6 @@ function UserForm({ user, onSave, onCancel }) {
                         <Form.Control.Feedback type="invalid">
                           {errors.confirmPassword}
                         </Form.Control.Feedback>
-                        <Form.Text className="text-muted d-block mt-2">
-                          Must match password above
-                        </Form.Text>
                       </Form.Group>
                     </Col>
                   </Row>

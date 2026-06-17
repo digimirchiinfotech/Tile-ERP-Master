@@ -494,9 +494,9 @@ function UserDashboard({ currentUser, onNavigate, navigationData }) {
                           </Button>
                           {canEdit && (
                             <Button
-                              variant={user.status === 'Active' ? 'outline-warning' : 'outline-success'}
+                              variant={user.status === 'Active' ? 'outline-danger' : 'outline-success'}
                               size="sm"
-                              className={user.status === 'Active' ? 'border-warning-subtle text-warning' : 'border-success-subtle text-success'}
+                              className={user.status === 'Active' ? 'border-danger-subtle text-danger' : 'border-success-subtle text-success'}
                               onClick={() => handleToggleUserStatus(user)}
                               title={user.status === 'Active' ? 'Deactivate' : 'Activate'}
                             >
@@ -615,7 +615,7 @@ function UserDashboard({ currentUser, onNavigate, navigationData }) {
                         <Button
                           variant="outline"
                           size="sm"
-                          className={`${user.status === 'Active' ? 'text-warning border-warning-subtle' : 'text-success border-success-subtle'} flex-fill d-flex align-items-center justify-content-center py-2 px-2 fw-bold`}
+                          className={`${user.status === 'Active' ? 'text-danger border-danger-subtle' : 'text-success border-success-subtle'} flex-fill d-flex align-items-center justify-content-center py-2 px-2 fw-bold`}
                           onClick={() => handleToggleUserStatus(user)}
                           style={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}
                         >

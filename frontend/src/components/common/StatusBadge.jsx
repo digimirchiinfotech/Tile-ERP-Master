@@ -25,6 +25,8 @@ const StatusBadge = ({ status, isLocked, lockedBy, lockedAt }) => {
     if (s === 'approved') return { className: 'bg-success text-white', text: 'APPROVED' };
     if (s === 'cancelled') return { className: 'bg-danger text-white', text: 'CANCELLED' };
     if (s === 'revised') return { className: 'bg-warning text-dark', text: 'REVISED', style: { backgroundColor: '#ffc107', color: '#000'} };
+    if (s === 'active') return { className: 'bg-success text-white', text: 'ACTIVE' };
+    if (s === 'inactive') return { className: 'bg-danger text-white', text: 'INACTIVE' };
     if (s === 'locked' || locked) return { className: 'bg-dark text-white', text: 'LOCKED', icon: true, style: { backgroundColor: '#8B0000' } };
 
     // Deprecated Status mappings to global statuses

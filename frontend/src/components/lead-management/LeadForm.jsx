@@ -401,7 +401,7 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                             style={{ color: '#000' }}
                           >
                             <option value="" style={{ color: '#000' }}>-- Select a client to auto-fill details, or enter manually below --</option>
-                            {clients.map((client) => (
+                            {clients.filter(c => c.status !== 'Inactive' || c.id === formData.companyName).map((client) => (
                               <option key={client.id} value={client.id}>
                                 {client.clientName}
                               </option>

@@ -105,7 +105,7 @@ function ProductManagement({ show, onHide }) {
             </thead>
             <tbody>
               {products && products.length > 0 ? (
-                products.map((product) => (
+                products.filter(p => p.status !== 'Inactive').map((product) => (
                   <tr key={product.id} className="align-middle">
                     <td>
                       <div className="fw-bold text-dark">{product.name}</div>

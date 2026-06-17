@@ -134,7 +134,7 @@ export const validateURL = (url) => {
 };
 
 export const validatePassword = (pass) => {
-  return (pass && pass.length >= 8) ? { isValid: true, error: null } : { isValid: false, error: 'Password min 8 chars' };
+  return (pass && pass.length >= 8) ? { isValid: true, error: null } : { isValid: false, error: 'Password must be at least 8 characters' };
 };
 
 export const validateConfirmPassword = (p1, p2) => {

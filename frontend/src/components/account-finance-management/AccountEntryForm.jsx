@@ -236,7 +236,7 @@ function AccountEntryForm({ entry, onSave, onCancel, viewOnly = false }) {
                     style={{ borderRadius: '10px' }}
                   >
                     <option value="">Select Party</option>
-                    {clients.map((client) => (
+                    {clients.filter(c => c.status !== 'Inactive').map((client) => (
                       <option key={client.id} value={client.clientName}>
                         {client.clientName}
                       </option>

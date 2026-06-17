@@ -265,7 +265,7 @@ function ClientOrderForm({ order, onSave, onCancel }) {
                           isInvalid={!!errors.clientName}
                         >
                           <option value="">Select Client</option>
-                          {clients.map((client) => (
+                          {clients.filter(c => c.status !== 'Inactive' || c.clientName === formData.clientName).map((client) => (
                             <option key={client.id} value={client.clientName}>
                               {client.clientName}
                             </option>
@@ -415,7 +415,7 @@ function ClientOrderForm({ order, onSave, onCancel }) {
                                   }
                                 >
                                   <option value="">Select Product</option>
-                                  {products.map((p) => (
+                                  {products.filter(p => p.status !== 'Inactive' || p.name === product.productName).map((p) => (
                                     <option key={p.id} value={p.name}>
                                       {p.name}
                                     </option>

@@ -421,7 +421,7 @@ function SalespersonForm({ salesperson, onSave, onCancel }) {
                 </Card.Header>
                 <Card.Body>
                   <Row className="g-3">
-                    {catalogues.map((catalogue) => (
+                        {catalogues.filter(c => c.status !== 'Inactive' || formData.catalogueAccess.includes(c.id)).map((catalogue) => (
                       <Col key={catalogue.id} xs={12} sm={6} lg={4}>
                         <Card
                           className={`catalogue-card ${formData.assignedCatalogues.includes(catalogue.id)

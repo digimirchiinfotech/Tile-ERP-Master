@@ -696,18 +696,7 @@ function UserDashboard({ currentUser, onNavigate, navigationData }) {
                   <p className="mb-0">{viewingUser.contactNumber || 'N/A'}</p>
                 </div>
               </Col>
-              <Col md={6}>
-                <div className="info-item">
-                  <label className="fw-bold text-muted">Department:</label>
-                  <p className="mb-0">{viewingUser.department || 'N/A'}</p>
-                </div>
-              </Col>
-              <Col xs={12}>
-                <div className="info-item">
-                  <label className="fw-bold text-muted">Designation:</label>
-                  <p className="mb-0">{viewingUser.designation || 'N/A'}</p>
-                </div>
-              </Col>
+
             </Row>
           </Modal.Body>
           <Modal.Footer>

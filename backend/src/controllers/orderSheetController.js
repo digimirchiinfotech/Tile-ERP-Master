@@ -328,7 +328,7 @@ export const createOrderSheet = async (req, res, next) => {
     const poQuery = `
       SELECT po.*, pi.client_name as pi_client, s.name as supplier_name_ref 
       FROM proforma_orders po 
-      LEFT JOIN proforma_invoices pi ON po.invoice_ref = pi.invoice_no
+      LEFT JOIN proforma_invoices pi ON po.invoice_ref = pi.invoice_no AND po.company_id = pi.company_id AND pi.status != 'Revised'
       LEFT JOIN suppliers s ON po.supplier_id = s.id
       WHERE po.id = $1 AND (po.company_id = $2 OR $2 IS NULL)
     `;

@@ -193,7 +193,7 @@ export const getAll = async (req, res, next) => {
               pi.client_name as pi_client
        FROM proforma_orders po
        LEFT JOIN suppliers s ON po.supplier_id = s.id
-       LEFT JOIN proforma_invoices pi ON po.invoice_ref = pi.invoice_no
+       LEFT JOIN proforma_invoices pi ON po.invoice_ref = pi.invoice_no AND po.company_id = pi.company_id AND pi.status != 'Revised'
        ${whereClause}
        ORDER BY po.created_at DESC
        LIMIT $${paramCount} OFFSET $${paramCount + 1}`,
@@ -241,7 +241,7 @@ export const getById = async (req, res, next) => {
               pi.date as pi_date, pi.client_name as pi_client
        FROM proforma_orders po
        LEFT JOIN suppliers s ON po.supplier_id = s.id
-       LEFT JOIN proforma_invoices pi ON po.invoice_ref = pi.invoice_no
+       LEFT JOIN proforma_invoices pi ON po.invoice_ref = pi.invoice_no AND po.company_id = pi.company_id AND pi.status != 'Revised'
        ${whereConditions}`,
       queryParams
     );

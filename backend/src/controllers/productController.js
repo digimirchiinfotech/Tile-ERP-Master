@@ -760,7 +760,7 @@ export const bulkUpsert = async (req, res, next) => {
     // Use synchronous batch inserts
     // Batch size of 100 to 500 is good for standard parameters limits
     for (const prod of products) {
-      const finalProductCode = prod.productCode || await generateSequentialId('PROD', 'products', 'product_code', companyId, req.db);
+      const finalProductCode = prod.productCode || prod.product_code || await generateSequentialId('PROD', 'products', 'product_code', companyId, req.db);
       
       const result = await client.query(
         `INSERT INTO products 

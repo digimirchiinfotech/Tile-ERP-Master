@@ -38,7 +38,7 @@ import { useRef } from 'react';
 function ProductDashboard({ currentUser, productsData, navigationData }) {
   // Use props if provided, otherwise call hooks
   const productsHook = useProducts();
-  const { products, loading, error, createProduct, updateProduct, deleteProduct, toggleProductStatus, fetchProducts } = productsData || productsHook;
+  const { products, loading, error, createProduct, updateProduct, deleteProduct, toggleProductStatus, fetchProducts, bulkCreateProducts } = productsData || productsHook;
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 25;
   const [dateRange, setDateRange] = useState({ start: null, end: null });

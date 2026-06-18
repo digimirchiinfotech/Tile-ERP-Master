@@ -49,6 +49,7 @@ function ProductForm({
     factoryName: '',
     factoryProductName: '',
     companyProductName: '',
+    catalogueName: '',
     description: '',
     productCode: '',
     category: '',
@@ -634,6 +635,29 @@ function ProductForm({
                       </Form.Group>
                     </Col>
 
+                    <Col xs={12}>
+                      <Form.Group>
+                        <OverlayTrigger placement="top" overlay={<Tooltip>Catalogue mapping for this product</Tooltip>}>
+                          <Form.Label className="text-primary" style={{cursor: 'help'}}>
+                            Catalogue Name <Info size={12} className="ms-1" />
+                          </Form.Label>
+                        </OverlayTrigger>
+                        <AddableDropdown
+                          value={formData.catalogueName}
+                          onChange={(value) =>
+                            handleInputChange('catalogueName', value)
+                          }
+                          masterDataType="catalogueNames"
+                          label="Catalogue Name"
+                          placeholder="Select or add catalogue name"
+                          options={combinedCatalogueOptions}
+                          isInvalid={!!errors.catalogueName}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {errors.catalogueName}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
 
                   </Row>
                 </Card.Body>

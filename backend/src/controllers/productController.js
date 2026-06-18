@@ -796,14 +796,14 @@ export const bulkUpsert = async (req, res, next) => {
             updated_at = CURRENT_TIMESTAMP
          RETURNING (xmax = 0) AS inserted`,
         [
-          companyId, finalProductCode, normalizeEmptyToNull(prod.itemRef), prod.name, normalizeEmptyToNull(prod.description),
+          companyId, finalProductCode, normalizeEmptyToNull(prod.itemRef || prod.item_ref), prod.name, normalizeEmptyToNull(prod.description),
           normalizeEmptyToNull(prod.category), normalizeEmptyToNull(prod.size), normalizeEmptyToNull(prod.surface), normalizeEmptyToNull(prod.thickness),
-          normalizeEmptyToNull(prod.sqmPerBox), normalizeEmptyToNull(prod.boxesPerPallet), normalizeEmptyToNull(prod.boxWeight),
-          normalizeEmptyToNull(prod.factoryPrice), normalizeEmptyToNull(prod.sellingPrice), normalizeEmptyToNull(prod.hsCode),
-          JSON.stringify(prod.images || []), prod.status || 'Active', normalizeEmptyToNull(prod.factoryName), normalizeEmptyToNull(prod.factoryProductName),
-          normalizeEmptyToNull(prod.companyProductName), normalizeEmptyToNull(prod.catalogueName), normalizeEmptyToNull(prod.application),
-          normalizeEmptyToNull(prod.boxPcs), normalizeEmptyToNull(prod.defaultBoxesPerKathali), normalizeEmptyToNull(prod.defaultPerBoxWeight),
-          normalizeEmptyToNull(prod.defaultPerPalletWeight), normalizeEmptyToNull(prod.basePrice), normalizeEmptyToNull(prod.margin),
+          normalizeEmptyToNull(prod.sqmPerBox || prod.sqm_per_box), normalizeEmptyToNull(prod.boxesPerPallet || prod.boxes_per_pallet), normalizeEmptyToNull(prod.boxWeight || prod.box_weight),
+          normalizeEmptyToNull(prod.factoryPrice || prod.factory_price), normalizeEmptyToNull(prod.sellingPrice || prod.selling_price), normalizeEmptyToNull(prod.hsCode || prod.hs_code),
+          JSON.stringify(prod.images || []), prod.status || 'Active', normalizeEmptyToNull(prod.factoryName || prod.factory_name), normalizeEmptyToNull(prod.factoryProductName || prod.factory_product_name),
+          normalizeEmptyToNull(prod.companyProductName || prod.company_product_name), normalizeEmptyToNull(prod.catalogueName || prod.catalogue_name), normalizeEmptyToNull(prod.application),
+          normalizeEmptyToNull(prod.boxPcs || prod.box_pcs), normalizeEmptyToNull(prod.defaultBoxesPerKathali || prod.default_boxes_per_kathali), normalizeEmptyToNull(prod.defaultPerBoxWeight || prod.default_per_box_weight),
+          normalizeEmptyToNull(prod.defaultPerPalletWeight || prod.default_per_pallet_weight), normalizeEmptyToNull(prod.basePrice || prod.base_price), normalizeEmptyToNull(prod.margin),
           req.user.id
         ]
       );

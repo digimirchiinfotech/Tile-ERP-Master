@@ -222,8 +222,6 @@ function ProductForm({
       [field]: filteredValue,
     }));
 
-  };
-
     if (errors[field]) {
       setErrors((prev) => ({
         ...prev,

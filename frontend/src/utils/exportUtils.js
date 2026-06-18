@@ -179,10 +179,8 @@ export const exportQCRecords = (records) => {
 
 export const exportToCSV = (data, filename = 'export') => {
   if (!data || data.length === 0) return false;
-  const columns = Object.keys(data[0]).map(key => ({
-    label: key,
-    accessor: (item) => item[key],
-  }));
+  // Use createColumnDef so the string accessor is caught by the regex match
+  const columns = Object.keys(data[0]).map(key => createColumnDef(key, key));
   exportData(data, columns, 'xlsx', filename);
   return true;
 };

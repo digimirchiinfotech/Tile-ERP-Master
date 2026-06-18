@@ -299,8 +299,8 @@ export function validateImportData(data, moduleType) {
     const rowErrors = [];
 
     requiredFields.forEach((field) => {
-      if (!row[field] || row[field].toString().trim() === '') {
-        rowErrors.push(`${field} is required`);
+      if (row[field] === undefined || row[field] === null || row[field].toString().trim() === '') {
+        rowErrors.push(`${field.toUpperCase()} IS REQUIRED`);
       }
     });
 

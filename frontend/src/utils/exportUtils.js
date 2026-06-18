@@ -74,30 +74,8 @@ export const exportData = async (items, columns, format = 'xlsx', filename = 'ex
   return new Promise((resolve) => {
     setTimeout(() => {
       try {
-        // Dynamic Column Discovery to prevent missing data
-        const sensitiveKeys = ['_id', '__v', 'password', 'token', 'refreshToken'];
-        const explicitlyMappedKeys = new Set(
-          columns.map(c => {
-            // Extract accessor string if it exists to know what is mapped
-            const accessorStr = c.accessor.toString();
-            const match = accessorStr.match(/item\.([a-zA-Z0-9_]+)/) || accessorStr.match(/item\[['"]([a-zA-Z0-9_]+)['"]\]/);
-            return match ? match[1] : null;
-          }).filter(Boolean)
-        );
-
-        const formatKeyToHeader = (key) => key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
-
-        // Find all unique keys across all items that aren't mapped or sensitive
-        const unmappedKeys = new Set();
-        items.forEach(item => {
-          Object.keys(item).forEach(k => {
-            if (!explicitlyMappedKeys.has(k) && !sensitiveKeys.includes(k) && typeof item[k] !== 'object') {
-              unmappedKeys.add(k);
-            }
-          });
-        });
-
-        const dynamicColumns = [...columns, ...Array.from(unmappedKeys).map(k => createColumnDef(formatKeyToHeader(k), k))];
+        // Simply use the explicitly provided columns
+        const dynamicColumns = [...columns];
 
         if (format === 'csv') {
           const csv = convertToCSV(items, dynamicColumns);

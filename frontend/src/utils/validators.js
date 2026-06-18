@@ -278,7 +278,7 @@ function getRequiredFieldsForModule(moduleType) {
     'packing-lists': ['packingListNo', 'date', 'piReference', 'clientName', 'country'],
     'account-entries': ['partyName', 'amount', 'type'],
     users: ['name', 'username', 'email_id', 'role'],
-    products: ['productCode', 'name', 'category'],
+    products: ['Product Code', 'Product Name', 'Category'],
     pallets: ['palletId', 'category', 'size', 'status'],
     'qc-records': ['qcId', 'orderNumber', 'clientName', 'productName', 'qcStatus', 'qcDate'],
     companies: ['name', 'email_id', 'industry', 'contact_person_name', 'contact_number', 'country', 'subscriptionPlan', 'status'],
@@ -342,12 +342,10 @@ export function validateImportData(data, moduleType) {
         if (row.qcStatus && !['Passed', 'Failed', 'Pending', 'Under Process'].includes(row.qcStatus)) rowErrors.push('QC Status must be: Passed, Failed, Pending, or Under Process');
         break;
       case 'products':
-        if (row.boxPcs && isNaN(parseInt(row.boxPcs))) rowErrors.push('Pieces per box must be a number');
-        if (row.boxWeight && isNaN(parseFloat(row.boxWeight))) rowErrors.push('Box weight must be a number');
-        if (row.sqmPerBox && isNaN(parseFloat(row.sqmPerBox))) rowErrors.push('SQM per box must be a number');
-        if (row.boxesPerPallet && isNaN(parseInt(row.boxesPerPallet))) rowErrors.push('Boxes per pallet must be a number');
-        if (row.factoryPrice && isNaN(parseFloat(row.factoryPrice))) rowErrors.push('Factory price must be a number');
-        if (row.sellingPrice && isNaN(parseFloat(row.sellingPrice))) rowErrors.push('Selling price must be a number');
+        if (row['Box PCS'] && isNaN(parseInt(row['Box PCS']))) rowErrors.push('Pieces per box must be a number');
+        if (row['Per Box Weight (KG)'] && isNaN(parseFloat(row['Per Box Weight (KG)']))) rowErrors.push('Box weight must be a number');
+        if (row['SQM Per Box'] && isNaN(parseFloat(row['SQM Per Box']))) rowErrors.push('SQM per box must be a number');
+        if (row['Boxes Per Big Pallet'] && isNaN(parseInt(row['Boxes Per Big Pallet']))) rowErrors.push('Boxes per pallet must be a number');
         break;
       case 'pallets':
         if (row.weight && isNaN(parseFloat(row.weight))) rowErrors.push('Weight must be a number');

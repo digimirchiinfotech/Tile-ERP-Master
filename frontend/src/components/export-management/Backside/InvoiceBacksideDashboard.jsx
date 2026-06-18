@@ -493,7 +493,7 @@ function InvoiceBacksideDashboard({ currentUser, onNavigate }) {
               variant="outline-light"
               size="sm"
               onClick={handleExportData}
-              className="border-white text-white d-flex align-items-center flex-shrink-0"
+              className="d-flex align-items-center flex-shrink-0"
               style={{ width: 'auto' }}
             >
               <Download size={14} className="me-1" />
@@ -503,7 +503,7 @@ function InvoiceBacksideDashboard({ currentUser, onNavigate }) {
               variant="outline-light"
               size="sm"
               onClick={() => setShowImportModal(true)}
-              className="border-white text-white d-flex align-items-center flex-shrink-0"
+              className="d-flex align-items-center flex-shrink-0"
               style={{ width: 'auto' }}
             >
               <Upload size={14} className="me-1" />

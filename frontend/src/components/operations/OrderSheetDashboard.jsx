@@ -492,7 +492,7 @@ const OrderSheetDashboard = () => {
               variant="outline-light"
               size="sm"
               onClick={handleExportExcel}
-              className="border-white text-white d-flex align-items-center flex-shrink-0 mx-1"
+              className="d-flex align-items-center flex-shrink-0 mx-1"
               style={{ width: 'auto' }}
             >
               <FileSpreadsheet size={14} className="me-1" />

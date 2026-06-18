@@ -262,7 +262,7 @@ function QCView({ qcRecord, onClose, onEdit, onPrint, onDownload, canEdit }) {
                       <Col md={6}>
                         <div className="info-item">
                           <label className="fw-bold text-muted">
-                            Color Consistency:
+                            Master Matching:
                           </label>
                           <div>
                             {getInspectionResultBadge(

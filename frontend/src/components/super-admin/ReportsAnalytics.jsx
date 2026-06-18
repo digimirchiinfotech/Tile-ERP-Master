@@ -236,7 +236,7 @@ function ReportsAnalytics({ currentUser }) {
         <Card className="border-0 shadow-sm overflow-hidden mb-4" style={{ borderRadius: '16px' }}>
           <Card.Header className="bg-primary text-white d-flex align-items-center justify-content-between p-3 border-0">
             <h5 className="mb-0 fw-bold">Sales Performance Report ({salesReports.length})</h5>
-            <Button variant="outline-light" size="sm" className="border-white text-white fw-bold d-flex align-items-center" onClick={handleExportSales}>
+            <Button variant="outline-light" size="sm" className="fw-bold d-flex align-items-center" onClick={handleExportSales}>
               <Download size={16} className="me-1" />
               <span className="d-none d-sm-inline small">Export CSV</span>
               <span className="d-sm-none small">Export</span>

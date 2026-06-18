@@ -265,10 +265,10 @@ function CompanyManagement({ currentUser, onNavigate }) {
         <Card.Header className="bg-primary text-white d-flex flex-row justify-content-between align-items-center p-3 border-0">
           <h5 className="mb-0 fw-bold text-nowrap me-2">Registered Companies ({filteredCompanies.length})</h5>
           <div className="d-flex gap-2 flex-nowrap align-items-center">
-            <Button variant="outline-light" size="sm" onClick={handleExportCompanies} className="border-white text-white d-flex align-items-center flex-shrink-0">
+            <Button variant="outline-light" size="sm" onClick={handleExportCompanies} className="d-flex align-items-center flex-shrink-0">
               <Download size={14} className="me-1" /><span className="d-none d-md-inline small">Export</span>
             </Button>
-            <Button variant="outline-light" size="sm" onClick={() => setShowImportModal(true)} className="border-white text-white d-flex align-items-center flex-shrink-0">
+            <Button variant="outline-light" size="sm" onClick={() => setShowImportModal(true)} className="d-flex align-items-center flex-shrink-0">
               <Upload size={14} className="me-1" /><span className="d-none d-md-inline small">Import</span>
             </Button>
             <Button variant="light" size="sm" className="text-primary fw-bold d-flex align-items-center flex-shrink-0" onClick={() => { setEditingCompany(null); setShowCompanyForm(true); }}>

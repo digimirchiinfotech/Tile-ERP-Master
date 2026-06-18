@@ -101,7 +101,7 @@ const QCPrintView = ({ qcData }) => {
             <td>{qcData.inspectionDetails?.surfaceQuality || 'Good'}</td>
           </tr>
           <tr>
-            <td><strong>Color Consistency</strong></td>
+            <td><strong>Master Matching</strong></td>
             <td>{qcData.inspectionDetails?.colorConsistency || 'Matching Samples'}</td>
           </tr>
           <tr>

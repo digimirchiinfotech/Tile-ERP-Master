@@ -924,7 +924,7 @@ function MasterDataManagement({ currentUser }) {
               <Button
                 variant="outline-light"
                 size="sm"
-                className="border-white text-white fw-bold shadow-sm px-3 d-flex align-items-center flex-shrink-0"
+                className="fw-bold shadow-sm px-3 d-flex align-items-center flex-shrink-0"
                 style={{ borderRadius: '8px', fontSize: '0.75rem', height: '32px', width: 'auto' }}
                 onClick={handleExport}
               >

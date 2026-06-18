@@ -610,9 +610,6 @@ function QCForm({ qcRecord, onSave, onCancel, onBack, selectedOrder, existingRec
                           className="bg-light"
                           placeholder="Products will appear when order is selected"
                         />
-                        {!formData.productLines || formData.productLines.length === 0 ? (
-                          <small className="text-danger">No products loaded for this order</small>
-                        ) : null}
                       </Form.Group>
                     </Col>
                     <Col md={6}>
@@ -706,7 +703,7 @@ function QCForm({ qcRecord, onSave, onCancel, onBack, selectedOrder, existingRec
                     </Col>
                     <Col md={6}>
                       <Form.Group>
-                        <Form.Label>Color Consistency</Form.Label>
+                        <Form.Label>Master Matching</Form.Label>
                         <Form.Select
                           value={formData.inspectionDetails.colorConsistency}
                           onChange={(e) =>

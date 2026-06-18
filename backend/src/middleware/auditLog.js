@@ -111,13 +111,9 @@ export const createAuditMiddleware = (resourceType, action) => {
 
     if ((action === 'UPDATE' || action === 'DELETE' || action === 'STATUS_CHANGE') && tableName) {
       const companyId = req.companyFilter || req.user?.companyId;
-      const lookupId = req.params.id || req.params.exportInvoiceId;
+      const lookupId = req.params.id || req.params.exportInvoiceId || req.params.vgmId || req.params.annexureId || req.params.igstInvoiceId || req.params.shippingInstructionId || req.params.packingListId;
       if (companyId && lookupId) {
-        // Note: fetchRecord assumes id is the primary key. If lookupId is exportInvoiceId, this fetch might fail unless we make fetchRecord smarter.
-        // For simplicity, we just use it if it's req.params.id
-        if (req.params.id) {
-          oldRecord = await fetchRecord(tableName, req.params.id, companyId, db).catch(() => null);
-        }
+        oldRecord = await fetchRecord(tableName, lookupId, companyId, db).catch(() => null);
       }
     }
 
@@ -133,7 +129,7 @@ export const createAuditMiddleware = (resourceType, action) => {
           const url = req.originalUrl || req.url;
           const parsed = parseResponseBody(body);
           const responseData = parsed?.data || parsed;
-          const resourceId = responseData?.id || req.params.id || req.params.exportInvoiceId || res.locals?.auditResourceId || null;
+          const resourceId = responseData?.id || req.params.id || req.params.exportInvoiceId || req.params.vgmId || req.params.annexureId || req.params.igstInvoiceId || req.params.shippingInstructionId || req.params.packingListId || res.locals?.auditResourceId || null;
 
           insertAuditLog({
             userId, companyId, action, resourceType, resourceId,

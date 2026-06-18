@@ -285,7 +285,7 @@ app.get('/api/files/:filename', authenticate, fileLimiter, serveFile);
 
 // SECURITY FIX (HIGH-SEC-004): Removed optionalAuth — all file access now requires
 // a valid JWT. Unauthenticated users cannot enumerate or download uploaded files.
-app.get('/uploads/:filename', optionalAuth, fileLimiter, serveFile);
+app.get('/uploads/:filename', authenticate, fileLimiter, serveFile);
 
 // SECURITY: Backup files are admin-only — require full authentication + admin role
 app.get('/uploads/backups/:filename', authenticate, requireAdminRole, fileLimiter, (req, res, next) => {

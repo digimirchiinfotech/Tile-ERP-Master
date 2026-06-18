@@ -14,7 +14,7 @@
  * All validators follow consistent patterns and return { isValid: boolean, error: string|null }
  */
 
-export const validateRequiredType = (value, expectedType = 'string', fieldName = 'Field') => {
+export function validateRequiredType(value, expectedType = 'string', fieldName = 'Field') {
   if (value === null || value === undefined) {
     return { isValid: false, error: `${fieldName} is required` };
   }
@@ -33,19 +33,19 @@ export const validateRequiredType = (value, expectedType = 'string', fieldName =
   return { isValid: true, error: null };
 };
 
-export const validateTypeCheck = (value, expectedType = 'string', fieldName = 'Field') => {
+export function validateTypeCheck(value, expectedType = 'string', fieldName = 'Field') {
   if (value === null || value === undefined) return { isValid: true, error: null };
   return validateRequiredType(value, expectedType, fieldName);
 };
 
-export const validateName = (name, fieldName = 'Name') => {
+export function validateName(name, fieldName = 'Name') {
   if (!name || typeof name !== 'string') return { isValid: false, error: `${fieldName} is required` };
   const trimmed = name.trim();
   if (trimmed.length < 2 || trimmed.length > 50) return { isValid: false, error: `${fieldName} must be 2-50 chars` };
   return { isValid: true, error: null };
 };
 
-export const validateCompanyName = (value) => {
+export function validateCompanyName(value) {
   if (!value || typeof value !== 'string' || value.trim() === '') {
     return { isValid: false, error: 'Company name is required' };
   }
@@ -57,7 +57,7 @@ export const validateCompanyName = (value) => {
   return { isValid: true, error: null };
 };
 
-export const validateFullName = (value) => {
+export function validateFullName(value) {
   if (!value || typeof value !== 'string' || value.trim() === '') {
     return { isValid: false, error: 'Full name is required' };
   }
@@ -69,12 +69,12 @@ export const validateFullName = (value) => {
   return { isValid: true, error: null };
 };
 
-export const validateIndianMobile = (phone) => {
+export function validateIndianMobile(phone) {
   const regex = /^[6-9]\d{9}$/;
   return regex.test(String(phone).trim()) ? { isValid: true, error: null } : { isValid: false, error: 'Invalid Indian mobile' };
 };
 
-export const validateContactNumber = (phoneNumber) => {
+export function validateContactNumber(phoneNumber) {
   if (!phoneNumber || typeof phoneNumber !== 'string') return { isValid: false, error: 'Contact number is required' };
   const trimmed = phoneNumber.trim();
   const phoneRegex = /^(\+\d{1,3})?[\s.-]?\d{1,14}$/;
@@ -84,70 +84,70 @@ export const validateContactNumber = (phoneNumber) => {
   return { isValid: true, error: null };
 };
 
-export const validateGST = (gst) => {
+export function validateGST(gst) {
   if (!gst || typeof gst !== 'string') return { isValid: false, error: 'GST number is required' };
   const regex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
   return regex.test(String(gst).trim().toUpperCase()) ? { isValid: true, error: null } : { isValid: false, error: 'Enter a valid GSTIN' };
 };
 
-export const validatePAN = (pan) => {
+export function validatePAN(pan) {
   if (!pan || typeof pan !== 'string') return { isValid: false, error: 'PAN number is required' };
   const regex = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
   return regex.test(String(pan).trim().toUpperCase()) ? { isValid: true, error: null } : { isValid: false, error: 'Enter a valid PAN number' };
 };
 
-export const validateDigitsOnly = (value, fieldName = 'Field') => {
+export function validateDigitsOnly(value, fieldName = 'Field') {
   return /^\d+$/.test(String(value)) ? { isValid: true, error: null } : { isValid: false, error: `${fieldName} must be digits only` };
 };
 
-export const validateEmail = (email) => {
+export function validateEmail(email) {
   if (!email || typeof email !== 'string') return { isValid: false, error: 'Email is required' };
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   return regex.test(String(email).trim()) ? { isValid: true, error: null } : { isValid: false, error: 'Enter a valid email address' };
 };
 
-export const validateAddress = (address) => {
+export function validateAddress(address) {
   if (!address || typeof address !== 'string' || address.length < 3) return { isValid: false, error: 'Address is required' };
   return { isValid: true, error: null };
 };
 
-export const validatePinCode = (pin) => {
+export function validatePinCode(pin) {
   return /^[1-9][0-9]{5}$/.test(String(pin).trim()) ? { isValid: true, error: null } : { isValid: false, error: 'Invalid PIN' };
 };
 
-export const validateCityOrState = (val, field = 'City/State') => {
+export function validateCityOrState(val, field = 'City/State') {
   if (!val || typeof val !== 'string') return { isValid: false, error: `${field} is required` };
   return { isValid: true, error: null };
 };
 
-export const validateAmount = (amt) => {
+export function validateAmount(amt) {
   const val = parseFloat(amt);
   return (!isNaN(val) && val >= 0) ? { isValid: true, error: null } : { isValid: false, error: 'Invalid amount' };
 };
 
-export const validateDate = (date) => {
+export function validateDate(date) {
   return !isNaN(Date.parse(date)) ? { isValid: true, error: null } : { isValid: false, error: 'Invalid date' };
 };
 
-export const validateURL = (url) => {
+export function validateURL(url) {
   try { new URL(url); return { isValid: true, error: null }; } catch { return { isValid: false, error: 'Invalid URL' }; }
 };
 
-export const validatePassword = (pass) => {
+export function validatePassword(pass) {
   return (pass && pass.length >= 8) ? { isValid: true, error: null } : { isValid: false, error: 'Password must be at least 8 characters' };
 };
 
-export const validateConfirmPassword = (p1, p2) => {
+export function validateConfirmPassword(p1, p2) {
   return p1 === p2 ? { isValid: true, error: null } : { isValid: false, error: 'Passwords match failed' };
 };
 
-export const validateUsernameAlphanumeric = (u) => {
+export function validateUsernameAlphanumeric(u) {
   return /^[A-Za-z0-9._-]{3,20}$/.test(u) ? { isValid: true, error: null } : { isValid: false, error: 'Invalid username' };
 };
 
-export const validateUsername = (u) => validateUsernameAlphanumeric(u);
+export function validateUsername(u) { return validateUsernameAlphanumeric(u); }
 
-export const validateFileUpload = (file, options = {}) => {
+export function validateFileUpload(file, options = {}) {
   if (!file) return { isValid: false, error: options.fieldName ? `${options.fieldName} is required` : 'File required' };
   const { allowedTypes, maxSizeMB } = options;
   if (allowedTypes && allowedTypes.length > 0) {
@@ -163,28 +163,28 @@ export const validateFileUpload = (file, options = {}) => {
 };
 
 // Phone validator used in import validation (returns boolean)
-export const validatePhone = (phone) => {
+export function validatePhone(phone) {
   if (!phone) return false;
   const digits = String(phone).replace(/\D/g, '');
   return digits.length >= 7 && digits.length <= 15;
 };
 
-export const validateDimension = (v, f = 'Dimension') => {
+export function validateDimension(v, f = 'Dimension') {
   const n = parseFloat(v);
   return (!isNaN(n) && n > 0) ? { isValid: true, error: null } : { isValid: false, error: `${f} must be positive` };
 };
 
-export const validateTruckNumber = (t) => ({ isValid: true, error: null });
-export const validateSealNumber = (s) => ({ isValid: true, error: null });
-export const validateTextField = (t) => ({ isValid: true, error: null });
-export const validateCityName = (c) => ({ isValid: true, error: null });
-export const validateClientName = (c) => ({ isValid: true, error: null });
+export function validateTruckNumber(t) { return { isValid: true, error: null }; }
+export function validateSealNumber(s) { return { isValid: true, error: null }; }
+export function validateTextField(t) { return { isValid: true, error: null }; }
+export function validateCityName(c) { return { isValid: true, error: null }; }
+export function validateClientName(c) { return { isValid: true, error: null }; }
 
-export const validateIEC = (iec) => {
+export function validateIEC(iec) {
   return /^\d{10}$/.test(String(iec).trim()) ? { isValid: true, error: null } : { isValid: false, error: 'Invalid IEC (must be 10 digits)' };
 };
 
-export const validateNumeric = (n, options = {}) => {
+export function validateNumeric(n, options = {}) {
   const { fieldName = 'Field', min, max, allowDecimals = true, maxDecimals = 3 } = options;
   if (n === null || n === undefined || n === '') return { isValid: false, error: `${fieldName} is required` };
   const str = String(n).trim();
@@ -197,25 +197,25 @@ export const validateNumeric = (n, options = {}) => {
   return { isValid: true, error: null };
 };
 
-export const validateUUID = (id, fieldName = 'ID') => {
+export function validateUUID(id, fieldName = 'ID') {
   const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   return regex.test(String(id)) ? { isValid: true, error: null } : { isValid: false, error: `${fieldName} invalid UUID` };
 };
 
-export const formatErrorResponse = (field, message) => ({ success: false, field, message });
+export function formatErrorResponse(field, message) { return { success: false, field, message }; }
 
-export const validateMultipleFields = (fields) => {
+export function validateMultipleFields(fields) {
   for (const f of fields) { if (!f.validator.isValid) return f.validator; }
   return { isValid: true, error: null };
 };
 
-export const parseThickness = (value) => {
+export function parseThickness(value) {
   const m = value.match(/^(\d+(?:\.\d+)?)\s*(mm|cm)?$/i);
   if (!m) return null;
   return { value: parseFloat(m[1]), unit: (m[2] || 'mm').toLowerCase() };
 };
 
-export const validateThickness = (value, fieldName = 'Thickness') => {
+export function validateThickness(value, fieldName = 'Thickness') {
   if (!value || typeof value !== 'string') return { isValid: false, error: `${fieldName} is required` };
   const trimmed = value.trim();
   const thicknessRegex = /^(\d+(?:\.\d+)?)\s*(mm|cm)?$/i;
@@ -226,7 +226,7 @@ export const validateThickness = (value, fieldName = 'Thickness') => {
   return { isValid: true, error: null };
 };
 
-export const validateSize = (value, fieldName = 'Size') => {
+export function validateSize(value, fieldName = 'Size') {
   if (!value || typeof value !== 'string') return { isValid: false, error: `${fieldName} is required` };
   const trimmed = value.trim();
   const sizeRegex = /^(\d+\.?\d*)\s*x\s*(\d+\.?\d*)\s*(cm|mm)?$/i;
@@ -234,7 +234,7 @@ export const validateSize = (value, fieldName = 'Size') => {
   return { isValid: true, error: null };
 };
 
-export const validateIFSC = (ifsc) => {
+export function validateIFSC(ifsc) {
   if (!ifsc || typeof ifsc !== 'string') return { isValid: false, error: 'IFSC is required' };
   const trimmed = ifsc.trim().toUpperCase();
   const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
@@ -242,7 +242,7 @@ export const validateIFSC = (ifsc) => {
   return { isValid: true, error: null };
 };
 
-export const validateAccountNumber = (accNo) => {
+export function validateAccountNumber(accNo) {
   if (!accNo || typeof accNo !== 'string') return { isValid: false, error: 'Account number is required' };
   const trimmed = accNo.trim();
   const accRegex = /^\d{9,18}$/;
@@ -250,13 +250,13 @@ export const validateAccountNumber = (accNo) => {
   return { isValid: true, error: null };
 };
 
-export const sanitizeHTML = (input) => {
+export function sanitizeHTML(input) {
   if (!input || typeof input !== 'string') return input;
   const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;', '/': '&#x2F;' };
   return input.replace(/[&<>"'/]/g, (char) => map[char]);
 };
 
-export const detectSQLInjection = (input) => {
+export function detectSQLInjection(input) {
   if (!input || typeof input !== 'string') return false;
   const sqlPatterns = [
     /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE)\b)/i,
@@ -269,7 +269,7 @@ export const detectSQLInjection = (input) => {
 
 // ─── Import Validation (must be defined BEFORE export default) ───────────────
 
-const getRequiredFieldsForModule = (moduleType) => {
+function getRequiredFieldsForModule(moduleType) {
   const fieldMappings = {
     'proforma-invoice-enhanced': ['invoiceNo', 'date', 'clientName', 'country', 'amount'],
     'proforma-order': ['orderNo', 'date', 'supplierName', 'piReference', 'amount'],
@@ -286,7 +286,7 @@ const getRequiredFieldsForModule = (moduleType) => {
   return fieldMappings[moduleType] || [];
 };
 
-export const validateImportData = (data, moduleType) => {
+export function validateImportData(data, moduleType) {
   const results = {
     valid: [],
     invalid: [],

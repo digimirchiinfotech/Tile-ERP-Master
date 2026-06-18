@@ -12,6 +12,7 @@
 import { debugLogger } from '../utils/debugLogger.js';
 import socketService from './socketService.js';
 import { sendSystemNotificationEmail } from './emailService.js';
+import { z } from 'zod';
 
 const CONTEXT = 'NotificationService';
 
@@ -116,7 +117,7 @@ export const notifyUser = async (companyId, userId, notification, db) => {
     if (!db || !userId) return null;
     await ensureNotificationSchema(db);
 
-    const {
+    let {
       title,
       message,
       type = 'info',
@@ -132,6 +133,16 @@ export const notifyUser = async (companyId, userId, notification, db) => {
       role_id,
       created_by
     } = notification;
+
+    // Fix Notification UUID Bug: Ensure created_by is a valid UUID, otherwise nullify it
+    if (created_by) {
+      const uuidSchema = z.string().uuid();
+      const parsed = uuidSchema.safeParse(created_by);
+      if (!parsed.success) {
+        debugLogger.warn(CONTEXT, `Invalid UUID provided for created_by: "${created_by}". Setting to null.`);
+        created_by = null;
+      }
+    }
 
     // Resolve redirect URL from multiple possible fields
     const resolvedUrl = redirect_url || actionUrl || action_url || null;

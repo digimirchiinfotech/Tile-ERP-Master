@@ -9,7 +9,6 @@
  * or reverse engineering of this file, via any medium, is strictly prohibited.
  */
 
-import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { formatDisplayDate } from './formatters.js';
 import { getCompanyConfig } from '../config/companyConfig';
@@ -17,6 +16,7 @@ import { generateEnterpriseFilename } from './fileNamingUtils';
 
 export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTypeImageUrl = null) => {
   try {
+    const ExcelJS = (await import('exceljs')).default;
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'ERP System';
     workbook.created = new Date();

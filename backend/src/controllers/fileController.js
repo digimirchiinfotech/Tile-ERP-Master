@@ -24,10 +24,8 @@ export const serveFile = async (req, res, next) => {
     const companyId = req.companyFilter || req.user?.companyId;
 
     // --- TOP LEVEL SAFETY CHECK ---
-    // Allow legacy /uploads/ path to skip context check to support standard <img> tags
-    if (req.originalUrl.startsWith('/uploads/')) {
-      return sendFileResponse(res, filename, next);
-    }
+    // The bypass for /uploads/ has been removed to enforce strict RLS for all media access.
+    // Frontend must use SecureImage component for authenticated requests.
 
     if (!companyId) {
       return next(new AppError('Company context required', 400));

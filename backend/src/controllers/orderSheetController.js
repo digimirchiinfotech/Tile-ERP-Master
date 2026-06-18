@@ -13,6 +13,7 @@ import { debugLogger } from '../utils/debugLogger.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { successResponse, paginationResponse, getPagination, generateSequentialId, normalizeEmptyToNull } from '../utils/helpers.js';
 import { generateFactoryAssignmentSheet, generateMasterOrderSheetExcel } from '../utils/excelExportService.js';
+import { ensureInventorySchema } from '../utils/inventorySchema.js';
 
 let ensuredSchemas = new Set();
 
@@ -877,7 +878,8 @@ export const addProductionLog = async (req, res, next) => {
 
       // Lock the row for update
       const lineRes = await client.query(`
-        SELECT osl.id, osl.total_production_boxes, osl.production_completed_boxes, os.company_id
+        SELECT osl.id, osl.total_production_boxes, osl.production_completed_boxes, os.company_id,
+               osl.product_category, osl.design, osl.size, osl.surface, osl.thickness, os.po_no
         FROM master_order_sheet_lines osl
         JOIN master_order_sheets os ON osl.master_order_sheet_id = os.id
         WHERE osl.id = $1 AND os.id = $2 AND (os.company_id = $3 OR $3 IS NULL)
@@ -913,6 +915,103 @@ export const addProductionLog = async (req, res, next) => {
       `, [
         id, lineId, factory_id || null, update_date, boxesProducedNum, remarks || null, req.user ? req.user.id : null
       ]);
+
+      // --- Inventory Sync Integration ---
+      try {
+        await ensureInventorySchema({ query: async (q, v) => client.query(q, v) }); // passing a mock db object for client
+        
+        // 1. Try to find the matching product in the master products table
+        const productMatchRes = await client.query(`
+          SELECT id, sqm_per_box FROM products
+          WHERE company_id = $1
+            AND (name ILIKE $2 OR name ILIKE $3)
+            AND size = $4
+            AND surface = $5
+            AND thickness = $6
+          LIMIT 1
+        `, [
+          companyId, 
+          line.product_category || '', 
+          line.design || '', 
+          line.size || '', 
+          line.surface || '', 
+          line.thickness || ''
+        ]);
+
+        let productId = null;
+        let sqmPerBox = 0;
+        
+        if (productMatchRes.rows.length > 0) {
+          productId = productMatchRes.rows[0].id;
+          sqmPerBox = parseFloat(productMatchRes.rows[0].sqm_per_box || 0);
+        } else {
+          // Fallback: search by just name/category and size
+          const fallbackRes = await client.query(`
+            SELECT id, sqm_per_box FROM products
+            WHERE company_id = $1
+              AND (name ILIKE $2 OR name ILIKE $3)
+              AND size = $4
+            LIMIT 1
+          `, [
+            companyId, 
+            line.product_category || '', 
+            line.design || '', 
+            line.size || ''
+          ]);
+          if (fallbackRes.rows.length > 0) {
+            productId = fallbackRes.rows[0].id;
+            sqmPerBox = parseFloat(fallbackRes.rows[0].sqm_per_box || 0);
+          }
+        }
+
+        if (productId) {
+          const sqmDelta = boxesProducedNum * sqmPerBox;
+          const warehouseLocation = 'Main Warehouse'; // default location for auto-production
+
+          let stockRes = await client.query(
+            `SELECT * FROM stock_register WHERE company_id = $1 AND product_id = $2 AND warehouse_location = $3 FOR UPDATE`,
+            [companyId, productId, warehouseLocation]
+          );
+
+          let stockId;
+          if (stockRes.rows.length === 0) {
+            const newStock = await client.query(
+              `INSERT INTO stock_register (company_id, product_id, warehouse_location, quantity_boxes, quantity_sqm)
+               VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+              [companyId, productId, warehouseLocation, boxesProducedNum, sqmDelta]
+            );
+            stockId = newStock.rows[0].id;
+          } else {
+            stockId = stockRes.rows[0].id;
+            await client.query(
+              `UPDATE stock_register 
+               SET quantity_boxes = quantity_boxes + $1, 
+                   quantity_sqm = quantity_sqm + $2, 
+                   last_movement_at = NOW(), 
+                   updated_at = NOW()
+               WHERE id = $3`,
+              [boxesProducedNum, sqmDelta, stockId]
+            );
+          }
+
+          await client.query(
+            `INSERT INTO stock_movements
+             (company_id, stock_register_id, product_id, warehouse_location, movement_type, quantity_boxes, quantity_sqm, reference_type, reference_id, reference_no, notes, created_by)
+             VALUES ($1, $2, $3, $4, 'PRODUCTION', $5, $6, 'ORDER_SHEET', $7, $8, $9, $10)`,
+            [
+              companyId, stockId, productId, warehouseLocation, 
+              boxesProducedNum, sqmDelta, 
+              id, line.po_no || 'OS', 
+              remarks || 'Auto-synced from Production Log',
+              req.user ? req.user.id : null
+            ]
+          );
+        }
+      } catch (invErr) {
+        debugLogger.error('Error syncing production to inventory:', invErr);
+        // Do not fail the transaction if inventory sync fails, just log it
+      }
+      // --- End Inventory Sync ---
 
       await client.query(`
         UPDATE master_order_sheet_lines

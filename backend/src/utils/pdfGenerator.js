@@ -9,10 +9,10 @@
  * or reverse engineering of this file, via any medium, is strictly prohibited.
  */
 
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
 
 export const generatePDF = async (docTitle, headers, data, filename = 'document.pdf') => {
+  const { jsPDF } = await import('jspdf');
+  await import('jspdf-autotable');
   const doc = new jsPDF();
   
   doc.setFontSize(18);

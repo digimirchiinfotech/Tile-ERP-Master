@@ -816,6 +816,50 @@ export const bulkUpsert = async (req, res, next) => {
 
     await client.query('COMMIT');
 
+    // Update Master Data automatically
+    try {
+      const masterDataUpdates = [
+        { field: 'category', table: 'product_categories', column: 'category' },
+        { field: 'size', table: 'product_sizes', column: 'size' },
+        { field: 'surface', table: 'product_surfaces', column: 'surface', split: true },
+        { field: 'application', table: 'product_applications', column: 'application', split: true },
+        { field: 'thickness', table: 'product_thickness', column: 'thickness', split: true },
+        { field: 'factoryName', fallback: 'factory_name', table: 'factory_names', column: 'name' }
+      ];
+
+      for (const md of masterDataUpdates) {
+        let valuesToInsert = [];
+        
+        products.forEach(p => {
+          const rawValue = p[md.field] || p[md.fallback];
+          if (rawValue && typeof rawValue === 'string' && rawValue.trim().length > 0) {
+            if (md.split) {
+              rawValue.split(',').forEach(v => {
+                if (v.trim()) valuesToInsert.push(v.trim());
+              });
+            } else {
+              valuesToInsert.push(rawValue.trim());
+            }
+          }
+        });
+
+        const uniqueValues = [...new Set(valuesToInsert)];
+        
+        for (const val of uniqueValues) {
+          await client.query(`
+            INSERT INTO ${md.table} (company_id, ${md.column}, status, created_at, updated_at)
+            SELECT $1, $2, 'Active', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            WHERE NOT EXISTS (
+              SELECT 1 FROM ${md.table} 
+              WHERE company_id = $1 AND LOWER(${md.column}) = LOWER($2)
+            )
+          `, [companyId, val]);
+        }
+      }
+    } catch (mdErr) {
+      debugLogger.warn('Failed to update master data during bulk import:', mdErr.message);
+    }
+
     // Audit Log
     logAction({
       userId: req.user.id, companyId: req.companyFilter, action: 'BULK_UPSERT', entityType: 'product',

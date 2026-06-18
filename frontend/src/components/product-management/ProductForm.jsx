@@ -48,12 +48,9 @@ function ProductForm({
   const [formData, setFormData] = useState({
     factoryName: '',
     factoryProductName: '',
-    name: '',
     companyProductName: '',
     description: '',
     productCode: '',
-    catalogueName: '',
-    catalogue: '',
     category: '',
     size: '',
     surface: [],
@@ -61,17 +58,13 @@ function ProductForm({
     application: [],
     hsCode: '',
     boxPcs: '',
-    boxPC: '',
-    boxWeight: '',
     sqmPerBox: '',
     defaultBoxesPerPallet: '',
     defaultBoxesPerKathali: '',
-    defaultPerBoxWeight: '',
+    boxWeight: '',
     defaultPerPalletWeight: '',
-
     status: 'Active',
     images: [], // Mandatory field
-    pdfs: [],
   });
   const [errors, setErrors] = useState({});
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -111,12 +104,9 @@ function ProductForm({
       setFormData({
         factoryName: product.factoryName || '',
         factoryProductName: product.factoryProductName || '',
-        name: product.name || '',
-        companyProductName: product.companyProductName || '',
+        companyProductName: product.companyProductName || product.name || '',
         description: product.description || '',
         productCode: product.productCode || '',
-        catalogueName: product.catalogueName || product.catalogue || '',
-        catalogue: product.catalogue || product.catalogueName || '',
         category: product.category || '',
         // Extract first size if array, otherwise use string
         size: Array.isArray(product.size)
@@ -140,18 +130,15 @@ function ProductForm({
             ? product.application.split(',').map(s => s.trim()).filter(Boolean)
             : [],
         boxPcs: product.boxPcs || product.boxPC || product.box_pcs || 0,
-        boxPC: product.boxPC || product.boxPcs || product.box_pcs || 0,
         boxWeight: product.boxWeight || product.box_weight || product.defaultPerBoxWeight || product.default_per_box_weight || 0,
         sqmPerBox: product.sqmPerBox || product.sqm_per_box || 0,
         defaultBoxesPerPallet: product.boxesPerPallet || product.defaultBoxesPerPallet || product.boxes_per_pallet || 0,
         defaultBoxesPerKathali: product.defaultBoxesPerKathali || product.default_boxes_per_kathali || 0,
-        defaultPerBoxWeight: product.defaultPerBoxWeight || product.default_per_box_weight || product.boxWeight || product.box_weight || 0,
         defaultPerPalletWeight: product.defaultPerPalletWeight || product.default_per_pallet_weight || 0,
         hsCode: product.hsCode || product.hs_code || '',
 
         status: product.status || 'Active',
         images: product.images || [],
-        pdfs: product.pdfs || [],
       });
       
       // If we are editing an existing product, we shouldn't auto-fill on initial load
@@ -178,12 +165,10 @@ function ProductForm({
           setFormData(prev => ({
             ...prev,
             boxPcs: template.boxPcs || template.box_pcs || 0,
-            boxPC: template.boxPcs || template.box_pcs || 0,
             sqmPerBox: template.sqmPerBox || template.sqm_per_box || 0,
             defaultBoxesPerPallet: template.boxesPerPallet || template.boxes_per_pallet || 0,
             defaultBoxesPerKathali: template.boxesPerKathli || template.boxes_per_kathli || 0,
             boxWeight: template.perBoxWeight || template.per_box_weight || 0,
-            defaultPerBoxWeight: template.perBoxWeight || template.per_box_weight || 0,
             defaultPerPalletWeight: template.perPalletWeight || template.per_pallet_weight || 0,
           }));
           setShowSaveTemplatePrompt(false);
@@ -237,29 +222,7 @@ function ProductForm({
       [field]: filteredValue,
     }));
 
-    // Auto-sync boxPcs and boxPC
-    if (field === 'boxPcs') {
-      setFormData((prev) => ({
-        ...prev,
-        boxPcs: filteredValue,
-        boxPC: filteredValue,
-      }));
-    } else if (field === 'boxPC') {
-      setFormData((prev) => ({
-        ...prev,
-        boxPC: filteredValue,
-        boxPcs: filteredValue,
-      }));
-    }
-
-    // Auto-sync catalogue fields
-    if (field === 'catalogueName') {
-      setFormData((prev) => ({
-        ...prev,
-        catalogueName: value,
-        catalogue: value,
-      }));
-    }
+  };
 
     if (errors[field]) {
       setErrors((prev) => ({
@@ -285,17 +248,14 @@ function ProductForm({
     const newErrors = {};
 
     // REQUIRED FIELDS (marked with * in form)
-    // Product Name validation - at least one name field required
-    const productName = formData.companyProductName || formData.factoryProductName || formData.name;
+    const productName = formData.companyProductName;
     if (!productName || !productName.trim()) {
-      newErrors.companyProductName = 'Product Name is required (either Company or Factory name)';
+      newErrors.companyProductName = 'Product Name is required';
     } else if (productName.trim().length < 2) {
       newErrors.companyProductName = 'Product Name must be at least 2 characters long';
     } else if (productName.trim().length > 255) {
       newErrors.companyProductName = 'Product Name must not exceed 255 characters';
     }
-
-    // Catalogue Name - optional (no validation needed)
 
     // Category - required
     if (!formData.category || !formData.category.trim()) {
@@ -333,8 +293,8 @@ function ProductForm({
     }
 
     // Per Box Weight - required for calculations
-    if (!formData.defaultPerBoxWeight || parseFloat(formData.defaultPerBoxWeight) <= 0) {
-      newErrors.defaultPerBoxWeight = 'Per Box Weight is required and must be greater than 0';
+    if (!formData.boxWeight || parseFloat(formData.boxWeight) <= 0) {
+      newErrors.boxWeight = 'Per Box Weight is required and must be greater than 0';
     }
 
     // Per Pallet Weight - required for calculations
@@ -401,8 +361,7 @@ function ProductForm({
       return;
     }
 
-    // Use companyProductName as the primary name field (prioritize it over legacy name)
-    const productName = formData.companyProductName || formData.factoryProductName || formData.name || 'PROD';
+      const productName = formData.companyProductName || formData.factoryProductName || 'PROD';
       
       // Prepare product data with proper structure - match backend field names exactly
       const productData = {
@@ -424,16 +383,15 @@ function ProductForm({
         hs_code: formData.hsCode || null,
         // Images and PDFs are arrays - backend stores them as JSONB
         images: formData.images || [],
-        pdfs: formData.pdfs || [],
         factory_name: formData.factoryName || null,
         factory_product_name: formData.factoryProductName || null,
         company_product_name: formData.companyProductName || null,
-        catalogue_name: formData.catalogueName || formData.catalogue || null,
+        catalogue_name: 'Tiles',
         // Convert application array to comma-separated string for VARCHAR column
         application: formData.application && formData.application.length > 0 ? formData.application.join(', ') : null,
         box_pcs: formData.boxPcs !== '' ? parseInt(formData.boxPcs) : null,
         default_boxes_per_kathali: formData.defaultBoxesPerKathali !== '' ? parseInt(formData.defaultBoxesPerKathali) : null,
-        default_per_box_weight: formData.defaultPerBoxWeight !== '' && formData.defaultPerBoxWeight !== 0 ? parseFloat(formData.defaultPerBoxWeight) : (formData.defaultPerBoxWeight === 0 ? 0 : null),
+        default_per_box_weight: formData.boxWeight !== '' && formData.boxWeight !== 0 ? parseFloat(formData.boxWeight) : (formData.boxWeight === 0 ? 0 : null),
         default_per_pallet_weight: formData.defaultPerPalletWeight !== '' && formData.defaultPerPalletWeight !== 0 ? parseFloat(formData.defaultPerPalletWeight) : (formData.defaultPerPalletWeight === 0 ? 0 : null),
 
       };
@@ -456,7 +414,7 @@ function ProductForm({
               sqm_per_box: productData.sqm_per_box || 0,
               boxes_per_pallet: productData.boxes_per_pallet || 0,
               boxes_per_kathli: productData.default_boxes_per_kathali || 0,
-              per_box_weight: productData.default_per_box_weight || productData.box_weight || 0,
+              per_box_weight: productData.box_weight || 0,
               per_pallet_weight: productData.default_per_pallet_weight || 0,
               status: 'Active'
             });
@@ -534,7 +492,7 @@ function ProductForm({
       <Modal.Header closeButton>
         <Modal.Title>
           <Camera size={20} className="me-2" />
-          {product?.id ? 'Edit' : 'New'} {formData.catalogueName || 'Tile'} Product
+          {product?.id ? 'Edit' : 'New'} Product
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="p-4">
@@ -624,7 +582,7 @@ function ProductForm({
                       <Form.Group>
                           <OverlayTrigger placement="top" overlay={<Tooltip>Your official selling name for this product</Tooltip>}>
                             <Form.Label className="text-danger" style={{cursor: 'help'}}>
-                              {displayCompanyName} Product Name * <Info size={12} className="ms-1" />
+                              Product Name * <Info size={12} className="ms-1" />
                             </Form.Label>
                           </OverlayTrigger>
                         <Form.Control
@@ -678,28 +636,7 @@ function ProductForm({
                       </Form.Group>
                     </Col>
 
-                    <Col xs={12}>
-                      <Form.Group>
-                        <Form.Label>Catalogue Name</Form.Label>
-                        <AddableDropdown
-                          value={formData.catalogueName}
-                          onChange={(value) =>
-                            handleInputChange('catalogueName', value)
-                          }
-                          masterDataType="catalogueNames"
-                          options={combinedCatalogueOptions}
-                          label="Catalogue Name"
-                          placeholder="Select or add catalogue"
-                          isInvalid={!!errors.catalogueName}
-                        />
-                        <Form.Control.Feedback type="invalid">
-                          {errors.catalogueName}
-                        </Form.Control.Feedback>
-                        <Form.Text className="text-muted">
-                          Fetch from Catalogue Management
-                        </Form.Text>
-                      </Form.Group>
-                    </Col>
+
                   </Row>
                 </Card.Body>
               </Card>

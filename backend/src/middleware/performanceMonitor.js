@@ -137,6 +137,6 @@ setInterval(() => {
   if (metrics.errors.length > 500) {
     metrics.errors = metrics.errors.slice(-250);
   }
-}, 30 * 60 * 1000); // Every 30 minutes
+}, 30 * 60 * 1000).unref(); // Every 30 minutes
 
 export default performanceMonitor;

@@ -59,7 +59,7 @@ export const query = async (text, params, companyId = 'super_admin_bypass') => {
   const isSelectOrUpdate = /SELECT|UPDATE|DELETE/i.test(text);
   const hasWhere = /WHERE/i.test(text);
   const hasCompanyId = /company_id/i.test(text);
-  const isExemptTable = /users|roles|companies|migrations/i.test(text);
+  const isExemptTable = /users|roles|companies|migrations|information_schema/i.test(text);
   
   if (isSelectOrUpdate && hasWhere && !hasCompanyId && !isExemptTable) {
       debugLogger.warning('Database Security', `Query potentially missing tenant isolation (company_id)`, { sql: text.substring(0, 150) });

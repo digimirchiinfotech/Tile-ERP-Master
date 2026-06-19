@@ -60,102 +60,9 @@ export function mergeUniqueFieldValues(values, separator = ' | ') {
   return uniqueVals.join(separator);
 }
 
-let ensuredSchemas = new Set();
-
-const ensureSchemaExists = async (queryFn, companyId) => {
-  const cacheKey = companyId || 'global';
-  if (ensuredSchemas.has(cacheKey)) return;
-  try {
-    const eiColumns = [
-      { name: 'pallet_type', type: 'TEXT' },
-      { name: 'tiles_back', type: 'TEXT' },
-      { name: 'boxes_marking', type: 'TEXT' },
-      { name: 'box_type', type: 'TEXT' },
-      { name: 'currency', type: 'VARCHAR(50) DEFAULT \'USD\'' },
-      { name: 'exchange_rate', type: 'NUMERIC(15, 6) DEFAULT 1.0' },
-      { name: 'is_locked', type: 'BOOLEAN DEFAULT false' },
-      { name: 'lut_date', type: 'DATE' },
-      { name: 'country_of_origin', type: 'VARCHAR(100) DEFAULT \'INDIA\'' },
-      { name: 'supply_declaration', type: 'TEXT' },
-      { name: 'ftp_incentive_declaration', type: 'TEXT' },
-      { name: 'is_used', type: 'BOOLEAN DEFAULT false' },
-      { name: 'is_converted', type: 'BOOLEAN DEFAULT false' },
-      { name: 'linked_document_id', type: 'UUID' },
-      { name: 'document_status', type: 'VARCHAR(50) DEFAULT \'Draft\'' },
-      { name: 'lc_number', type: 'VARCHAR(255)' },
-      { name: 'lc_date', type: 'DATE' },
-      { name: 'epcg_no', type: 'VARCHAR(255)' },
-      { name: 'locked_at', type: 'TIMESTAMP' },
-      { name: 'locked_by', type: 'UUID' },
-      { name: 'snapshot_data', type: 'JSONB' },
-      { name: 'final_pdf_path', type: 'VARCHAR(255)' },
-      { name: 'final_excel_path', type: 'VARCHAR(255)' },
-      { name: 'finalized_hash', type: 'VARCHAR(255)' },
-      { name: 'lock_version', type: 'INTEGER DEFAULT 0' },
-      { name: 'finalized_at', type: 'TIMESTAMP' },
-      { name: 'unlocked_at', type: 'TIMESTAMP' },
-      { name: 'unlocked_by', type: 'UUID' },
-      { name: 'unlock_reason', type: 'TEXT' }
-    ];
-
-    for (const col of eiColumns) {
-      const checkQuery = `
-        SELECT EXISTS (
-          SELECT FROM information_schema.columns 
-          WHERE table_name = 'export_invoices' 
-          AND column_name = $1
-        );
-      `;
-      const { rows } = await queryFn(checkQuery, [col.name]);
-      if (!rows[0].exists) {
-        await queryFn(`ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS ${col.name} ${col.type}`);
-      }
-    }
-
-    const eilColumns = [
-      { name: 'product_type', type: "VARCHAR(50) DEFAULT 'tile'" },
-      { name: 'sanitaryware_product_id', type: 'UUID' },
-      { name: 'model_no', type: 'VARCHAR(255)' },
-      { name: 'category', type: 'VARCHAR(255)' },
-      { name: 'color', type: 'VARCHAR(255)' },
-      { name: 'pieces', type: 'INTEGER DEFAULT 0' },
-      { name: 'cartons', type: 'INTEGER DEFAULT 0' },
-      { name: 'cbm', type: 'NUMERIC(15, 4) DEFAULT 0' },
-      { name: 'is_foc', type: 'BOOLEAN DEFAULT false' }
-    ];
-
-    for (const col of eilColumns) {
-      const checkQuery = `
-        SELECT EXISTS (
-          SELECT FROM information_schema.columns 
-          WHERE table_name = 'export_invoice_lines' 
-          AND column_name = $1
-        );
-      `;
-      const { rows } = await queryFn(checkQuery, [col.name]);
-      if (!rows[0].exists) {
-        await queryFn(`ALTER TABLE export_invoice_lines ADD COLUMN IF NOT EXISTS ${col.name} ${col.type}`);
-      }
-    }
-
-    // Ensure type TEXT for export_invoice columns
-    await queryFn(`
-      ALTER TABLE export_invoices 
-        ALTER COLUMN pallet_type TYPE TEXT,
-        ALTER COLUMN tiles_back TYPE TEXT,
-        ALTER COLUMN boxes_marking TYPE TEXT,
-        ALTER COLUMN box_type TYPE TEXT;
-    `);
-
-    ensuredSchemas.add(cacheKey);
-  } catch (err) {
-    debugLogger.error('[Export Invoice Schema Self-Healing] Error ensuring schema columns exist:', err.message);
-  }
-};
 
 export const getAll = async (req, res, next) => {
   try {
-    await ensureSchemaExists(req.db.query, req.companyFilter);
     const {
       page = 1,
       limit = 50,
@@ -250,7 +157,6 @@ export const getAll = async (req, res, next) => {
 
 export const getById = async (req, res, next) => {
   try {
-    await ensureSchemaExists(req.db.query, req.companyFilter);
     const { id } = req.params;
 
     const idValidation = validateUUID(id, 'Export Invoice ID');
@@ -908,7 +814,6 @@ export const getFullFromProforma = async (req, res, next) => {
 
 export const create = async (req, res, next) => {
   try {
-    await ensureSchemaExists(req.db.query, req.companyFilter);
     const {
       proforma_invoice_id, invoice_date, client_name, client_id, country,
       consignee_details, buyer_details, payment_terms, delivery_terms,
@@ -1206,7 +1111,6 @@ export const create = async (req, res, next) => {
 export const update = async (req, res, next) => {
   let client;
   try {
-    await ensureSchemaExists(req.db.query, req.companyFilter);
     const { id } = req.params;
     const companyId = req.companyFilter || req.user?.companyId;
 

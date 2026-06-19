@@ -1,6 +1,20 @@
 import request from 'supertest';
 import app from '../server.js';
 import { loginAsSuperAdmin, authHeaders, extractList } from './helpers.js';
+import pool from '../config/database.js';
+import router from '../config/companyDatabaseRouter.js';
+
+afterAll(async () => {
+  for (const companyId of router.companyDatabaseCache.keys()) {
+    await router.closeCompanyDatabase(companyId);
+  }
+  if (router.masterPool) {
+    await router.masterPool.end();
+  }
+  if (pool) {
+    await pool.end();
+  }
+});
 
 const DIGIMIRCHI_COMPANY = '6e17ac7e-5d0f-43e3-93c0-34222ac4a701';
 

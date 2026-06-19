@@ -112,6 +112,6 @@ setInterval(() => {
       pruned++;
     }
   });
-}, 60 * 60 * 1000);
+}, 60 * 60 * 1000).unref();
 
 export default csrfProtection;

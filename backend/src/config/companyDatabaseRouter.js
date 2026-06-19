@@ -14,6 +14,7 @@ import env from './env.js';
 import masterPool, { masterQuery } from './masterDatabase.js';
 import { decrypt } from '../utils/encryption.js';
 import debugLogger from '../utils/debugLogger.js';
+import { syncTenantSchema } from '../utils/tenantSchemaSync.js';
 
 const { Pool } = pg;
 
@@ -114,6 +115,9 @@ export const getCompanyDatabase = async (companyId) => {
         // Note: We no longer delete from cache here to prevent race conditions during high load.
         // pg-pool handles individual client errors; we only discard on fatal pool destruction.
       });
+
+      // Run dynamic schema synchronization once per tenant pool initialization
+      await syncTenantSchema(companyPool, companyId);
 
       // Cache this connection pool
       companyDatabaseCache.set(companyId, companyPool);

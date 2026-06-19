@@ -29,83 +29,9 @@ const parseProductId = (id) => {
   return uuidRegex.test(strId) ? strId : null;
 };
 
-let ensuredSchemas = new Set();
-
-const ensureSchemaExists = async (queryFn, companyId) => {
-  const cacheKey = companyId || 'global';
-  if (ensuredSchemas.has(cacheKey)) return;
-  try {
-    const poColumns = [
-      { name: 'pallet_type', type: 'TEXT' },
-      { name: 'tiles_back', type: 'TEXT' },
-      { name: 'boxes_marking', type: 'TEXT' },
-      { name: 'box_type', type: 'TEXT' },
-      { name: 'gst_rate', type: 'NUMERIC(5, 2) DEFAULT 0' },
-      { name: 'gst_amount', type: 'NUMERIC(15, 2) DEFAULT 0' },
-      { name: 'currency', type: 'VARCHAR(50) DEFAULT \'INR (₹)\'' },
-      { name: 'lc_number', type: 'VARCHAR(255)' },
-      { name: 'lc_date', type: 'DATE' },
-      { name: 'epcg_no', type: 'VARCHAR(255)' }
-    ];
-
-    for (const col of poColumns) {
-      const checkQuery = `
-        SELECT EXISTS (
-          SELECT FROM information_schema.columns 
-          WHERE table_name = 'proforma_orders' 
-          AND column_name = $1
-        );
-      `;
-      const { rows } = await queryFn(checkQuery, [col.name]);
-      if (!rows[0].exists) {
-        await queryFn(`ALTER TABLE proforma_orders ADD COLUMN IF NOT EXISTS ${col.name} ${col.type}`);
-      }
-    }
-
-    const polColumns = [
-      { name: 'product_type', type: "VARCHAR(50) DEFAULT 'tile'" },
-      { name: 'sanitaryware_product_id', type: 'UUID' },
-      { name: 'model_no', type: 'VARCHAR(255)' },
-      { name: 'category', type: 'VARCHAR(255)' },
-      { name: 'color', type: 'VARCHAR(255)' },
-      { name: 'pieces', type: 'INTEGER DEFAULT 0' },
-      { name: 'cartons', type: 'INTEGER DEFAULT 0' },
-      { name: 'cbm', type: 'NUMERIC(15, 4) DEFAULT 0' },
-      { name: 'is_foc', type: 'BOOLEAN DEFAULT false' }
-    ];
-
-    for (const col of polColumns) {
-      const checkQuery = `
-        SELECT EXISTS (
-          SELECT FROM information_schema.columns 
-          WHERE table_name = 'proforma_order_lines' 
-          AND column_name = $1
-        );
-      `;
-      const { rows } = await queryFn(checkQuery, [col.name]);
-      if (!rows[0].exists) {
-        await queryFn(`ALTER TABLE proforma_order_lines ADD COLUMN IF NOT EXISTS ${col.name} ${col.type}`);
-      }
-    }
-
-    // Ensure type TEXT
-    await queryFn(`
-      ALTER TABLE proforma_orders 
-        ALTER COLUMN pallet_type TYPE TEXT,
-        ALTER COLUMN tiles_back TYPE TEXT,
-        ALTER COLUMN boxes_marking TYPE TEXT,
-        ALTER COLUMN box_type TYPE TEXT;
-    `);
-    
-    ensuredSchemas.add(cacheKey);
-  } catch (err) {
-    debugLogger.error('[Proforma Order Schema Self-Healing] Error ensuring schema columns exist:', err.message);
-  }
-};
 
 export const getAll = async (req, res, next) => {
   try {
-    await ensureSchemaExists(req.db.query, req.companyFilter);
     const { 
       page = 1, 
       limit = 50, 
@@ -212,7 +138,6 @@ export const getAll = async (req, res, next) => {
 
 export const getById = async (req, res, next) => {
   try {
-    await ensureSchemaExists(req.db.query, req.companyFilter);
     const { id } = req.params;
 
     const idValidation = validateUUID(id, 'Order ID');
@@ -324,7 +249,6 @@ export const getById = async (req, res, next) => {
 };
 export const create = async (req, res, next) => {
   try {
-    await ensureSchemaExists(req.db.query, req.companyFilter);
 
     const {
       date, supplier_id, supplier_name, invoice_ref, tariff_code, subtotal = 0,
@@ -468,7 +392,6 @@ export const create = async (req, res, next) => {
 
 export const update = async (req, res, next) => {
   try {
-    await ensureSchemaExists(req.db.query, req.companyFilter);
     const { id } = req.params;
 
     const idValidation = validateUUID(id, 'Order ID');

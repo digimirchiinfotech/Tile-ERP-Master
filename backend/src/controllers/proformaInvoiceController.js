@@ -37,99 +37,6 @@ const parseProductId = (id) => {
  * Self-healing helper: ensures all required columns exist in the tenant's proforma_invoices
  * and proforma_invoice_lines tables. This prevents "column does not exist" errors.
  */
-let ensuredSchemas = new Set();
-
-const ensureSchemaExists = async (queryFn, companyId) => {
-  const cacheKey = companyId || 'global';
-  if (ensuredSchemas.has(cacheKey)) return;
-  try {
-    const piColumns = [
-      { name: 'currency', type: "VARCHAR(50) DEFAULT 'USD ($)'" },
-      { name: 'pre_carriage_by', type: 'VARCHAR(255)' },
-      { name: 'place_of_receipt', type: 'VARCHAR(255)' },
-      { name: 'bl_no', type: 'VARCHAR(100)' },
-      { name: 'bl_date', type: 'DATE' },
-      { name: 'vessel_flight_no', type: 'VARCHAR(100)' },
-      { name: 'sb_no', type: 'VARCHAR(100)' },
-      { name: 'sb_date', type: 'DATE' },
-      { name: 'exchange_rate', type: 'NUMERIC(15, 6) DEFAULT 1.0' },
-      { name: 'is_used', type: 'BOOLEAN DEFAULT false' },
-      { name: 'is_converted', type: 'BOOLEAN DEFAULT false' },
-      { name: 'linked_document_id', type: 'UUID' },
-      { name: 'document_status', type: 'VARCHAR(50) DEFAULT \'Draft\'' },
-      { name: 'approval_status', type: 'VARCHAR(50) DEFAULT \'Pending\'' },
-      { name: 'approved_by', type: 'UUID' },
-      { name: 'approved_at', type: 'TIMESTAMP' },
-      { name: 'approval_remarks', type: 'TEXT' },
-      { name: 'lc_number', type: 'VARCHAR(255)' },
-      { name: 'lc_date', type: 'DATE' },
-      { name: 'epcg_no', type: 'VARCHAR(255)' }
-    ];
-
-    for (const col of piColumns) {
-      const checkQuery = `
-        SELECT EXISTS (
-          SELECT FROM information_schema.columns 
-          WHERE table_name = 'proforma_invoices' 
-          AND column_name = $1
-        );
-      `;
-      const { rows } = await queryFn(checkQuery, [col.name]);
-      if (!rows[0].exists) {
-        debugLogger.info(`[Proforma Schema Self-Healing] Column ${col.name} missing in proforma_invoices. Adding...`);
-        await queryFn(`ALTER TABLE proforma_invoices ADD COLUMN IF NOT EXISTS ${col.name} ${col.type}`);
-      }
-    }
-
-    const pilColumns = [
-      { name: 'description', type: 'TEXT' },
-      { name: 'product_type', type: "VARCHAR(50) DEFAULT 'tile'" },
-      { name: 'sanitaryware_product_id', type: 'UUID' },
-      { name: 'model_no', type: 'VARCHAR(255)' },
-      { name: 'category', type: 'VARCHAR(255)' },
-      { name: 'color', type: 'VARCHAR(255)' },
-      { name: 'pieces', type: 'INTEGER DEFAULT 0' },
-      { name: 'cartons', type: 'INTEGER DEFAULT 0' },
-      { name: 'cbm', type: 'NUMERIC(15, 4) DEFAULT 0' },
-      { name: 'is_foc', type: 'BOOLEAN DEFAULT false' }
-    ];
-
-    for (const col of pilColumns) {
-      const checkQuery = `
-        SELECT EXISTS (
-          SELECT FROM information_schema.columns 
-          WHERE table_name = 'proforma_invoice_lines' 
-          AND column_name = $1
-        );
-      `;
-      const { rows } = await queryFn(checkQuery, [col.name]);
-      if (!rows[0].exists) {
-        debugLogger.info(`[Proforma Schema Self-Healing] Column ${col.name} missing in proforma_invoice_lines. Adding...`);
-        await queryFn(`ALTER TABLE proforma_invoice_lines ADD COLUMN IF NOT EXISTS ${col.name} ${col.type}`);
-      }
-    }
-
-    // Self-heal: Alter packing instruction columns to TYPE TEXT to support long/merged strings
-    await queryFn(`
-      ALTER TABLE proforma_invoices 
-        ALTER COLUMN pallet_type TYPE TEXT,
-        ALTER COLUMN tiles_back TYPE TEXT,
-        ALTER COLUMN port_of_discharge TYPE TEXT,
-        ALTER COLUMN final_destination TYPE TEXT;
-    `);
-    
-    // Self-heal: Drop problematic global FKs from tenant DB
-    await queryFn(`
-      ALTER TABLE proforma_invoices 
-        DROP CONSTRAINT IF EXISTS proforma_invoices_created_by_fkey,
-        DROP CONSTRAINT IF EXISTS proforma_invoices_updated_by_fkey;
-    `);
-    
-    ensuredSchemas.add(cacheKey);
-  } catch (err) {
-    debugLogger.error('[Proforma Schema Self-Healing] Error ensuring schema columns exist:', err.message);
-  }
-};
 
 /**
  * Get all Proforma Invoices
@@ -138,8 +45,6 @@ const ensureSchemaExists = async (queryFn, companyId) => {
  */
 export const getAll = async (req, res, next) => {
   try {
-    // Self-heal: Ensure schema is correct for this tenant (cached)
-    await ensureSchemaExists(req.db.query, req.companyFilter);
 
     const { 
       page = 1, 
@@ -287,8 +192,6 @@ export const getAll = async (req, res, next) => {
  */
 export const getById = async (req, res, next) => {
   try {
-    // Self-heal: Ensure schema is correct for this tenant (cached)
-    await ensureSchemaExists(req.db.query, req.companyFilter);
 
     const { id } = req.params;
 
@@ -384,9 +287,6 @@ export const create = async (req, res, next) => {
     if (!allowedRoles.includes(req.user.role)) {
       return next(new AppError('You do not have permission to create proforma invoices', 403));
     }
-
-    // Self-heal: Ensure schema is correct for this tenant (cached)
-    await ensureSchemaExists(req.db.query, req.companyFilter);
 
     const {
       date, client_id, client_name, country, subtotal, discount, tax,
@@ -574,9 +474,6 @@ export const create = async (req, res, next) => {
 export const update = async (req, res, next) => {
   try {
     const companyId = req.companyFilter;
-
-    // Self-heal: Ensure schema is correct for this tenant (cached)
-    await ensureSchemaExists(req.db.query, req.companyFilter);
 
     // SECURITY: Only non-client roles can update proforma invoices
     const allowedRoles = ['super_admin', 'company_admin', 'admin', 'sales_manager', 'sales_executive', 'account', 'export_documents'];
@@ -1112,8 +1009,6 @@ export const updateStatus = async (req, res, next) => {
 
 export const getNextNumber = async (req, res, next) => {
   try {
-    // Self-heal: Ensure schema is correct for this tenant
-    await ensureSchemaExists(req.db.query);
 
     const companyId = req.companyFilter;
 

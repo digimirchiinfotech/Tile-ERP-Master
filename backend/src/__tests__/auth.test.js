@@ -1,6 +1,20 @@
 import request from 'supertest';
 import app from '../server.js';
 import { TEST_CREDENTIALS } from './helpers.js';
+import pool from '../config/database.js';
+import router from '../config/companyDatabaseRouter.js';
+
+afterAll(async () => {
+  for (const companyId of router.companyDatabaseCache.keys()) {
+    await router.closeCompanyDatabase(companyId);
+  }
+  if (router.masterPool) {
+    await router.masterPool.end();
+  }
+  if (pool) {
+    await pool.end();
+  }
+});
 
 describe('Health & Auth', () => {
   it('GET /health returns healthy status', async () => {

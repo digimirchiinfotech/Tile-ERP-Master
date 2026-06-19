@@ -70,53 +70,12 @@ function amountToWords(amount) {
 
 // Schema enforcement moved to strict database migrations (20260518_schema_hardening_and_rls.sql)
 
-let ensuredSchemas = new Set();
-
-const ensureSchemaExists = async (queryFn, companyId) => {
-  const cacheKey = companyId || 'global';
-  if (ensuredSchemas.has(cacheKey)) return;
-  try {
-    const columns = [
-      { name: 'delivery_terms', type: 'TEXT' },
-      { name: 'payment_terms', type: 'TEXT' },
-      { name: 'other_instructions', type: 'TEXT' },
-      { name: 'supply_declaration', type: 'TEXT' },
-      { name: 'ftp_incentive_declaration', type: 'TEXT' },
-      { name: 'buyer_details', type: 'TEXT' },
-      { name: 'consignee_details', type: 'TEXT' },
-      { name: 'port_of_loading', type: 'TEXT' },
-      { name: 'port_of_discharge', type: 'TEXT' },
-      { name: 'vessel_flight_no', type: 'TEXT' },
-      { name: 'pre_carriage_by', type: 'TEXT' },
-      { name: 'place_of_receipt', type: 'TEXT' },
-      { name: 'country', type: 'TEXT' },
-      { name: 'final_destination', type: 'TEXT' }
-    ];
-
-    for (const col of columns) {
-      const checkQuery = `
-        SELECT EXISTS (
-          SELECT FROM information_schema.columns 
-          WHERE table_name = 'igst_invoices' 
-          AND column_name = $1
-        );
-      `;
-      const { rows } = await queryFn(checkQuery, [col.name]);
-      if (!rows[0].exists) {
-        await queryFn(`ALTER TABLE igst_invoices ADD COLUMN IF NOT EXISTS ${col.name} ${col.type}`);
-      }
-    }
-  } catch (err) {
-    debugLogger.error('[IGST Schema Self-Healing] Error ensuring schema columns exist:', err.message);
-  }
-};
 
 /**
  * Fetch IGST Invoice by Export Invoice ID or generate fallback inheritance data
  */
 export const getByExportInvoiceId = async (req, res, next) => {
   try {
-    await ensureSchemaExists(req.db.query, req.companyFilter);
     const { exportInvoiceId } = req.params;
     const idValidation = validateUUID(exportInvoiceId, 'Export Invoice ID');
     if (!idValidation.isValid) return next(new AppError(idValidation.error, 400));
@@ -442,7 +401,6 @@ export const getByExportInvoiceId = async (req, res, next) => {
  */
 export const createOrUpdate = async (req, res, next) => {
   try {
-    await ensureSchemaExists(req.db.query, req.companyFilter);
     const { exportInvoiceId } = req.params;
     const body = req.body;
 
@@ -642,7 +600,6 @@ export const createOrUpdate = async (req, res, next) => {
  */
 export const getAll = async (req, res, next) => {
   try {
-    await ensureSchemaExists(req.db.query, req.companyFilter);
     const { page = 1, limit = 50, search = '' } = req.query;
     const offset = (page - 1) * limit;
     
@@ -707,7 +664,6 @@ export const getAll = async (req, res, next) => {
  */
 export const getById = async (req, res, next) => {
   try {
-    await ensureSchemaExists(req.db.query, req.companyFilter);
     const { id } = req.params;
     const companyId = req.companyFilter || req.user?.companyId;
 

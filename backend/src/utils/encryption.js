@@ -10,9 +10,25 @@
  */
 
 import crypto from 'crypto';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const ALGORITHM = 'aes-256-cbc';
-const ENCRYPTION_KEY = process.env.DB_ENCRYPTION_KEY || 'v6yB&E)H@McQfTjWnZr4u7x!A%C*F-Ja'; // Must be 32 chars
+const ENCRYPTION_KEY = process.env.DB_ENCRYPTION_KEY;
+
+if (!ENCRYPTION_KEY) {
+    console.error('\n❌ CRITICAL ERROR: DB_ENCRYPTION_KEY environment variable is not defined!');
+    console.error('Please configure DB_ENCRYPTION_KEY in your .env file.\n');
+    process.exit(1);
+}
+
+if (Buffer.from(ENCRYPTION_KEY).length !== 32) {
+    console.error('\n❌ CRITICAL ERROR: DB_ENCRYPTION_KEY must be exactly 32 bytes (characters) long!');
+    console.error(`Current key length: ${Buffer.from(ENCRYPTION_KEY).length} bytes.\n`);
+    process.exit(1);
+}
+
 const IV_LENGTH = 16;
 
 /**

@@ -18,8 +18,12 @@ const getJWTSecret = () => {
   const secret = process.env.JWT_SECRET;
   if (!secret || secret === 'change-this-in-production') {
     if (process.env.NODE_ENV === 'production') {
-      console.error('CRITICAL: JWT_SECRET must be set in production!');
-      process.exit(1);
+      // Log critical error but don't exit — crashing causes 502 with no useful error in Railway
+      const generated = 'prod-fallback-' + crypto.randomBytes(32).toString('hex');
+      console.error('⛔ CRITICAL: JWT_SECRET env var is not set in production!');
+      console.error('⛔ A temporary secret has been generated but WILL CHANGE on every restart,');
+      console.error('⛔ invalidating all existing sessions. Set JWT_SECRET in Railway env vars NOW.');
+      return generated;
     }
     console.warn('⚠️  Using default JWT secret - set JWT_SECRET in production');
     return 'dev-jwt-secret-' + crypto.randomBytes(16).toString('hex');

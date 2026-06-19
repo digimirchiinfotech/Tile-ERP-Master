@@ -49,8 +49,9 @@ pool.on('connect', () => {
 });
 
 pool.on('error', (err) => {
-  debugLogger.error('Database', 'Unexpected database error', err);
-  process.exit(-1);
+  debugLogger.error('Database', 'Unexpected database error on idle client - pool will reconnect', err.message);
+  // Do NOT call process.exit() here — doing so causes Railway/Heroku to return 502 
+  // on every request without a meaningful error message. Let the pool handle reconnection.
 });
 
 export const query = async (text, params, companyId = 'super_admin_bypass') => {

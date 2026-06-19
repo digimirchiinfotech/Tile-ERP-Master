@@ -368,7 +368,7 @@ function MasterDataManagement({ currentUser }) {
   };
 
   const handleEditItem = (item, index, subcategory = null) => {
-    let itemData = item;
+    const itemData = item;
     let apiType;
     if (subcategory) {
       setActiveSubCategory(subcategory);
@@ -421,7 +421,7 @@ function MasterDataManagement({ currentUser }) {
   const confirmDelete = async () => {
     const { item, subcategory } = deleteConfig;
 
-    let itemData = item;
+    const itemData = item;
     let endpoint = '';
 
     if (subcategory) {

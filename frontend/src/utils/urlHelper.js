@@ -29,6 +29,11 @@ export const resolveImageUrl = (url) => {
     return url;
   }
 
+  // If it starts with blob:, it's a local object URL
+  if (url.startsWith('blob:')) {
+    return url;
+  }
+
   // Align the upload URL perfectly with the API base URL.
   // This prevents the issue where api.js uploads to production but the frontend
   // tries to fetch the image from the local dev server (e.g., /uploads).

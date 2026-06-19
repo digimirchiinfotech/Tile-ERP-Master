@@ -798,7 +798,6 @@ function ImportModal({ show, onHide, onImport, moduleType }) {
               </div>
             )}
           </div>
-        )}  </div>
         )}
       </Modal.Body>
 

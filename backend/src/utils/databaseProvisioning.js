@@ -13,12 +13,24 @@ import pg from 'pg';
 import env from '../config/env.js';
 import { masterQuery } from '../config/masterDatabase.js';
 import { debugLogger } from './debugLogger.js';
+import { decrypt } from './encryption.js';
 
 const { Pool } = pg;
 
 export const provisionCompanyDatabase = async (company) => {
   const { db_name, db_user, db_password } = company;
   debugLogger.info('DatabaseProvisioning', `Provisioning database for ${company.name}: ${db_name}`);
+
+  // Decrypt password if it is encrypted (contains a colon)
+  let actualPassword = db_password;
+  if (db_password && db_password.includes(':')) {
+    try {
+      const decrypted = decrypt(db_password);
+      if (decrypted) actualPassword = decrypted;
+    } catch (e) {
+      debugLogger.error('DatabaseProvisioning', `Failed to decrypt password for database user ${db_user}`);
+    }
+  }
 
   // 1. Create the database in PostgreSQL (must be done from a connection to another DB, usually 'postgres')
   const rootPool = new Pool({
@@ -37,11 +49,14 @@ export const provisionCompanyDatabase = async (company) => {
       await rootPool.query(`CREATE DATABASE ${db_name}`);
       console.log(`Database ${db_name} created successfully.`);
 
-      // Create User if not exists
+      // Create User if not exists, or update password if it does
       const userCheck = await rootPool.query('SELECT 1 FROM pg_roles WHERE rolname = $1', [db_user]);
       if (userCheck.rows.length === 0) {
-        await rootPool.query(`CREATE USER ${db_user} WITH PASSWORD '${db_password}'`);
+        await rootPool.query(`CREATE USER ${db_user} WITH PASSWORD '${actualPassword}'`);
         console.log(`User ${db_user} created successfully.`);
+      } else {
+        await rootPool.query(`ALTER USER ${db_user} WITH PASSWORD '${actualPassword}'`);
+        console.log(`User ${db_user} password updated successfully.`);
       }
 
       // Grant privileges
@@ -51,6 +66,12 @@ export const provisionCompanyDatabase = async (company) => {
       await rootPool.query(`ALTER DATABASE ${db_name} OWNER TO ${db_user}`);
       debugLogger.success('DatabaseProvisioning', `Database ${db_name} created and owner set to ${db_user}.`);
     } else {
+      // Update existing database user's password to ensure it matches
+      const userCheck = await rootPool.query('SELECT 1 FROM pg_roles WHERE rolname = $1', [db_user]);
+      if (userCheck.rows.length > 0) {
+        await rootPool.query(`ALTER USER ${db_user} WITH PASSWORD '${actualPassword}'`);
+        console.log(`User ${db_user} password synced for existing database.`);
+      }
       debugLogger.info('DatabaseProvisioning', `Database ${db_name} already exists.`);
     }
   } catch (err) {
@@ -86,7 +107,7 @@ export const provisionCompanyDatabase = async (company) => {
     port: parseInt(env.database.port || '5432', 10),
     database: db_name,
     user: db_user,
-    password: db_password
+    password: actualPassword
   });
 
   try {
@@ -1333,7 +1354,6 @@ export const provisionCompanyDatabase = async (company) => {
         
         -- Calculations
         taxable_amount NUMERIC(15,2) DEFAULT 0,
-        igst_percentage DECIMAL(5,2) DEFAULT 18.00,
         igst_percentage DECIMAL(5,2) DEFAULT 18.00,
           igst_rate NUMERIC(5,2) DEFAULT 18.00,
         igst_amount NUMERIC(15,2) DEFAULT 0,

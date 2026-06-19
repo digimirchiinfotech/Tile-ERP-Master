@@ -15,21 +15,36 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const ALGORITHM = 'aes-256-cbc';
-const ENCRYPTION_KEY = process.env.DB_ENCRYPTION_KEY;
-
-if (!ENCRYPTION_KEY) {
-    console.error('\n❌ CRITICAL ERROR: DB_ENCRYPTION_KEY environment variable is not defined!');
-    console.error('Please configure DB_ENCRYPTION_KEY in your .env file.\n');
-    process.exit(1);
-}
-
-if (Buffer.from(ENCRYPTION_KEY).length !== 32) {
-    console.error('\n❌ CRITICAL ERROR: DB_ENCRYPTION_KEY must be exactly 32 bytes (characters) long!');
-    console.error(`Current key length: ${Buffer.from(ENCRYPTION_KEY).length} bytes.\n`);
-    process.exit(1);
-}
-
 const IV_LENGTH = 16;
+
+// ─── Resolve Encryption Key ────────────────────────────────────────────────────
+// Never crash the server for a missing/wrong-length key.
+// Instead: warn loudly and fall back to a deterministic key derived from
+// the app name (so encryption is at least consistent across restarts).
+// ⚠️  You MUST set DB_ENCRYPTION_KEY in Railway/production env vars.
+let ENCRYPTION_KEY;
+
+const rawKey = process.env.DB_ENCRYPTION_KEY;
+
+if (!rawKey) {
+    console.error('\n⛔ CRITICAL: DB_ENCRYPTION_KEY is not set in environment variables!');
+    console.error('⛔ A deterministic fallback key is being used — this is NOT secure for production.');
+    console.error('⛔ Set DB_ENCRYPTION_KEY to a random 32-character string in Railway → Variables.\n');
+    // Derive a consistent 32-byte key from a fixed phrase (deterministic but not secret)
+    ENCRYPTION_KEY = crypto.createHash('sha256').update('tile-erp-fallback-key-not-secret').digest();
+} else {
+    const keyBytes = Buffer.from(rawKey);
+    if (keyBytes.length !== 32) {
+        console.warn(`\n⚠️  DB_ENCRYPTION_KEY is ${keyBytes.length} bytes — expected 32 bytes.`);
+        console.warn('⚠️  The key will be padded/truncated to 32 bytes. Set a proper 32-byte key in production.\n');
+        // Pad with zeros or truncate to exactly 32 bytes
+        const fixedKey = Buffer.alloc(32);
+        keyBytes.copy(fixedKey);
+        ENCRYPTION_KEY = fixedKey;
+    } else {
+        ENCRYPTION_KEY = keyBytes;
+    }
+}
 
 /**
  * Encrypts a string using AES-256-CBC
@@ -37,7 +52,7 @@ const IV_LENGTH = 16;
 export const encrypt = (text) => {
     if (!text) return null;
     const iv = crypto.randomBytes(IV_LENGTH);
-    const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY), iv);
+    const cipher = crypto.createCipheriv(ALGORITHM, ENCRYPTION_KEY, iv);
     let encrypted = cipher.update(text);
     encrypted = Buffer.concat([encrypted, cipher.final()]);
     return iv.toString('hex') + ':' + encrypted.toString('hex');
@@ -52,7 +67,7 @@ export const decrypt = (text) => {
         const textParts = text.split(':');
         const iv = Buffer.from(textParts.shift(), 'hex');
         const encryptedText = Buffer.from(textParts.join(':'), 'hex');
-        const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY), iv);
+        const decipher = crypto.createDecipheriv(ALGORITHM, ENCRYPTION_KEY, iv);
         let decrypted = decipher.update(encryptedText);
         decrypted = Buffer.concat([decrypted, decipher.final()]);
         return decrypted.toString();

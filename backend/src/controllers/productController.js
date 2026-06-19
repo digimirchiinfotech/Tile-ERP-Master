@@ -1040,7 +1040,7 @@ export const validateImport = async (req, res, next) => {
             duplicateCount++;
           } else {
             status = 'VALID';
-            reason = '-';
+            reason = `Debug: Incoming "${comboKey}" | DB Keys: [${Array.from(dbComboMap.keys()).join(', ')}]`;
             validCount++;
           }
         }

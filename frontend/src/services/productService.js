@@ -55,4 +55,8 @@ export const productService = {
   getByFactory: async (factory) => {
     return await api.get('/products', { params: { factoryName: factory } });
   },
+
+  validateImport: async (products) => {
+    return await api.post('/products/validate-import', { products });
+  },
 };

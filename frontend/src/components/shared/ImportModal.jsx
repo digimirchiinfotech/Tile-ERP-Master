@@ -48,6 +48,7 @@ function ImportModal({ show, onHide, onImport, moduleType }) {
   const [progressMessage, setProgressMessage] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [errors, setErrors] = useState({});
+  const [selectedRows, setSelectedRows] = useState({});
 
   /**
    * Get template information for current module
@@ -123,10 +124,25 @@ function ImportModal({ show, onHide, onImport, moduleType }) {
         setValidationResults(result.validation);
         setImportStep('confirm');
 
-        if (result.summary.invalidRows > 0) {
-          showWarning(
-            `Import completed with ${result.summary.invalidRows} validation errors`
-          );
+        if (moduleType === 'products' && result.validation && result.validation.results) {
+          const initialSelected = {};
+          result.validation.results.forEach(row => {
+            if (row.status === 'VALID') {
+              initialSelected[row.rowIndex] = true;
+            }
+          });
+          setSelectedRows(initialSelected);
+        }
+
+        const hasErrors = moduleType === 'products' 
+          ? (result.validation.summary.duplicateCount > 0 || result.validation.summary.errorCount > 0)
+          : (result.summary.invalidRows > 0);
+
+        if (hasErrors) {
+          const errMsg = moduleType === 'products'
+            ? `Validation completed with ${result.validation.summary.duplicateCount} duplicates and ${result.validation.summary.errorCount} errors`
+            : `Import completed with ${result.summary.invalidRows} validation errors`;
+          showWarning(errMsg);
         } else {
           showSuccess('All data validated successfully!');
         }
@@ -147,12 +163,21 @@ function ImportModal({ show, onHide, onImport, moduleType }) {
    * Handle final import confirmation
    */
   const handleImport = async () => {
-    if (validationResults && validationResults.valid.length > 0) {
+    let rowsToImport = [];
+    if (moduleType === 'products' && validationResults && validationResults.results) {
+      rowsToImport = validationResults.results.filter(
+        row => row.status === 'VALID' && selectedRows[row.rowIndex]
+      );
+    } else if (validationResults) {
+      rowsToImport = validationResults.valid;
+    }
+
+    if (rowsToImport.length > 0) {
       try {
         setIsProcessing(true);
-        await onImport(validationResults.valid);
+        await onImport(rowsToImport);
         showSuccess(
-          `Successfully imported ${validationResults.valid.length} records!`
+          `Successfully imported ${rowsToImport.length} records!`
         );
         handleClose();
       } catch (error) {
@@ -174,6 +199,7 @@ function ImportModal({ show, onHide, onImport, moduleType }) {
     setProgress(0);
     setProgressMessage('');
     setIsProcessing(false);
+    setSelectedRows({});
     onHide();
   };
 
@@ -407,207 +433,372 @@ function ImportModal({ show, onHide, onImport, moduleType }) {
         {/* Step 3: Validation Results */}
         {importStep === 'confirm' && validationResults && (
           <div>
-            {/* Summary Alert */}
-            <Alert
-              variant={
-                validationResults.invalid.length > 0 ? 'warning' : 'success'
-              }
-              className="validation-summary-alert"
-            >
-              <div className="d-flex align-items-center">
-                {validationResults.invalid.length > 0 ? (
-                  <AlertTriangle size={20} className="me-2" />
-                ) : (
-                  <CheckCircle size={20} className="me-2" />
-                )}
-                <div>
-                  <Alert.Heading className="h6 mb-1">
-                    Validation Complete
-                  </Alert.Heading>
-                  <p className="mb-0">
-                    <strong>{validationResults.valid.length}</strong> valid
-                    records,
-                    <strong className="ms-1">
-                      {validationResults.invalid.length}
-                    </strong>{' '}
-                    invalid records out of{' '}
-                    <strong className="ms-1">
-                      {validationResults.summary.total}
-                    </strong>{' '}
-                    total.
-                  </p>
-                </div>
-              </div>
-            </Alert>
-
-            {/* Valid Records Preview */}
-            {validationResults.valid.length > 0 && (
-              <div className="validation-section mb-4">
-                <h6 className="text-success mb-3">
-                  <CheckCircle size={18} className="me-2" />
-                  Valid Records ({validationResults.valid.length})
-                </h6>
-
-                <div className="table-container">
-                  <Table striped hover size="sm" className="validation-table">
-                    <thead>
-                      <tr>
-                        <th>Row</th>
-                        {templateInfo.fields.slice(0, 4).map((field) => (
-                          <th key={field.name}>{field.label}</th>
-                        ))}
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {validationResults.valid
-                        .slice(0, 10)
-                        .map((record, index) => (
-                          <tr key={index}>
-                            <td>
-                              <Badge bg="light" text="dark">
-                                {record.rowIndex}
-                              </Badge>
-                            </td>
-                            {templateInfo.fields.slice(0, 4).map((field) => (
-                              <td
-                                key={field.name}
-                                className="text-truncate"
-                                style={{ maxWidth: '150px' }}
-                              >
-                                {record[field.name] || '-'}
-                              </td>
-                            ))}
-                            <td>
-                              <Badge bg="success">
-                                <CheckCircle size={12} className="me-1" />
-                                Valid
-                              </Badge>
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </Table>
-                </div>
-
-                {validationResults.valid.length > 10 && (
-                  <div className="preview-note">
-                    <small className="text-muted">
-                      Showing first 10 records.{' '}
-                      {validationResults.valid.length - 10} more valid records
-                      ready for import.
-                    </small>
+            {moduleType === 'products' ? (
+              /* Custom Product Validation Preview Screen */
+              <div>
+                {/* 1. Summary Cards Grid */}
+                <div className="product-summary-grid mb-4">
+                  <div className="summary-card total">
+                    <div className="summary-card-body">
+                      <span className="summary-card-label">Total Records</span>
+                      <span className="summary-card-value">{validationResults.summary.total}</span>
+                    </div>
                   </div>
-                )}
-              </div>
-            )}
+                  <div className="summary-card valid">
+                    <div className="summary-card-body">
+                      <span className="summary-card-label">Valid Records</span>
+                      <span className="summary-card-value text-success">{validationResults.summary.validCount}</span>
+                    </div>
+                  </div>
+                  <div className="summary-card duplicates">
+                    <div className="summary-card-body">
+                      <span className="summary-card-label">Duplicate Records</span>
+                      <span className="summary-card-value text-warning">{validationResults.summary.duplicateCount}</span>
+                    </div>
+                  </div>
+                  <div className="summary-card errors">
+                    <div className="summary-card-body">
+                      <span className="summary-card-label">Validation Errors</span>
+                      <span className="summary-card-value text-danger">{validationResults.summary.errorCount}</span>
+                    </div>
+                  </div>
+                </div>
 
-            {/* Invalid Records */}
-            {validationResults.invalid.length > 0 && (
-              <div className="validation-section">
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h6 className="text-danger mb-0">
-                    <AlertTriangle size={18} className="me-2" />
-                    Invalid Records ({validationResults.invalid.length})
-                  </h6>
+                {/* 2. Interactive Selection Feature & Buttons */}
+                <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                  <div className="d-flex gap-2">
+                    <Button 
+                      variant="outline-success" 
+                      size="sm" 
+                      onClick={() => {
+                        const newSelected = {};
+                        validationResults.results.forEach(row => {
+                          if (row.status === 'VALID') {
+                            newSelected[row.rowIndex] = true;
+                          }
+                        });
+                        setSelectedRows(newSelected);
+                      }}
+                    >
+                      <Check size={16} className="me-1" />
+                      Select Valid Records
+                    </Button>
+                  </div>
                   <Button 
-                    variant="outline-danger" 
+                    variant="outline-primary" 
                     size="sm" 
                     onClick={() => {
-                      const failedRows = validationResults.invalid.map(row => {
-                        const { rowIndex, errors, ...data } = row;
-                        return { 'Row Number': rowIndex, 'Errors': errors.join('; '), ...data };
-                      });
-                      const ok = exportToCSV(failedRows, `${moduleType}_failed_rows`);
-                      if (ok) showSuccess('Failed rows exported successfully');
-                      else showError('Failed to export rows');
+                      const reportData = validationResults.results.map(row => ({
+                        'Row No': row.rowIndex,
+                        'Status': row.status,
+                        'Reason': row.reason,
+                        'Factory Name': row.factoryName || '-',
+                        'Factory Product Name': row.factoryProductName || '-',
+                        'Product Name': row.productName || '-'
+                      }));
+                      exportToCSV(reportData, `product_validation_report`);
                     }}
                   >
                     <Download size={16} className="me-1" />
-                    Download Failed Rows
+                    Download Validation Report
                   </Button>
                 </div>
 
-                <div className="table-container">
-                  <Table striped hover size="sm" className="validation-table">
+                {/* 3. Interactive Preview Table */}
+                <div className="table-container mb-4" style={{ maxHeight: '400px' }}>
+                  <Table striped hover size="sm" className="validation-table align-middle">
                     <thead>
                       <tr>
-                        <th>Row</th>
-                        <th>Data Preview</th>
-                        <th>Validation Errors</th>
+                        <th style={{ width: '40px' }}>
+                          <Form.Check
+                            type="checkbox"
+                            checked={
+                              validationResults.results.filter(r => r.status === 'VALID').length > 0 &&
+                              validationResults.results
+                                .filter(r => r.status === 'VALID')
+                                .every(r => selectedRows[r.rowIndex])
+                            }
+                            onChange={() => {
+                              const allValidSelected = validationResults.results
+                                .filter(r => r.status === 'VALID')
+                                .every(r => selectedRows[r.rowIndex]);
+                              
+                              setSelectedRows(prev => {
+                                const copy = { ...prev };
+                                validationResults.results.forEach(row => {
+                                  if (row.status === 'VALID') {
+                                    if (allValidSelected) {
+                                      delete copy[row.rowIndex];
+                                    } else {
+                                      copy[row.rowIndex] = true;
+                                    }
+                                  }
+                                });
+                                return copy;
+                              });
+                            }}
+                          />
+                        </th>
+                        <th style={{ width: '80px' }}>Row No</th>
+                        <th>Factory Name</th>
+                        <th>Factory Product Name</th>
+                        <th>Product Name</th>
+                        <th>Status</th>
+                        <th>Reason</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {validationResults.invalid
-                        .slice(0, 10)
-                        .map((record, index) => (
-                          <tr key={index}>
-                            <td>
-                              <Badge bg="danger">{record.rowIndex}</Badge>
-                            </td>
-                            <td className="data-preview">
-                              <small>
-                                {Object.entries(record)
-                                  .filter(
-                                    ([key]) =>
-                                      !['rowIndex', 'errors'].includes(key)
-                                  )
-                                  .slice(0, 3)
-                                  .map(
-                                    ([key, value]) =>
-                                      `${key}: ${value || 'empty'}`
-                                  )
-                                  .join(', ')}
-                              </small>
-                            </td>
-                            <td className="error-list">
-                              {record.errors.map((error, i) => (
-                                <Badge
-                                  key={i}
-                                  bg="danger"
-                                  className="me-1 mb-1 error-badge"
-                                >
-                                  {error}
-                                </Badge>
-                              ))}
-                            </td>
-                          </tr>
-                        ))}
+                      {validationResults.results.map((record, index) => (
+                        <tr key={index} className={selectedRows[record.rowIndex] ? 'table-active' : ''}>
+                          <td>
+                            <Form.Check
+                              type="checkbox"
+                              checked={!!selectedRows[record.rowIndex]}
+                              disabled={record.status !== 'VALID'}
+                              onChange={() => {
+                                setSelectedRows(prev => ({
+                                  ...prev,
+                                  [record.rowIndex]: !prev[record.rowIndex]
+                                }));
+                              }}
+                            />
+                          </td>
+                          <td>
+                            <Badge bg="light" text="dark">
+                              {record.rowIndex}
+                            </Badge>
+                          </td>
+                          <td>{record.factoryName || '-'}</td>
+                          <td>{record.factoryProductName || '-'}</td>
+                          <td className="fw-semibold">{record.productName || '-'}</td>
+                          <td>
+                            <Badge bg={
+                              record.status === 'VALID' ? 'success' :
+                              record.status.startsWith('DUPLICATE') ? 'warning' : 'danger'
+                            }>
+                              {record.status}
+                            </Badge>
+                          </td>
+                          <td>
+                            {record.reason === '-' ? (
+                              <span className="text-muted">-</span>
+                            ) : (
+                              <span className="text-danger small">{record.reason}</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </Table>
                 </div>
+              </div>
+            ) : (
+              /* Original Non-product Validation Layout */
+              <div>
+                {/* Summary Alert */}
+                <Alert
+                  variant={
+                    validationResults.invalid.length > 0 ? 'warning' : 'success'
+                  }
+                  className="validation-summary-alert"
+                >
+                  <div className="d-flex align-items-center">
+                    {validationResults.invalid.length > 0 ? (
+                      <AlertTriangle size={20} className="me-2" />
+                    ) : (
+                      <CheckCircle size={20} className="me-2" />
+                    )}
+                    <div>
+                      <Alert.Heading className="h6 mb-1">
+                        Validation Complete
+                      </Alert.Heading>
+                      <p className="mb-0">
+                        <strong>{validationResults.valid.length}</strong> valid
+                        records,
+                        <strong className="ms-1">
+                          {validationResults.invalid.length}
+                        </strong>{' '}
+                        invalid records out of{' '}
+                        <strong className="ms-1">
+                          {validationResults.summary.total}
+                        </strong>{' '}
+                        total.
+                      </p>
+                    </div>
+                  </div>
+                </Alert>
 
-                {validationResults.invalid.length > 10 && (
-                  <div className="preview-note">
-                    <small className="text-muted">
-                      Showing first 10 invalid records.{' '}
-                      {validationResults.invalid.length - 10} more records have
-                      validation errors.
-                    </small>
+                {/* Valid Records Preview */}
+                {validationResults.valid.length > 0 && (
+                  <div className="validation-section mb-4">
+                    <h6 className="text-success mb-3">
+                      <CheckCircle size={18} className="me-2" />
+                      Valid Records ({validationResults.valid.length})
+                    </h6>
+
+                    <div className="table-container">
+                      <Table striped hover size="sm" className="validation-table">
+                        <thead>
+                          <tr>
+                            <th>Row</th>
+                            {templateInfo.fields.slice(0, 4).map((field) => (
+                              <th key={field.name}>{field.label}</th>
+                            ))}
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {validationResults.valid
+                            .slice(0, 10)
+                            .map((record, index) => (
+                              <tr key={index}>
+                                <td>
+                                  <Badge bg="light" text="dark">
+                                    {record.rowIndex}
+                                  </Badge>
+                                </td>
+                                {templateInfo.fields.slice(0, 4).map((field) => (
+                                  <td
+                                    key={field.name}
+                                    className="text-truncate"
+                                    style={{ maxWidth: '150px' }}
+                                  >
+                                    {record[field.name] || '-'}
+                                  </td>
+                                ))}
+                                <td>
+                                  <Badge bg="success">
+                                    <CheckCircle size={12} className="me-1" />
+                                    Valid
+                                  </Badge>
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </Table>
+                    </div>
+
+                    {validationResults.valid.length > 10 && (
+                      <div className="preview-note">
+                        <small className="text-muted">
+                          Showing first 10 records.{' '}
+                          {validationResults.valid.length - 10} more valid records
+                          ready for import.
+                        </small>
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {/* Error Summary */}
-                <Alert variant="warning" className="mt-3 error-summary">
-                  <Alert.Heading className="h6">
-                    Common Issues Found:
-                  </Alert.Heading>
-                  <ul className="mb-0 small">
-                    <li>
-                      Missing required fields - ensure all mandatory columns are
-                      filled
-                    </li>
-                    <li>Invalid email formats - use format: user@domain.com</li>
-                    <li>
-                      Invalid phone numbers - include country code: +1-555-0123
-                    </li>
-                    <li>Invalid dates - use format: YYYY-MM-DD</li>
-                    <li>Invalid amounts - use numeric values only</li>
-                  </ul>
-                </Alert>
+                {/* Invalid Records */}
+                {validationResults.invalid.length > 0 && (
+                  <div className="validation-section">
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <h6 className="text-danger mb-0">
+                        <AlertTriangle size={18} className="me-2" />
+                        Invalid Records ({validationResults.invalid.length})
+                      </h6>
+                      <Button 
+                        variant="outline-danger" 
+                        size="sm" 
+                        onClick={() => {
+                          const failedRows = validationResults.invalid.map(row => {
+                            const { rowIndex, errors, ...data } = row;
+                            return { 'Row Number': rowIndex, 'Errors': errors.join('; '), ...data };
+                          });
+                          const ok = exportToCSV(failedRows, `${moduleType}_failed_rows`);
+                          if (ok) showSuccess('Failed rows exported successfully');
+                          else showError('Failed to export rows');
+                        }}
+                      >
+                        <Download size={16} className="me-1" />
+                        Download Failed Rows
+                      </Button>
+                    </div>
+
+                    <div className="table-container">
+                      <Table striped hover size="sm" className="validation-table">
+                        <thead>
+                          <tr>
+                            <th>Row</th>
+                            <th>Data Preview</th>
+                            <th>Validation Errors</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {validationResults.invalid
+                            .slice(0, 10)
+                            .map((record, index) => (
+                              <tr key={index}>
+                                <td>
+                                  <Badge bg="danger">{record.rowIndex}</Badge>
+                                </td>
+                                <td className="data-preview">
+                                  <small>
+                                    {Object.entries(record)
+                                      .filter(
+                                        ([key]) =>
+                                          !['rowIndex', 'errors'].includes(key)
+                                      )
+                                      .slice(0, 3)
+                                      .map(
+                                        ([key, value]) =>
+                                          `${key}: ${value || 'empty'}`
+                                      )
+                                      .join(', ')}
+                                  </small>
+                                </td>
+                                <td className="error-list">
+                                  {record.errors.map((error, i) => (
+                                    <Badge
+                                      key={i}
+                                      bg="danger"
+                                      className="me-1 mb-1 error-badge"
+                                    >
+                                      {error}
+                                    </Badge>
+                                  ))}
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </Table>
+                    </div>
+
+                    {validationResults.invalid.length > 10 && (
+                      <div className="preview-note">
+                        <small className="text-muted">
+                          Showing first 10 invalid records.{' '}
+                          {validationResults.invalid.length - 10} more records have
+                          validation errors.
+                        </small>
+                      </div>
+                    )}
+
+                    {/* Error Summary */}
+                    <Alert variant="warning" className="mt-3 error-summary">
+                      <Alert.Heading className="h6">
+                        Common Issues Found:
+                      </Alert.Heading>
+                      <ul className="mb-0 small">
+                        <li>
+                          Missing required fields - ensure all mandatory columns are
+                          filled
+                        </li>
+                        <li>Invalid email formats - use format: user@domain.com</li>
+                        <li>
+                          Invalid phone numbers - include country code: +1-555-0123
+                        </li>
+                        <li>Invalid dates - use format: YYYY-MM-DD</li>
+                        <li>Invalid amounts - use numeric values only</li>
+                      </ul>
+                    </Alert>
+                  </div>
+                )}
               </div>
             )}
           </div>
+        )}  </div>
         )}
       </Modal.Body>
 
@@ -644,9 +835,9 @@ function ImportModal({ show, onHide, onImport, moduleType }) {
               variant="primary"
               onClick={handleImport}
               disabled={
-                !validationResults ||
-                validationResults.valid.length === 0 ||
-                isProcessing
+                moduleType === 'products'
+                  ? (!validationResults || !validationResults.results || validationResults.results.filter(row => row.status === 'VALID' && selectedRows[row.rowIndex]).length === 0 || isProcessing)
+                  : (!validationResults || validationResults.valid.length === 0 || isProcessing)
               }
             >
               {isProcessing ? (
@@ -657,7 +848,11 @@ function ImportModal({ show, onHide, onImport, moduleType }) {
               ) : (
                 <>
                   <Upload size={16} className="me-1" />
-                  Import {validationResults?.valid.length || 0} Records
+                  Import {
+                    moduleType === 'products'
+                      ? (validationResults?.results?.filter(row => row.status === 'VALID' && selectedRows[row.rowIndex]).length || 0)
+                      : (validationResults?.valid?.length || 0)
+                  } Records
                 </>
               )}
             </Button>
@@ -925,6 +1120,64 @@ function ImportModal({ show, onHide, onImport, moduleType }) {
           .validation-table td {
             padding: 0.5rem 0.25rem;
           }
+        }
+
+        .product-summary-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 1rem;
+        }
+
+        .summary-card {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 1.25rem;
+          display: flex;
+          align-items: center;
+          transition: all 0.2s ease;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .summary-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-card-body {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        .summary-card-label {
+          font-size: 0.8rem;
+          color: #64748b;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          font-weight: 600;
+        }
+
+        .summary-card-value {
+          font-size: 1.75rem;
+          font-weight: 700;
+          color: #0f172a;
+        }
+
+        .summary-card.total {
+          border-left: 4px solid #3b82f6;
+        }
+
+        .summary-card.valid {
+          border-left: 4px solid #10b981;
+        }
+
+        .summary-card.duplicates {
+          border-left: 4px solid #f59e0b;
+        }
+
+        .summary-card.errors {
+          border-left: 4px solid #ef4444;
         }
 
         @media (max-width: 576px) {

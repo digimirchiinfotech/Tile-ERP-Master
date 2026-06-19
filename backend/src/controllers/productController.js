@@ -20,6 +20,13 @@ import {
   normalizeEmptyToNull 
 } from '../utils/helpers.js';
 
+const cleanAndUppercase = (val) => {
+  if (val === null || val === undefined) return null;
+  if (typeof val !== 'string') return val;
+  const cleaned = val.trim().replace(/\s+/g, ' ');
+  return cleaned === '' ? null : cleaned.toUpperCase();
+};
+
 export const getAll = async (req, res, next) => {
   try {
     const { 
@@ -195,12 +202,12 @@ export const create = async (req, res, next) => {
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
        RETURNING *`,
       [
-        companyId, finalProductCode, normalizeEmptyToNull(item_ref), name, normalizeEmptyToNull(description),
-        normalizeEmptyToNull(category), normalizeEmptyToNull(size), normalizeEmptyToNull(surface), normalizeEmptyToNull(thickness),
+        companyId, finalProductCode, normalizeEmptyToNull(item_ref), cleanAndUppercase(name), normalizeEmptyToNull(description),
+        cleanAndUppercase(category), normalizeEmptyToNull(size), cleanAndUppercase(surface), cleanAndUppercase(thickness),
         normalizeEmptyToNull(sqm_per_box), normalizeEmptyToNull(boxes_per_pallet), normalizeEmptyToNull(box_weight),
         normalizeEmptyToNull(factory_price), normalizeEmptyToNull(selling_price), normalizeEmptyToNull(hs_code),
-        JSON.stringify(images || []), status || 'Active', normalizeEmptyToNull(factory_name), normalizeEmptyToNull(factory_product_name),
-        normalizeEmptyToNull(company_product_name), normalizeEmptyToNull(catalogue_name), normalizeEmptyToNull(application),
+        JSON.stringify(images || []), status || 'Active', cleanAndUppercase(factory_name), cleanAndUppercase(factory_product_name),
+        cleanAndUppercase(company_product_name), cleanAndUppercase(catalogue_name), cleanAndUppercase(application),
         normalizeEmptyToNull(box_pcs), normalizeEmptyToNull(default_boxes_per_kathali), normalizeEmptyToNull(default_per_box_weight),
         normalizeEmptyToNull(default_per_pallet_weight), normalizeEmptyToNull(base_price), normalizeEmptyToNull(margin),
         JSON.stringify(pdfs || []), req.user.id
@@ -297,7 +304,7 @@ export const update = async (req, res, next) => {
 
     if (name) {
       updates.push(`name = $${paramCount}`);
-      values.push(name);
+      values.push(cleanAndUppercase(name));
       paramCount++;
     }
 
@@ -309,7 +316,7 @@ export const update = async (req, res, next) => {
 
     if (category !== undefined) {
       updates.push(`category = $${paramCount}`);
-      values.push(normalizeEmptyToNull(category));
+      values.push(cleanAndUppercase(category));
       paramCount++;
     }
 
@@ -321,13 +328,13 @@ export const update = async (req, res, next) => {
 
     if (surface !== undefined) {
       updates.push(`surface = $${paramCount}`);
-      values.push(normalizeEmptyToNull(surface));
+      values.push(cleanAndUppercase(surface));
       paramCount++;
     }
 
     if (thickness !== undefined) {
       updates.push(`thickness = $${paramCount}`);
-      values.push(normalizeEmptyToNull(thickness));
+      values.push(cleanAndUppercase(thickness));
       paramCount++;
     }
 
@@ -381,31 +388,31 @@ export const update = async (req, res, next) => {
 
     if (factory_name !== undefined) {
       updates.push(`factory_name = $${paramCount}`);
-      values.push(normalizeEmptyToNull(factory_name));
+      values.push(cleanAndUppercase(factory_name));
       paramCount++;
     }
 
     if (factory_product_name !== undefined) {
       updates.push(`factory_product_name = $${paramCount}`);
-      values.push(normalizeEmptyToNull(factory_product_name));
+      values.push(cleanAndUppercase(factory_product_name));
       paramCount++;
     }
 
     if (company_product_name !== undefined) {
       updates.push(`company_product_name = $${paramCount}`);
-      values.push(normalizeEmptyToNull(company_product_name));
+      values.push(cleanAndUppercase(company_product_name));
       paramCount++;
     }
 
     if (catalogue_name !== undefined) {
       updates.push(`catalogue_name = $${paramCount}`);
-      values.push(normalizeEmptyToNull(catalogue_name));
+      values.push(cleanAndUppercase(catalogue_name));
       paramCount++;
     }
 
     if (application !== undefined) {
       updates.push(`application = $${paramCount}`);
-      values.push(normalizeEmptyToNull(application));
+      values.push(cleanAndUppercase(application));
       paramCount++;
     }
 
@@ -796,12 +803,12 @@ export const bulkUpsert = async (req, res, next) => {
             updated_at = CURRENT_TIMESTAMP
          RETURNING (xmax = 0) AS inserted`,
         [
-          companyId, finalProductCode, normalizeEmptyToNull(prod.itemRef || prod.item_ref), prod.name, normalizeEmptyToNull(prod.description),
-          normalizeEmptyToNull(prod.category), normalizeEmptyToNull(prod.size), normalizeEmptyToNull(prod.surface), normalizeEmptyToNull(prod.thickness),
+          companyId, finalProductCode, normalizeEmptyToNull(prod.itemRef || prod.item_ref), cleanAndUppercase(prod.name), normalizeEmptyToNull(prod.description),
+          cleanAndUppercase(prod.category), normalizeEmptyToNull(prod.size), cleanAndUppercase(prod.surface), cleanAndUppercase(prod.thickness),
           normalizeEmptyToNull(prod.sqmPerBox || prod.sqm_per_box), normalizeEmptyToNull(prod.boxesPerPallet || prod.boxes_per_pallet), normalizeEmptyToNull(prod.boxWeight || prod.box_weight),
           normalizeEmptyToNull(prod.factoryPrice || prod.factory_price), normalizeEmptyToNull(prod.sellingPrice || prod.selling_price), normalizeEmptyToNull(prod.hsCode || prod.hs_code),
-          JSON.stringify(prod.images || []), prod.status || 'Active', normalizeEmptyToNull(prod.factoryName || prod.factory_name), normalizeEmptyToNull(prod.factoryProductName || prod.factory_product_name),
-          normalizeEmptyToNull(prod.companyProductName || prod.company_product_name), normalizeEmptyToNull(prod.catalogueName || prod.catalogue_name), normalizeEmptyToNull(prod.application),
+          JSON.stringify(prod.images || []), prod.status || 'Active', cleanAndUppercase(prod.factoryName || prod.factory_name), cleanAndUppercase(prod.factoryProductName || prod.factory_product_name),
+          cleanAndUppercase(prod.companyProductName || prod.company_product_name), cleanAndUppercase(prod.catalogueName || prod.catalogue_name), cleanAndUppercase(prod.application),
           normalizeEmptyToNull(prod.boxPcs || prod.box_pcs), normalizeEmptyToNull(prod.defaultBoxesPerKathali || prod.default_boxes_per_kathali), normalizeEmptyToNull(prod.defaultPerBoxWeight || prod.default_per_box_weight),
           normalizeEmptyToNull(prod.defaultPerPalletWeight || prod.default_per_pallet_weight), normalizeEmptyToNull(prod.basePrice || prod.base_price), normalizeEmptyToNull(prod.margin),
           req.user.id
@@ -878,6 +885,191 @@ export const bulkUpsert = async (req, res, next) => {
     next(error);
   } finally {
     client.release();
+  }
+};
+
+export const validateImport = async (req, res, next) => {
+  try {
+    const { products } = req.body;
+    const companyId = req.companyFilter;
+
+    if (!companyId) {
+      return next(new AppError('Company context is required for validation.', 400));
+    }
+
+    if (!products || !Array.isArray(products)) {
+      return next(new AppError('No products data provided for validation.', 400));
+    }
+
+    // 1. Fetch active products for the company from database
+    const dbResult = await req.db.query(
+      `SELECT id, product_code, sku, name, factory_name, factory_product_name 
+       FROM products 
+       WHERE company_id = $1 AND status != 'Deleted'`,
+      [companyId]
+    );
+
+    const dbProducts = dbResult.rows;
+
+    // Helper to normalize values
+    const normalizeVal = (val) => String(val || '').trim().replace(/\s+/g, ' ').toUpperCase();
+
+    // 2. Build lookup maps for database products
+    const dbProductCodeMap = new Map();
+    const dbComboMap = new Map();
+
+    dbProducts.forEach(p => {
+      const code = normalizeVal(p.product_code);
+      const sku = normalizeVal(p.sku);
+      const fName = normalizeVal(p.factory_name);
+      const fpName = normalizeVal(p.factory_product_name);
+      const pName = normalizeVal(p.name);
+
+      if (code) dbProductCodeMap.set(code, p);
+      if (sku) dbProductCodeMap.set(sku, p);
+
+      const comboKey = `${fName}|||${fpName}|||${pName}`;
+      dbComboMap.set(comboKey, p);
+    });
+
+    // 3. Keep track of seen keys within the uploaded file to detect duplicates inside the file
+    // Maps key string -> row number (1-indexed)
+    const seenCodes = new Map();
+    const seenCombos = new Map();
+
+    const results = [];
+    let validCount = 0;
+    let duplicateCount = 0;
+    let errorCount = 0;
+
+    products.forEach((prod, index) => {
+      const rowNo = prod.rowIndex || (index + 1);
+
+      // Extract and normalize fields
+      const rawProductCode = prod.productCode || prod['Product Code'] || prod.product_code || '';
+      const rawSku = prod.sku || prod.SKU || '';
+      const rawName = prod.name || prod['Product Name'] || prod.companyProductName || prod['Company Product Name'] || '';
+      const rawFactoryName = prod.factoryName || prod['Factory Name'] || prod.factory_name || '';
+      const rawFactoryProductName = prod.factoryProductName || prod['Factory Product Name'] || prod.factory_product_name || '';
+      const rawCategory = prod.category || prod['Category'] || '';
+
+      const productCode = normalizeVal(rawProductCode);
+      const sku = normalizeVal(rawSku);
+      const name = normalizeVal(rawName);
+      const factoryName = normalizeVal(rawFactoryName);
+      const factoryProductName = normalizeVal(rawFactoryProductName);
+      const category = normalizeVal(rawCategory);
+
+      let status = 'VALID';
+      let reason = '-';
+      const rowErrors = [];
+
+      // Check required fields (Product Name, Category)
+      if (!name) {
+        rowErrors.push('Product Name is required');
+      }
+      if (!category) {
+        rowErrors.push('Category is required');
+      }
+
+      // Check if format is invalid (e.g. numeric fields should be valid numbers)
+      const boxPcs = prod.boxPcs || prod['Box PCS'] || prod.box_pcs;
+      if (boxPcs !== undefined && boxPcs !== '' && boxPcs !== null && isNaN(parseInt(boxPcs))) {
+        rowErrors.push('Box PCS must be a valid number');
+      }
+      const boxWeight = prod.boxWeight || prod['Per Box Weight (KG)'] || prod.box_weight;
+      if (boxWeight !== undefined && boxWeight !== '' && boxWeight !== null && isNaN(parseFloat(boxWeight))) {
+        rowErrors.push('Box Weight must be a valid number');
+      }
+      const sqmPerBox = prod.sqmPerBox || prod['SQM Per Box'] || prod.sqm_per_box;
+      if (sqmPerBox !== undefined && sqmPerBox !== '' && sqmPerBox !== null && isNaN(parseFloat(sqmPerBox))) {
+        rowErrors.push('SQM Per Box must be a valid number');
+      }
+      const boxesPerPallet = prod.boxesPerPallet || prod['Boxes Per Big Pallet'] || prod.boxes_per_pallet;
+      if (boxesPerPallet !== undefined && boxesPerPallet !== '' && boxesPerPallet !== null && isNaN(parseInt(boxesPerPallet))) {
+        rowErrors.push('Boxes Per Pallet must be a valid number');
+      }
+
+      if (rowErrors.length > 0) {
+        const isMissingField = rowErrors.some(err => err.toLowerCase().includes('required'));
+        status = isMissingField ? 'MISSING REQUIRED FIELD' : 'INVALID DATA FORMAT';
+        reason = rowErrors.join('; ');
+        errorCount++;
+      } else {
+        // Run duplicate checks
+        const comboKey = `${factoryName}|||${factoryProductName}|||${name}`;
+
+        // A. Check duplicate inside the uploaded file first
+        let fileDuplicateOfRow = null;
+
+        if (productCode && seenCodes.has(productCode)) {
+          fileDuplicateOfRow = seenCodes.get(productCode);
+        } else if (sku && seenCodes.has(sku)) {
+          fileDuplicateOfRow = seenCodes.get(sku);
+        } else if (seenCombos.has(comboKey)) {
+          fileDuplicateOfRow = seenCombos.get(comboKey);
+        }
+
+        if (fileDuplicateOfRow !== null) {
+          status = 'DUPLICATE FILE RECORD';
+          reason = `Duplicate found in Row ${fileDuplicateOfRow}`;
+          duplicateCount++;
+        } else {
+          // B. Check duplicate against the database
+          let dbDuplicate = false;
+          if (productCode && dbProductCodeMap.has(productCode)) {
+            dbDuplicate = true;
+          } else if (sku && dbProductCodeMap.has(sku)) {
+            dbDuplicate = true;
+          } else if (dbComboMap.has(comboKey)) {
+            dbDuplicate = true;
+          }
+
+          if (dbDuplicate) {
+            status = 'DUPLICATE DATABASE';
+            reason = 'Product already exists';
+            duplicateCount++;
+          } else {
+            status = 'VALID';
+            reason = '-';
+            validCount++;
+          }
+        }
+
+        // Add to seen maps so subsequent rows can point to this first occurrence
+        if (productCode && !seenCodes.has(productCode)) seenCodes.set(productCode, rowNo);
+        if (sku && !seenCodes.has(sku)) seenCodes.set(sku, rowNo);
+        if (!seenCombos.has(comboKey)) seenCombos.set(comboKey, rowNo);
+      }
+
+      results.push({
+        ...prod,
+        rowIndex: rowNo,
+        status,
+        reason,
+        factoryName: rawFactoryName,
+        factoryProductName: rawFactoryProductName,
+        productName: rawName,
+        productCode: rawProductCode,
+        category: rawCategory
+      });
+    });
+
+    return successResponse(
+      res,
+      {
+        summary: {
+          total: products.length,
+          validCount,
+          duplicateCount,
+          errorCount
+        },
+        results
+      },
+      'Import validation completed successfully'
+    );
+  } catch (error) {
+    next(error);
   }
 };
 

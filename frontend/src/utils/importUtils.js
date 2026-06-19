@@ -378,10 +378,22 @@ export const processImportWithProgress = async (file, moduleType, onProgress) =>
     const parseResult = await processImportFile(file);
     
     onProgress?.(60, 'Validating data integrity...');
-    const validationResult = validateImportData(parseResult.data, moduleType);
+    let validationResult;
+    let transformedData;
 
-    onProgress?.(80, 'Transforming data...');
-    const transformedData = transformImportData(validationResult.valid, moduleType);
+    if (moduleType === 'products') {
+      const { productService } = await import('../services/productService.js');
+      const response = await productService.validateImport(parseResult.data);
+      validationResult = response.data.data;
+      
+      // Map valid and invalid list for compatible UI fallback
+      validationResult.valid = validationResult.results.filter(r => r.status === 'VALID');
+      validationResult.invalid = validationResult.results.filter(r => r.status !== 'VALID');
+      transformedData = validationResult.valid;
+    } else {
+      validationResult = validateImportData(parseResult.data, moduleType);
+      transformedData = transformImportData(validationResult.valid, moduleType);
+    }
 
     onProgress?.(100, 'Import completed successfully');
 
@@ -391,8 +403,8 @@ export const processImportWithProgress = async (file, moduleType, onProgress) =>
       validation: validationResult,
       summary: {
         totalRows: parseResult.totalRows,
-        validRows: validationResult.summary.validCount,
-        invalidRows: validationResult.summary.invalidCount,
+        validRows: moduleType === 'products' ? validationResult.summary.validCount : validationResult.summary.validCount,
+        invalidRows: moduleType === 'products' ? (validationResult.summary.duplicateCount + validationResult.summary.errorCount) : validationResult.summary.invalidCount,
         importedRows: transformedData.length,
       },
     };

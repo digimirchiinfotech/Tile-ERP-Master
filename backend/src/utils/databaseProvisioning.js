@@ -1626,7 +1626,10 @@ export const syncCompanyDatabase = async (companyId, db) => {
       { table: 'qc_records', column: 'unlocked_by', type: 'UUID' },
       { table: 'qc_records', column: 'unlock_reason', type: 'TEXT' },
       { table: 'qc_records', column: 'box_type', type: 'VARCHAR(255)' },
-      { table: 'qc_records', column: 'order_sheet_id', type: 'UUID' }
+      { table: 'qc_records', column: 'order_sheet_id', type: 'UUID' },
+      
+      // Account Entries
+      { table: 'account_entries', column: 'currency', type: "VARCHAR(50) DEFAULT 'USD'" }
     ];
 
     for (const update of updates) {
@@ -1749,6 +1752,7 @@ export const syncCompanyDatabase = async (companyId, db) => {
           entry_no VARCHAR(100),
           type VARCHAR(50),
           amount NUMERIC(15,2),
+          currency VARCHAR(50) DEFAULT 'USD',
           date DATE,
           entry_type VARCHAR(50),
           party_name VARCHAR(255),
@@ -1853,6 +1857,101 @@ export const syncCompanyDatabase = async (companyId, db) => {
           created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
           updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
         )`
+      },
+      {
+        name: 'export_invoice_items',
+        sql: `CREATE TABLE IF NOT EXISTS export_invoice_items (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          company_id UUID NOT NULL,
+          export_invoice_id UUID NOT NULL REFERENCES export_invoices(id) ON DELETE CASCADE,
+          product_id UUID REFERENCES products(id),
+          sku VARCHAR(100),
+          description TEXT,
+          quantity NUMERIC(15, 2) NOT NULL,
+          unit_price NUMERIC(15, 2) NOT NULL,
+          total_amount NUMERIC(15, 2) NOT NULL,
+          hsn_code VARCHAR(20),
+          net_weight NUMERIC(15, 2),
+          gross_weight NUMERIC(15, 2),
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        )`
+      },
+      {
+        name: 'container_allocations',
+        sql: `CREATE TABLE IF NOT EXISTS container_allocations (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          company_id UUID NOT NULL,
+          export_invoice_id UUID NOT NULL REFERENCES export_invoices(id) ON DELETE CASCADE,
+          container_number VARCHAR(50) NOT NULL,
+          seal_number VARCHAR(50),
+          container_type VARCHAR(20),
+          tare_weight NUMERIC(10, 2),
+          max_payload NUMERIC(10, 2),
+          vgm_weight NUMERIC(10, 2),
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        )`
+      },
+      {
+        name: 'packing_items',
+        sql: `CREATE TABLE IF NOT EXISTS packing_items (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          company_id UUID NOT NULL,
+          container_allocation_id UUID NOT NULL REFERENCES container_allocations(id) ON DELETE CASCADE,
+          export_invoice_item_id UUID NOT NULL REFERENCES export_invoice_items(id) ON DELETE CASCADE,
+          boxes_packed INTEGER NOT NULL,
+          pallets_used INTEGER,
+          gross_weight NUMERIC(10, 2),
+          net_weight NUMERIC(10, 2),
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        )`
+      },
+      {
+        name: 'qc_items',
+        sql: `CREATE TABLE IF NOT EXISTS qc_items (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          company_id UUID NOT NULL,
+          qc_record_id UUID NOT NULL REFERENCES qc_records(id) ON DELETE CASCADE,
+          export_invoice_item_id UUID NOT NULL REFERENCES export_invoice_items(id) ON DELETE CASCADE,
+          parameter_name VARCHAR(100) NOT NULL,
+          expected_value VARCHAR(100),
+          actual_value VARCHAR(100),
+          status VARCHAR(20) CHECK (status IN ('PASS', 'FAIL', 'PENDING')),
+          remarks TEXT,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        )`
+      },
+      {
+        name: 'journal_entries',
+        sql: `CREATE TABLE IF NOT EXISTS journal_entries (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          company_id UUID NOT NULL,
+          entry_no VARCHAR(100) NOT NULL,
+          date DATE NOT NULL,
+          reference VARCHAR(100),
+          source_type VARCHAR(50),
+          source_id UUID,
+          notes TEXT,
+          created_by UUID,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(company_id, entry_no)
+        )`
+      },
+      {
+        name: 'ledger_entries',
+        sql: `CREATE TABLE IF NOT EXISTS ledger_entries (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          company_id UUID NOT NULL,
+          journal_entry_id UUID NOT NULL REFERENCES journal_entries(id) ON DELETE CASCADE,
+          account_code VARCHAR(50) NOT NULL,
+          debit NUMERIC(15, 2) DEFAULT 0 CHECK (debit >= 0),
+          credit NUMERIC(15, 2) DEFAULT 0 CHECK (credit >= 0),
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        )`
       }
     ];
 
@@ -1865,16 +1964,41 @@ export const syncCompanyDatabase = async (companyId, db) => {
         CREATE INDEX IF NOT EXISTS idx_export_proforma_links_ei_id ON export_invoice_proforma_links(export_invoice_id);
         CREATE INDEX IF NOT EXISTS idx_export_proforma_links_pi_id ON export_invoice_proforma_links(proforma_invoice_id);
         CREATE INDEX IF NOT EXISTS idx_export_proforma_links_company_id ON export_invoice_proforma_links(company_id);
+        CREATE INDEX IF NOT EXISTS idx_export_invoice_items_invoice_id ON export_invoice_items(export_invoice_id);
+        CREATE INDEX IF NOT EXISTS idx_export_invoice_items_company_id ON export_invoice_items(company_id);
+        CREATE INDEX IF NOT EXISTS idx_container_allocations_invoice_id ON container_allocations(export_invoice_id);
+        CREATE INDEX IF NOT EXISTS idx_container_allocations_company_id ON container_allocations(company_id);
+        CREATE INDEX IF NOT EXISTS idx_packing_items_allocation_id ON packing_items(container_allocation_id);
+        CREATE INDEX IF NOT EXISTS idx_packing_items_company_id ON packing_items(company_id);
+        CREATE INDEX IF NOT EXISTS idx_qc_items_qc_id ON qc_items(qc_record_id);
+        CREATE INDEX IF NOT EXISTS idx_qc_items_company_id ON qc_items(company_id);
+        CREATE INDEX IF NOT EXISTS idx_journal_entries_company_date ON journal_entries(company_id, date);
+        CREATE INDEX IF NOT EXISTS idx_ledger_entries_company_journal ON ledger_entries(company_id, journal_entry_id);
+        CREATE INDEX IF NOT EXISTS idx_ledger_entries_account ON ledger_entries(company_id, account_code);
       `);
     } catch (e) {}
     
-    // Grant access to new tables for the company's db user
+    // Grant access to new tables for the company's db user as postgres/superuser
     try {
-      const { rows } = await masterQuery('SELECT db_user FROM companies WHERE id = $1', [companyId]);
-      if (rows.length > 0 && rows[0].db_user) {
-        const db_user = rows[0].db_user;
-        await db.query(`GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${db_user}`);
-        await db.query(`GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ${db_user}`);
+      const { rows } = await masterQuery('SELECT db_name, db_user FROM companies WHERE id = $1', [companyId]);
+      if (rows.length > 0 && rows[0].db_user && rows[0].db_name) {
+        const { db_name, db_user } = rows[0];
+        const setupPool = new Pool({
+          host: env.database?.host || env.db_host || 'localhost',
+          port: parseInt(env.database?.port || env.db_port || '5432', 10),
+          database: db_name,
+          user: env.database?.user || env.db_user || 'postgres',
+          password: env.database?.password || env.db_password || ''
+        });
+        try {
+          await setupPool.query(`GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${db_user}`);
+          await setupPool.query(`GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ${db_user}`);
+          await setupPool.query(`ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO ${db_user}`);
+          await setupPool.query(`ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO ${db_user}`);
+          debugLogger.success('DatabaseProvisioning', `[SchemaSync] Re-granted all table and sequence privileges on ${db_name} to user ${db_user}`);
+        } finally {
+          await setupPool.end();
+        }
       }
     } catch (e) {
       debugLogger.warn('DatabaseProvisioning', `Failed to re-grant privileges for company ${companyId}`, e);

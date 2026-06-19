@@ -29,6 +29,7 @@ const connectionConfig = process.env.DATABASE_URL
       max: 10,
       idleTimeoutMillis: 10000,
       connectionTimeoutMillis: 30000,
+      ssl: { rejectUnauthorized: false }
     }
   : {
       host: process.env.PGHOST || process.env.DB_HOST || 'localhost',

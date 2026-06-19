@@ -995,6 +995,36 @@ export const create = async (req, res, next) => {
           VALUES ${valueStrings.join(', ')}
         `;
         await client.query(query, queryParams);
+
+        // Normalize and insert into export_invoice_items (Phase 2 Relational Transition)
+        const itemValueStrings = [];
+        const itemQueryParams = [];
+        let itemParamCounter = 1;
+        for (const line of product_lines) {
+          itemValueStrings.push(`($${itemParamCounter++}, $${itemParamCounter++}, $${itemParamCounter++}, $${itemParamCounter++}, $${itemParamCounter++}, $${itemParamCounter++}, $${itemParamCounter++}, $${itemParamCounter++}, $${itemParamCounter++}, $${itemParamCounter++}, $${itemParamCounter++})`);
+          
+          itemQueryParams.push(
+            companyId,
+            exportId,
+            line.product_id || line.productId || null,
+            line.sku || null,
+            line.product || line.product_name || line.name || 'Unknown',
+            parseFloat(line.sqmAuto || line.sqm_auto || line.sqm || line.totalBoxes || line.total_boxes || line.boxes || line.pieces || 0) || 0,
+            parseFloat(line.rate || line.unit_price || line.price || 0) || 0,
+            parseFloat(line.amount || 0) || 0,
+            line.hsn_code || line.hsnCode || null,
+            parseFloat(line.netWeight || line.net_weight || 0) || 0,
+            parseFloat(line.grossWeight || line.gross_weight || 0) || 0
+          );
+        }
+        
+
+        const itemQuery = `
+          INSERT INTO export_invoice_items 
+          (company_id, export_invoice_id, product_id, sku, description, quantity, unit_price, total_amount, hsn_code, net_weight, gross_weight)
+          VALUES ${itemValueStrings.join(', ')}
+        `;
+        await client.query(itemQuery, itemQueryParams);
       }
 
       if (req.body.proforma_invoice_ids && Array.isArray(req.body.proforma_invoice_ids) && req.body.proforma_invoice_ids.length > 0) {
@@ -1211,6 +1241,7 @@ export const update = async (req, res, next) => {
     if (req.body.product_lines !== undefined) {
       const lines = Array.isArray(req.body.product_lines) ? req.body.product_lines : JSON.parse(req.body.product_lines || '[]');
       await client.query('DELETE FROM export_invoice_lines WHERE export_invoice_id = $1', [id]);
+      await client.query('DELETE FROM export_invoice_items WHERE export_invoice_id = $1', [id]);
 
       if (lines && lines.length > 0) {
         const valueStrings = [];
@@ -1255,6 +1286,35 @@ export const update = async (req, res, next) => {
           VALUES ${valueStrings.join(', ')}
         `;
         await client.query(query, queryParams);
+
+        // Normalize and insert into export_invoice_items (Phase 2 Relational Transition)
+        const itemValueStrings = [];
+        const itemQueryParams = [];
+        let itemParamCounter = 1;
+        for (const line of lines) {
+          itemValueStrings.push(`($${itemParamCounter++}, $${itemParamCounter++}, $${itemParamCounter++}, $${itemParamCounter++}, $${itemParamCounter++}, $${itemParamCounter++}, $${itemParamCounter++}, $${itemParamCounter++}, $${itemParamCounter++}, $${itemParamCounter++}, $${itemParamCounter++})`);
+          
+          itemQueryParams.push(
+            companyId,
+            id,
+            line.product_id || line.productId || null,
+            line.sku || null,
+            line.product || line.product_name || line.name || 'Unknown',
+            parseFloat(line.sqmAuto || line.sqm_auto || line.sqm || line.totalBoxes || line.total_boxes || line.boxes || line.pieces || 0) || 0,
+            parseFloat(line.rate || line.unit_price || line.price || 0) || 0,
+            parseFloat(line.amount || 0) || 0,
+            line.hsn_code || line.hsnCode || null,
+            parseFloat(line.netWeight || line.net_weight || 0) || 0,
+            parseFloat(line.grossWeight || line.gross_weight || 0) || 0
+          );
+        }
+        
+        const itemQuery = `
+          INSERT INTO export_invoice_items 
+          (company_id, export_invoice_id, product_id, sku, description, quantity, unit_price, total_amount, hsn_code, net_weight, gross_weight)
+          VALUES ${itemValueStrings.join(', ')}
+        `;
+        await client.query(itemQuery, itemQueryParams);
       }
     }
 

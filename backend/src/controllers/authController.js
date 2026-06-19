@@ -134,6 +134,7 @@ export const login = async (req, res, next) => {
     // Sync database schema on login to ensure all columns exist
     if (user.company_id) {
       try {
+        req.companyFilter = user.company_id;
         await syncCompanyDatabase(user.company_id, req.db);
       } catch (err) {
         debugLogger.error('Auth', `Failed to sync database for company ${user.company_id}`, err);

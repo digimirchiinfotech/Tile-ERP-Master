@@ -9,62 +9,35 @@
  * or reverse engineering of this file, via any medium, is strictly prohibited.
  */
 
-import puppeteer from 'puppeteer';
+import axios from 'axios';
 import debugLogger from '../utils/debugLogger.js';
 
 export const generatePdfFromHtml = async (htmlContent, options = {}) => {
-  let browser = null;
-  let page = null;
-
   try {
-    debugLogger.info('[PDFService]', 'Launching Puppeteer browser');
+    debugLogger.info('[PDFService]', 'Calling standalone PDF service to generate PDF');
 
-    browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--disable-gpu'
-      ]
-    });
+    const pdfServiceUrl = process.env.PDF_SERVICE_URL || 'http://localhost:8001/generate';
 
-    page = await browser.newPage();
-
-    await page.setContent(htmlContent, {
-      waitUntil: ['load', 'networkidle0'],
-      timeout: 30000
-    });
-
-    const pdfBuffer = await page.pdf({
-      format: options.format || 'A4',
-      printBackground: true,
-      margin: options.margin || {
-        top: '10mm',
-        right: '10mm',
-        bottom: '10mm',
-        left: '10mm'
+    const response = await axios.post(pdfServiceUrl, {
+      html: htmlContent,
+      options: {
+        format: options.format || 'A4',
+        margin: options.margin
       }
+    }, {
+      responseType: 'arraybuffer',
+      timeout: 35000 // slightly higher than Puppeteer page timeout
     });
 
-    debugLogger.info('[PDFService]', `PDF generated successfully, size: ${pdfBuffer.length} bytes`);
-    return Buffer.from(pdfBuffer);
+    debugLogger.info('[PDFService]', `PDF generated successfully via HTTP, size: ${response.data.byteLength} bytes`);
+    return Buffer.from(response.data);
 
   } catch (error) {
-    debugLogger.error('[PDFService]', 'Error generating PDF:', error.message);
+    debugLogger.error('[PDFService]', 'Error generating PDF via standalone service:', error.message);
     throw error;
-  } finally {
-    if (page) {
-      try { await page.close(); } catch (_) {}
-    }
-    if (browser) {
-      try { await browser.close(); } catch (_) {}
-    }
   }
 };
 
 export const closeBrowser = async () => {
-  // No-op: browser is now created and closed per-request
+  // No-op
 };

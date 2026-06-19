@@ -15,6 +15,14 @@ module.exports = {
       env: {
         NODE_ENV: 'production'
       }
+    },
+    {
+      name: 'tile-exporter-pdf-service',
+      script: './pdf-service/index.js',
+      env: {
+        NODE_ENV: 'production',
+        PORT: 8001
+      }
     }
   ]
 };

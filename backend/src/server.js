@@ -117,14 +117,18 @@ const corsOptions = {
       callback(null, true);
     } else {
       // In production: allow explicitly listed origins + any *.vercel.app preview URL
-      const allowedOrigins = env.frontend_url ? env.frontend_url.split(',').map(u => u.trim()) : [];
-      const isVercelPreview = origin && origin.endsWith('.vercel.app');
+      const allowedOrigins = env.frontend_url 
+        ? env.frontend_url.split(',').map(u => u.trim().replace(/\/$/, '')) 
+        : [];
+      
+      const normalizedOrigin = origin ? origin.trim().replace(/\/$/, '') : '';
+      const isVercelPreview = normalizedOrigin && normalizedOrigin.endsWith('.vercel.app');
 
-      if (allowedOrigins.includes(origin) || isVercelPreview || !origin) {
+      if (allowedOrigins.includes(normalizedOrigin) || isVercelPreview || !origin) {
         callback(null, true);
       } else {
         console.warn(`[CORS] Blocked origin: ${origin}`);
-        callback(new Error('Not allowed by CORS'));
+        callback(null, false); // Reject cleanly without throwing a 500 server-side exception
       }
     }
   },

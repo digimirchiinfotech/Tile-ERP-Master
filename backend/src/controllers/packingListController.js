@@ -406,7 +406,86 @@ const _buildUpsertParams = (body, exportInvoiceId, companyId, existingNo) => {
   };
 };
 
+const savePackingContainers = async (client, companyId, exportInvoiceId, containerDetails, productLines) => {
+  if (!exportInvoiceId) return;
+
+  // 1. Delete existing container allocations (cascades to packing_items)
+  await client.query(
+    `DELETE FROM container_allocations WHERE export_invoice_id = $1 AND company_id = $2`,
+    [exportInvoiceId, companyId]
+  );
+
+  // 2. Fetch Export Invoice Items
+  const itemsRes = await client.query(
+    `SELECT id, product_id, sku, description FROM export_invoice_items WHERE export_invoice_id = $1 AND company_id = $2`,
+    [exportInvoiceId, companyId]
+  );
+  const invoiceItems = itemsRes.rows;
+
+  // Helper to match item
+  const findMatchingItem = (c) => {
+    if (invoiceItems.length === 0) return null;
+    if (invoiceItems.length === 1) return invoiceItems[0].id;
+    
+    const productId = c.product_id || c.productId;
+    if (productId) {
+      const match = invoiceItems.find(item => item.product_id === productId);
+      if (match) return match.id;
+    }
+    
+    const desc = (c.material_description || c.description || c.product_name || c.product || '').toLowerCase();
+    if (desc) {
+      const match = invoiceItems.find(item => 
+        (item.description && item.description.toLowerCase().includes(desc)) || 
+        (item.sku && item.sku.toLowerCase().includes(desc))
+      );
+      if (match) return match.id;
+    }
+
+    return invoiceItems[0].id;
+  };
+
+  const parsedContainers = Array.isArray(containerDetails)
+    ? containerDetails
+    : (typeof containerDetails === 'string' ? JSON.parse(containerDetails || '[]') : []);
+
+  for (const c of parsedContainers) {
+    const containerNo = c.container_no || c.container_number || 'UNKNOWN';
+    const sealNo = c.line_seal_no || c.e_seal_no || c.seal_no || c.seal_number || null;
+    const type = c.container_type || c.type || null;
+    const tareWt = parseFloat(c.tare_weight || 0) || null;
+    const maxPayload = parseFloat(c.max_payload || 0) || null;
+    const vgmWt = parseFloat(c.vgm_weight || c.gross_weight || 0) || null;
+
+    const allocationRes = await client.query(
+      `INSERT INTO container_allocations 
+       (company_id, export_invoice_id, container_number, seal_number, container_type, tare_weight, max_payload, vgm_weight)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id`,
+      [companyId, exportInvoiceId, containerNo, sealNo, type, tareWt, maxPayload, vgmWt]
+    );
+
+    const allocationId = allocationRes.rows[0].id;
+    const itemId = findMatchingItem(c);
+
+    if (itemId) {
+      const boxes = parseInt(c.boxes || c.boxes_packed || 0) || 0;
+      const pallets = parseInt(c.pallets || c.pallets_used || 0) || 0;
+      const grossWt = parseFloat(c.gross_weight || c.gross_wt || 0) || null;
+      const netWt = parseFloat(c.net_weight || c.net_wt || 0) || null;
+
+      await client.query(
+        `INSERT INTO packing_items 
+         (company_id, container_allocation_id, export_invoice_item_id, boxes_packed, pallets_used, gross_weight, net_weight)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [companyId, allocationId, itemId, boxes, pallets, grossWt, netWt]
+      );
+    }
+  }
+};
+
 export const createOrUpdate = async (req, res, next) => {
+  let client;
   try {
     const { exportInvoiceId } = req.params;
 
@@ -417,38 +496,41 @@ export const createOrUpdate = async (req, res, next) => {
       return next(new AppError('Company context is required. Please select a company.', 400));
     }
 
-    const exportInvoice = await req.db.query(
+    client = await req.db.getClient();
+    await client.query('BEGIN');
+
+    const exportInvoice = await client.query(
       `SELECT company_id FROM export_invoices WHERE id = $1 AND company_id = $2`, [exportInvoiceId, companyId]
     );
 
-    const existing = await req.db.query('SELECT id, packing_list_no FROM packing_lists WHERE export_invoice_id = $1 AND company_id = $2', [exportInvoiceId, companyId]);
+    const existing = await client.query('SELECT id, packing_list_no FROM packing_lists WHERE export_invoice_id = $1 AND company_id = $2', [exportInvoiceId, companyId]);
 
     let resolvedPackingListNo;
     if (existing.rows.length === 0) {
       // Check if this export invoice has already been converted to a Packing List
-      const eiCheck = await req.db.query(
+      const eiCheck = await client.query(
         `SELECT is_used, is_converted, invoice_no FROM export_invoices WHERE id = $1 AND company_id = $2`,
         [exportInvoiceId, companyId]
       );
       if (eiCheck.rows.length > 0) {
         const ei = eiCheck.rows[0];
         if (ei.is_used || ei.is_converted) {
+          await client.query('ROLLBACK');
           return next(new AppError(`Export Invoice ${ei.invoice_no} has already been converted to a Packing List.`, 400));
         }
       }
 
       // For new packing lists, always generate a new number and increment the counter
-      const generated = await generateDocumentNumber('PL', companyId, req.db);
+      const generated = await generateDocumentNumber('PL', companyId, client);
       resolvedPackingListNo = generated.displayNumber;
 
       // Double-check for uniqueness just in case of race conditions with manual/preview numbers
-      const duplicateCheck = await req.db.query(
+      const duplicateCheck = await client.query(
         'SELECT id FROM packing_lists WHERE packing_list_no = $1 AND company_id = $2 AND deleted_at IS NULL',
         [resolvedPackingListNo, companyId]
       );
       if (duplicateCheck.rows.length > 0) {
-        // If somehow we got a duplicate (rare with generateDocumentNumber but safe to check), 
-        // we can either try again or error out. Erroring is safer for debugging.
+        await client.query('ROLLBACK');
         return next(new AppError(`Generated Packing List number ${resolvedPackingListNo} already exists. Please try again.`, 409));
       }
     } else {
@@ -462,7 +544,7 @@ export const createOrUpdate = async (req, res, next) => {
 
     let result;
     if (existing.rows.length > 0) {
-      result = await req.db.query(
+      result = await client.query(
         `UPDATE packing_lists SET
           packing_list_no = $1, packing_list_date = $2, iec_no = $3, gstn = $4,
           proforma_invoice_no = $5, proforma_date = $6, consignee = $7, buyer = $8,
@@ -492,7 +574,7 @@ export const createOrUpdate = async (req, res, next) => {
         ]
       );
     } else {
-      result = await req.db.query(
+      result = await client.query(
         `INSERT INTO packing_lists (
           company_id, export_invoice_id, packing_list_no, packing_list_date, iec_no, gstn,
           proforma_invoice_no, proforma_date, consignee, buyer, buyers_order_no, buyers_order_date,
@@ -521,13 +603,24 @@ export const createOrUpdate = async (req, res, next) => {
 
       // Mark the parent Export Invoice as converted
       const packingListId = result.rows[0].id;
-      await req.db.query(
+      await client.query(
         `UPDATE export_invoices 
-         SET is_used = TRUE, is_converted = TRUE, linked_document_id = $1, document_status = 'Converted', status = 'Converted'
-         WHERE id = $2 AND company_id = $3`,
+          SET is_used = TRUE, is_converted = TRUE, linked_document_id = $1, document_status = 'Converted', status = 'Converted'
+          WHERE id = $2 AND company_id = $3`,
         [packingListId, exportInvoiceId, companyId]
       );
     }
+
+    // Sync to relational tables
+    await savePackingContainers(
+      client,
+      companyId,
+      exportInvoiceId,
+      p.container_details,
+      p.product_lines ? JSON.parse(p.product_lines) : []
+    );
+
+    await client.query('COMMIT');
     
     // Sync updates to downstream documents
     const companyIdForSync = companyId || req.companyFilter;
@@ -544,23 +637,33 @@ export const createOrUpdate = async (req, res, next) => {
 
     return successResponse(res, result.rows[0], 'Packing List saved successfully');
   } catch (error) { 
+    if (client) await client.query('ROLLBACK').catch(() => {});
     next(error); 
+  } finally {
+    if (client) client.release();
   }
 };
 
 export const updateById = async (req, res, next) => {
+  let client;
   try {
     const { id } = req.params;
     const idValidation = validateUUID(id, 'Packing List ID');
     if (!idValidation.isValid) return next(new AppError(idValidation.error, 400));
 
-    const existing = await req.db.query('SELECT id, packing_list_no, export_invoice_id FROM packing_lists WHERE id = $1', [id]);
-    if (existing.rows.length === 0) return next(new AppError('Packing List not found', 404));
+    client = await req.db.getClient();
+    await client.query('BEGIN');
+
+    const existing = await client.query('SELECT id, packing_list_no, export_invoice_id FROM packing_lists WHERE id = $1', [id]);
+    if (existing.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return next(new AppError('Packing List not found', 404));
+    }
 
     const row = existing.rows[0];
     const p = _buildUpsertParams(req.body, row.export_invoice_id, null, row.packing_list_no);
 
-    const result = await req.db.query(
+    const result = await client.query(
       `UPDATE packing_lists SET
         packing_list_no = $1, packing_list_date = $2, iec_no = $3, gstn = $4,
         proforma_invoice_no = $5, proforma_date = $6, consignee = $7, buyer = $8,
@@ -591,21 +694,37 @@ export const updateById = async (req, res, next) => {
       ]
     );
 
+    const companyId = req.companyFilter || req.user?.companyId;
+    if (row.export_invoice_id && companyId) {
+      await savePackingContainers(
+        client,
+        companyId,
+        row.export_invoice_id,
+        p.container_details,
+        p.product_lines ? JSON.parse(p.product_lines) : []
+      );
+    }
+
+    await client.query('COMMIT');
+
     // Sync updates to downstream documents
-    const companyIdForSync = req.companyFilter || req.user?.companyId;
-    if (companyIdForSync && row.export_invoice_id) {
+    if (companyId && row.export_invoice_id) {
       const changedKeys = Object.keys(p);
-      syncUpdatesAcrossStages(row.export_invoice_id, 'packing_list', changedKeys, companyIdForSync, req.db).catch(err => {
+      syncUpdatesAcrossStages(row.export_invoice_id, 'packing_list', changedKeys, companyId, req.db).catch(err => {
       });
     }
 
     return successResponse(res, result.rows[0], 'Packing List updated successfully');
   } catch (error) {
+    if (client) await client.query('ROLLBACK').catch(() => {});
     next(error);
+  } finally {
+    if (client) client.release();
   }
 };
 
 export const create = async (req, res, next) => {
+  let client;
   try {
     // Use req.companyFilter which is already validated by auth middleware
     const companyId = req.companyFilter;
@@ -614,30 +733,35 @@ export const create = async (req, res, next) => {
       return next(new AppError('Company context is required. Please select a company.', 400));
     }
 
+    client = await req.db.getClient();
+    await client.query('BEGIN');
+
     let resolvedPackingListNo;
     if (!req.body.id) {
       // For new packing lists, always generate a new number and increment the counter
-      const generated = await generateDocumentNumber('PL', companyId, req.db);
+      const generated = await generateDocumentNumber('PL', companyId, client);
       resolvedPackingListNo = generated.displayNumber;
 
       // Uniqueness check
-      const duplicateCheck = await req.db.query(
+      const duplicateCheck = await client.query(
         'SELECT id FROM packing_lists WHERE packing_list_no = $1 AND company_id = $2 AND deleted_at IS NULL',
         [resolvedPackingListNo, companyId]
       );
       if (duplicateCheck.rows.length > 0) {
+        await client.query('ROLLBACK');
         return next(new AppError(`Generated Packing List number ${resolvedPackingListNo} already exists.`, 409));
       }
     } else {
       resolvedPackingListNo = req.body.packing_list_no;
     }
 
-    const p = _buildUpsertParams(req.body, null, companyId, resolvedPackingListNo);
+    const exportInvoiceId = req.body.exportInvoiceId || req.body.export_invoice_id || null;
+    const p = _buildUpsertParams(req.body, exportInvoiceId, companyId, resolvedPackingListNo);
     p.packing_list_no = resolvedPackingListNo;
 
-    const result = await req.db.query(
+    const result = await client.query(
       `INSERT INTO packing_lists (
-        company_id, packing_list_no, packing_list_date, iec_no, gstn,
+        company_id, export_invoice_id, packing_list_no, packing_list_date, iec_no, gstn,
         proforma_invoice_no, proforma_date, consignee, buyer, buyers_order_no, buyers_order_date,
         shipment_terms, tariff_code, bl_no, bl_date, sb_no, sb_date, country_of_origin,
         final_destination, payment_terms, delivery_terms, pre_carriage_by, place_of_receipt, vessel_flight_no,
@@ -648,10 +772,10 @@ export const create = async (req, res, next) => {
       ) VALUES (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,
         $20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,
-        $39,$40,$41,$42,$43,$44,$45,$46,$47,$48,$49
+        $39,$40,$41,$42,$43,$44,$45,$46,$47,$48,$49,$50
       ) RETURNING *`,
       [
-        companyId, p.packing_list_no, p.packing_list_date, p.iec_no, p.gstn,
+        companyId, exportInvoiceId, p.packing_list_no, p.packing_list_date, p.iec_no, p.gstn,
         p.proforma_invoice_no, p.proforma_date, p.consignee, p.buyer, p.buyers_order_no, p.buyers_order_date,
         p.shipment_terms, p.tariff_code, p.bl_no, p.bl_date, p.sb_no, p.sb_date, p.country_of_origin,
         p.final_destination, p.payment_terms, p.delivery_terms, p.pre_carriage_by, p.place_of_receipt, p.vessel_flight_no,
@@ -662,9 +786,24 @@ export const create = async (req, res, next) => {
       ]
     );
 
+    if (exportInvoiceId) {
+      await savePackingContainers(
+        client,
+        companyId,
+        exportInvoiceId,
+        p.container_details,
+        p.product_lines ? JSON.parse(p.product_lines) : []
+      );
+    }
+
+    await client.query('COMMIT');
+
     return successResponse(res, result.rows[0], 'Packing List created successfully');
   } catch (error) {
+    if (client) await client.query('ROLLBACK').catch(() => {});
     next(error);
+  } finally {
+    if (client) client.release();
   }
 };
 

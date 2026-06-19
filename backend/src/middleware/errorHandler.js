@@ -25,6 +25,21 @@ class AppError extends Error {
 }
 
 const errorHandler = (err, req, res, next) => {
+  // Defensive CORS header injection to prevent backend errors from being masked as CORS blockages
+  const origin = req.headers.origin;
+  if (origin) {
+    const allowedOrigins = env.frontend_url 
+      ? env.frontend_url.split(',').map(u => u.trim().replace(/\/$/, '')) 
+      : [];
+    const normalizedOrigin = origin.trim().replace(/\/$/, '');
+    const isVercelPreview = normalizedOrigin.endsWith('.vercel.app');
+    
+    if (allowedOrigins.includes(normalizedOrigin) || isVercelPreview) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
+  }
+
   let error = { ...err };
   error.message = err.message;
   error.name = err.name;

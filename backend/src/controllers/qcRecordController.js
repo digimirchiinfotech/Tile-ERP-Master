@@ -275,7 +275,128 @@ export const getById = async (req, res, next) => {
   }
 };
 
+const saveQCItems = async (client, qcRecordId, companyId, orderId, orderNumber, inspectionDetails, overallGrade) => {
+  // 1. Resolve Export Invoice ID
+  let exportInvoiceId = null;
+  if (orderId) {
+    const eiRes = await client.query(
+      `SELECT ei.id FROM export_invoices ei
+       LEFT JOIN proforma_invoices pi ON ei.proforma_invoice_id = pi.id
+       WHERE (pi.proforma_order_id = $1 OR ei.proforma_invoice_id = $1 OR ei.id = $1) AND ei.company_id = $2
+       LIMIT 1`,
+      [orderId, companyId]
+    );
+    if (eiRes.rows.length > 0) {
+      exportInvoiceId = eiRes.rows[0].id;
+    }
+  }
+  if (!exportInvoiceId && orderNumber) {
+    const eiRes = await client.query(
+      `SELECT ei.id FROM export_invoices ei
+       LEFT JOIN proforma_invoices pi ON ei.proforma_invoice_id = pi.id
+       LEFT JOIN proforma_orders po ON pi.proforma_order_id = po.id
+       WHERE (po.order_no = $1 OR pi.invoice_no = $1 OR ei.invoice_no = $1) AND ei.company_id = $2
+       LIMIT 1`,
+      [orderNumber, companyId]
+    );
+    if (eiRes.rows.length > 0) {
+      exportInvoiceId = eiRes.rows[0].id;
+    }
+  }
+
+  // 2. Fetch Export Invoice Items
+  let invoiceItems = [];
+  if (exportInvoiceId) {
+    const itemsRes = await client.query(
+      `SELECT id, product_id FROM export_invoice_items WHERE export_invoice_id = $1 AND company_id = $2`,
+      [exportInvoiceId, companyId]
+    );
+    invoiceItems = itemsRes.rows;
+  }
+
+  // Fallback to any export invoice item in the company if none found for this order/invoice
+  if (invoiceItems.length === 0) {
+    const itemsRes = await client.query(
+      `SELECT id, product_id FROM export_invoice_items WHERE company_id = $1 LIMIT 1`,
+      [companyId]
+    );
+    invoiceItems = itemsRes.rows;
+  }
+
+  if (invoiceItems.length === 0) {
+    // If no export invoice items exist at all, we cannot insert qc_items due to NOT NULL constraint.
+    return;
+  }
+
+  const exportInvoiceItemId = invoiceItems[0].id;
+
+  // 3. Prepare parameters to insert
+  const params = [];
+  if (inspectionDetails) {
+    if (inspectionDetails.dimensionalCheck) {
+      params.push({
+        name: 'Dimensional Check',
+        expected: 'Pass',
+        actual: inspectionDetails.dimensionalCheck,
+        status: ['Pass', 'Minor Issues'].includes(inspectionDetails.dimensionalCheck) ? 'PASS' : 'FAIL'
+      });
+    }
+    if (inspectionDetails.surfaceQuality) {
+      params.push({
+        name: 'Surface Quality',
+        expected: 'Good/Excellent',
+        actual: inspectionDetails.surfaceQuality,
+        status: ['Excellent', 'Good', 'Average'].includes(inspectionDetails.surfaceQuality) ? 'PASS' : 'FAIL'
+      });
+    }
+    if (inspectionDetails.colorConsistency) {
+      params.push({
+        name: 'Color Consistency',
+        expected: 'Consistent',
+        actual: inspectionDetails.colorConsistency,
+        status: ['Consistent', 'Minor Variation'].includes(inspectionDetails.colorConsistency) ? 'PASS' : 'FAIL'
+      });
+    }
+    if (inspectionDetails.packagingCondition) {
+      params.push({
+        name: 'Packaging Condition',
+        expected: 'Good/Excellent',
+        actual: inspectionDetails.packagingCondition,
+        status: ['Excellent', 'Good'].includes(inspectionDetails.packagingCondition) ? 'PASS' : 'FAIL'
+      });
+    }
+  }
+  if (overallGrade) {
+    params.push({
+      name: 'Overall Grade',
+      expected: 'A/A+',
+      actual: overallGrade,
+      status: ['A+', 'A', 'B+', 'B', 'C'].includes(overallGrade) ? 'PASS' : 'FAIL'
+    });
+  }
+
+  // Delete old qc_items first
+  await client.query(`DELETE FROM qc_items WHERE qc_record_id = $1`, [qcRecordId]);
+
+  // Insert new qc_items
+  if (params.length > 0) {
+    const valueStrings = [];
+    const queryParams = [];
+    let paramCounter = 1;
+    for (const p of params) {
+      valueStrings.push(`($${paramCounter++}, $${paramCounter++}, $${paramCounter++}, $${paramCounter++}, $${paramCounter++}, $${paramCounter++}, $${paramCounter++})`);
+      queryParams.push(companyId, qcRecordId, exportInvoiceItemId, p.name, p.expected, p.actual, p.status);
+    }
+    const query = `
+      INSERT INTO qc_items (company_id, qc_record_id, export_invoice_item_id, parameter_name, expected_value, actual_value, status)
+      VALUES ${valueStrings.join(', ')}
+    `;
+    await client.query(query, queryParams);
+  }
+};
+
 export const create = async (req, res, next) => {
+  let client;
   try {
     // Self-healing schema for phase 2 transition to master_order_sheets
     try {
@@ -304,22 +425,26 @@ export const create = async (req, res, next) => {
     const documentNumber = await generateDocumentNumber('QC', companyId, req.db);
     const qcId = documentNumber.baseNumber;
 
+    client = await req.db.getClient();
+    await client.query('BEGIN');
+
     // Final safety check for uniqueness
-    const duplicateCheck = await req.db.query(
+    const duplicateCheck = await client.query(
       'SELECT id FROM qc_records WHERE qc_id = $1 AND company_id = $2',
       [qcId, companyId]
     );
     if (duplicateCheck.rows.length > 0) {
+      await client.query('ROLLBACK');
       return next(new AppError(`Generated QC ID ${qcId} already exists. Please try again.`, 409));
     }
 
     let resolvedBoxType = box_type || boxType || pickBoxTypeFromLines(product_lines);
     if (!resolvedBoxType || resolvedBoxType === 'N/A') {
-      resolvedBoxType = await resolveBoxTypeFromOrder(req.db, companyId, order_number);
+      resolvedBoxType = await resolveBoxTypeFromOrder(client, companyId, order_number);
     }
     const enrichedLines = enrichProductLinesWithBoxType(product_lines, resolvedBoxType);
 
-    const result = await req.db.query(
+    const result = await client.query(
       `INSERT INTO qc_records 
        (company_id, qc_id, order_id, order_sheet_id, order_number, client_name, product_name,
         qc_date, qc_status, inspector_id, inspection_details, inspection_media, overall_grade,
@@ -335,20 +460,25 @@ export const create = async (req, res, next) => {
       ]
     );
 
+    const qcRecordId = result.rows[0].id;
+    await saveQCItems(client, qcRecordId, companyId, order_id, order_number, inspection_details, overall_grade);
+
     if (order_id) {
       const dbStatus = qc_status === 'Passed' ? 'Passed' : (qc_status === 'Failed' ? 'Failed' : 'Pending');
       // Update legacy order_sheets
-      req.db.query(
+      client.query(
         `UPDATE order_sheets SET qc_status = $1, qc_date = CURRENT_TIMESTAMP WHERE id = $2 AND company_id = $3`,
         [dbStatus, order_id, companyId]
       ).catch(() => {});
       
       // Update new master_order_sheet_lines
-      req.db.query(
+      client.query(
         `UPDATE master_order_sheet_lines SET qc_status = $1, updated_at = CURRENT_TIMESTAMP WHERE master_order_sheet_id = $2 AND company_id = $3`,
         [dbStatus, order_id, companyId]
       ).catch(() => {});
     }
+
+    await client.query('COMMIT');
 
     return successResponse(
       res,
@@ -357,11 +487,15 @@ export const create = async (req, res, next) => {
       201
     );
   } catch (error) {
+    if (client) await client.query('ROLLBACK').catch(() => {});
     next(error);
+  } finally {
+    if (client) client.release();
   }
 };
 
 export const update = async (req, res, next) => {
+  let client;
   try {
     // Self-healing schema for phase 2 transition to master_order_sheets
     try {
@@ -380,6 +514,9 @@ export const update = async (req, res, next) => {
     const finalInspectorId = inspector_id !== undefined ? inspector_id : inspectorId;
     await ensureQCBoxTypeColumn(req.db.query);
 
+    client = await req.db.getClient();
+    await client.query('BEGIN');
+
     let whereConditions = 'WHERE id = $1';
     let checkParams = [id];
 
@@ -392,12 +529,13 @@ export const update = async (req, res, next) => {
       }
     }
 
-    const existingRecord = await req.db.query(
+    const existingRecord = await client.query(
       `SELECT id FROM qc_records ${whereConditions}`,
       checkParams
     );
 
     if (existingRecord.rows.length === 0) {
+      await client.query('ROLLBACK');
       return next(new AppError('QC record not found', 404));
     }
 
@@ -481,8 +619,8 @@ export const update = async (req, res, next) => {
       if (!resolvedBoxType || resolvedBoxType === 'N/A') {
         const orderNum = order_number !== undefined
           ? order_number
-          : (await req.db.query(`SELECT order_number FROM qc_records WHERE id = $1`, [id])).rows[0]?.order_number;
-        resolvedBoxType = await resolveBoxTypeFromOrder(req.db, companyId, orderNum);
+          : (await client.query(`SELECT order_number FROM qc_records WHERE id = $1`, [id])).rows[0]?.order_number;
+        resolvedBoxType = await resolveBoxTypeFromOrder(client, companyId, orderNum);
       }
       if (resolvedBoxType) {
         linesToSave = enrichProductLinesWithBoxType(product_lines, resolvedBoxType);
@@ -500,6 +638,7 @@ export const update = async (req, res, next) => {
     }
 
     if (updates.length === 0) {
+      await client.query('ROLLBACK');
       return next(new AppError('No fields to update', 400));
     }
 
@@ -513,7 +652,7 @@ export const update = async (req, res, next) => {
       whereConditions = `WHERE id = $${paramCount}`;
     }
 
-    const result = await req.db.query(
+    const result = await client.query(
       `UPDATE qc_records 
        SET ${updates.join(', ')}
        ${whereConditions}
@@ -521,32 +660,45 @@ export const update = async (req, res, next) => {
       values
     );
 
+    const finalRecord = result.rows[0];
+    if (finalRecord) {
+      await saveQCItems(
+        client,
+        id,
+        finalRecord.company_id,
+        finalRecord.order_id,
+        finalRecord.order_number,
+        finalRecord.inspection_details,
+        finalRecord.overall_grade
+      );
+    }
+
+    await client.query('COMMIT');
+
     // Trigger notification if QC status changed to Failed
-    if (qc_status !== undefined && result.rows[0]) {
+    if (qc_status !== undefined && finalRecord) {
       try {
-        const qcRecord = result.rows[0];
-        
-        if (qcRecord.order_id || qcRecord.order_sheet_id) {
-          const sheetId = qcRecord.order_sheet_id || qcRecord.order_id;
+        if (finalRecord.order_id || finalRecord.order_sheet_id) {
+          const sheetId = finalRecord.order_sheet_id || finalRecord.order_id;
           const dbStatus = qc_status === 'Passed' ? 'Passed' : (qc_status === 'Failed' ? 'Failed' : 'Pending');
           
           // Legacy update
           await req.db.query(
             `UPDATE order_sheets SET qc_status = $1, qc_date = CURRENT_TIMESTAMP WHERE id = $2 AND company_id = $3`,
-            [dbStatus, sheetId, qcRecord.company_id]
+            [dbStatus, sheetId, finalRecord.company_id]
           ).catch(() => {});
           
           // Master Order Sheet Lines update
           await req.db.query(
             `UPDATE master_order_sheet_lines SET qc_status = $1, updated_at = CURRENT_TIMESTAMP WHERE master_order_sheet_id = $2 AND company_id = $3`,
-            [dbStatus, sheetId, qcRecord.company_id]
+            [dbStatus, sheetId, finalRecord.company_id]
           ).catch(() => {});
         }
 
         if (qc_status === 'Failed') {
-          notifyQCFailed(req.companyFilter || qcRecord.company_id, qcRecord, notes || 'See QC record for details', req.db);
+          notifyQCFailed(req.companyFilter || finalRecord.company_id, finalRecord, notes || 'See QC record for details', req.db);
         } else if (qc_status === 'Passed') {
-          notifyQCCompleted(req.companyFilter || qcRecord.company_id, qcRecord, req.db);
+          notifyQCCompleted(req.companyFilter || finalRecord.company_id, finalRecord, req.db);
         }
       } catch (err) {
         // Don't block QC update if notification fails
@@ -555,15 +707,19 @@ export const update = async (req, res, next) => {
 
     return successResponse(
       res,
-      result.rows[0],
+      finalRecord,
       'QC record updated successfully'
     );
   } catch (error) {
+    if (client) await client.query('ROLLBACK').catch(() => {});
     next(error);
+  } finally {
+    if (client) client.release();
   }
 };
 
 export const remove = async (req, res, next) => {
+  let client;
   try {
     const { id } = req.params;
 
@@ -579,19 +735,25 @@ export const remove = async (req, res, next) => {
       }
     }
 
-    const existingRecord = await req.db.query(
+    client = await req.db.getClient();
+    await client.query('BEGIN');
+
+    const existingRecord = await client.query(
       `SELECT id FROM qc_records ${whereConditions}`,
       queryParams
     );
 
     if (existingRecord.rows.length === 0) {
+      await client.query('ROLLBACK');
       return next(new AppError('QC record not found', 404));
     }
 
-    const result = await req.db.query(
+    const result = await client.query(
       `DELETE FROM qc_records ${whereConditions} RETURNING id, qc_id`,
       queryParams
     );
+
+    await client.query('COMMIT');
 
     return successResponse(
       res,
@@ -599,11 +761,15 @@ export const remove = async (req, res, next) => {
       'QC record deleted successfully'
     );
   } catch (error) {
+    if (client) await client.query('ROLLBACK').catch(() => {});
     next(error);
+  } finally {
+    if (client) client.release();
   }
 };
 
 export const hardDelete = async (req, res, next) => {
+  let client;
   try {
     const { id } = req.params;
 
@@ -619,19 +785,25 @@ export const hardDelete = async (req, res, next) => {
       }
     }
 
-    const existingRecord = await req.db.query(
+    client = await req.db.getClient();
+    await client.query('BEGIN');
+
+    const existingRecord = await client.query(
       `SELECT id, qc_id FROM qc_records ${whereConditions}`,
       queryParams
     );
 
     if (existingRecord.rows.length === 0) {
+      await client.query('ROLLBACK');
       return next(new AppError('QC Record not found', 404));
     }
 
-    await req.db.query(
+    await client.query(
       `DELETE FROM qc_records ${whereConditions}`,
       queryParams
     );
+
+    await client.query('COMMIT');
 
     return successResponse(
       res,
@@ -639,7 +811,10 @@ export const hardDelete = async (req, res, next) => {
       'QC Record permanently deleted'
     );
   } catch (error) {
+    if (client) await client.query('ROLLBACK').catch(() => {});
     next(error);
+  } finally {
+    if (client) client.release();
   }
 };
 

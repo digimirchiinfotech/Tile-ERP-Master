@@ -903,7 +903,7 @@ export const validateImport = async (req, res, next) => {
 
     // 1. Fetch active products for the company from database
     const dbResult = await req.db.query(
-      `SELECT id, product_code, sku, name, factory_name, factory_product_name 
+      `SELECT id, product_code, item_ref, sku, name, company_product_name, factory_name, factory_product_name 
        FROM products 
        WHERE company_id = $1 AND status != 'Deleted'`,
       [companyId]
@@ -920,16 +920,25 @@ export const validateImport = async (req, res, next) => {
 
     dbProducts.forEach(p => {
       const code = normalizeVal(p.product_code);
+      const itemRef = normalizeVal(p.item_ref);
       const sku = normalizeVal(p.sku);
       const fName = normalizeVal(p.factory_name);
       const fpName = normalizeVal(p.factory_product_name);
       const pName = normalizeVal(p.name);
+      const cpName = normalizeVal(p.company_product_name);
 
       if (code) dbProductCodeMap.set(code, p);
+      if (itemRef) dbProductCodeMap.set(itemRef, p);
       if (sku) dbProductCodeMap.set(sku, p);
 
-      const comboKey = `${fName}|||${fpName}|||${pName}`;
-      dbComboMap.set(comboKey, p);
+      if (pName) {
+        const comboKey = `${fName}|||${fpName}|||${pName}`;
+        dbComboMap.set(comboKey, p);
+      }
+      if (cpName) {
+        const comboKey = `${fName}|||${fpName}|||${cpName}`;
+        dbComboMap.set(comboKey, p);
+      }
     });
 
     // 3. Keep track of seen keys within the uploaded file to detect duplicates inside the file
@@ -946,7 +955,7 @@ export const validateImport = async (req, res, next) => {
       const rowNo = prod.rowIndex || (index + 1);
 
       // Extract and normalize fields
-      const rawProductCode = prod.productCode || prod['Product Code'] || prod.product_code || '';
+      const rawProductCode = prod.productCode || prod['Product Code'] || prod.product_code || prod.itemRef || prod.item_ref || '';
       const rawSku = prod.sku || prod.SKU || '';
       const rawName = prod.name || prod['Product Name'] || prod.companyProductName || prod['Company Product Name'] || '';
       const rawFactoryName = prod.factoryName || prod['Factory Name'] || prod.factory_name || '';

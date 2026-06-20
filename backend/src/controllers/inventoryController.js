@@ -125,7 +125,7 @@ export const recordStockMovement = async (req, res, next) => {
     );
     if (warehouseCheck.rows.length === 0) {
       await client.query('ROLLBACK');
-      return next(new AppError(\`Invalid or inactive warehouse location: \${warehouse_location}\`, 400));
+      return next(new AppError(`Invalid or inactive warehouse location: ${warehouse_location}`, 400));
     }
 
     const productRes = await client.query(

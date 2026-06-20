@@ -13,7 +13,26 @@ import { debugLogger } from '../utils/debugLogger.js';
 import { successResponse } from '../utils/helpers.js';
 
 const dashboardCache = new Map();
-const CACHE_TTL = 30 * 1000; // 30 seconds (short for dev; increase to 5*60*1000 in prod)
+// Short TTL in dev, longer in production. NOTE: This cache is per-process.
+// In multi-process (PM2 cluster) setups, use Redis for shared caching.
+const CACHE_TTL = process.env.NODE_ENV === 'production' ? 60 * 1000 : 30 * 1000;
+
+/**
+ * Invalidate dashboard cache for a specific user.
+ * Call this on logout, role change, or company change.
+ */
+export const invalidateDashboardCache = (userId) => {
+  if (!userId) {
+    dashboardCache.clear();
+    return;
+  }
+  // Remove all cache keys belonging to this user (key starts with userId)
+  for (const key of dashboardCache.keys()) {
+    if (key.startsWith(userId)) {
+      dashboardCache.delete(key);
+    }
+  }
+};
 
 /**
  * Get real-time dashboard data for all roles

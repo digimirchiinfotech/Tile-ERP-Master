@@ -286,26 +286,41 @@ export const runGlobalSchemaMigration = async () => {
               ALTER TABLE packing_lists ADD COLUMN epcg_no VARCHAR(255);
             END IF;
 
-            -- Export Invoice Document Locking audit table
-            CREATE TABLE IF NOT EXISTS public.export_document_lock (
-                id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
-                company_id uuid NOT NULL,
-                exp_no character varying(100) NOT NULL,
-                document_type character varying(100) NOT NULL,
-                document_id uuid NOT NULL,
-                lock_status character varying(50) DEFAULT 'LOCKED'::character varying,
-                locked_by uuid,
-                locked_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-                unlocked_by uuid,
-                unlocked_at timestamp without time zone,
-                unlock_reason text,
-                created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-                updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
-            );
+            -- ── 2026-06-20: QC Schema Hardening ────────────────────────────
+            ALTER TABLE qc_records ADD COLUMN IF NOT EXISTS box_type VARCHAR(255);
+            ALTER TABLE qc_records ADD COLUMN IF NOT EXISTS order_sheet_id UUID;
+            ALTER TABLE qc_records DROP CONSTRAINT IF EXISTS qc_records_order_id_fkey;
+            ALTER TABLE qc_records ADD COLUMN IF NOT EXISTS batch_number VARCHAR(100);
+            ALTER TABLE qc_records ADD COLUMN IF NOT EXISTS lot_number VARCHAR(100);
+            ALTER TABLE qc_records ADD COLUMN IF NOT EXISTS manufacturing_date DATE;
 
-            CREATE INDEX IF NOT EXISTS idx_export_document_lock_company_id ON public.export_document_lock(company_id);
-            CREATE INDEX IF NOT EXISTS idx_export_document_lock_exp_no ON public.export_document_lock(exp_no);
-            CREATE INDEX IF NOT EXISTS idx_export_document_lock_document_id ON public.export_document_lock(document_id);
+            -- ── 2026-06-20: Soft-Delete Columns ─────────────────────────────
+            ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+            ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS deleted_by UUID;
+            ALTER TABLE leads ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+            ALTER TABLE leads ADD COLUMN IF NOT EXISTS deleted_by UUID;
+            ALTER TABLE account_entries ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+            ALTER TABLE account_entries ADD COLUMN IF NOT EXISTS deleted_by UUID;
+            ALTER TABLE shipping_instructions ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+            ALTER TABLE shipping_instructions ADD COLUMN IF NOT EXISTS deleted_by UUID;
+            ALTER TABLE vgm_documents ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+            ALTER TABLE vgm_documents ADD COLUMN IF NOT EXISTS deleted_by UUID;
+
+            -- ── 2026-06-20: Composite Performance Indexes ──────────────────
+            CREATE INDEX IF NOT EXISTS idx_qc_records_company_created ON qc_records (company_id, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_qc_records_company_status ON qc_records (company_id, qc_status);
+            CREATE INDEX IF NOT EXISTS idx_export_invoices_company_created ON export_invoices (company_id, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_export_invoices_company_status ON export_invoices (company_id, status);
+            CREATE INDEX IF NOT EXISTS idx_proforma_invoices_company_created ON proforma_invoices (company_id, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_proforma_invoices_company_status ON proforma_invoices (company_id, status);
+            CREATE INDEX IF NOT EXISTS idx_proforma_orders_company_created ON proforma_orders (company_id, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_account_entries_company_created ON account_entries (company_id, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_packing_lists_company_created ON packing_lists (company_id, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_notifications_user_read ON notifications (user_id, is_read, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_audit_logs_company_created ON audit_logs (company_id, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_leads_company_created ON leads (company_id, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_clients_company_created ON clients (company_id, created_at DESC);
+
           END $$;
         `);
         debugLogger.info(CONTEXT, `[TenantSchema] ✅ Schema self-heal complete for company ${company.id}`);

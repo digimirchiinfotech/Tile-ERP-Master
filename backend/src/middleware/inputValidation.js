@@ -45,8 +45,37 @@ const deepSanitize = (value) => {
 };
 
 export const sanitizeInput = (req, res, next) => {
-  // Skip sanitization for the PDF generation endpoint because it requires raw HTML
+  // For PDF generation: apply targeted sanitization that strips dangerous tags
+  // (script, iframe, object, embed) while preserving valid HTML for rendering.
+  // We do NOT skip sanitization entirely — that would allow XSS/SSRF injection.
   if (req.originalUrl && req.originalUrl.includes('/api/pdf/generate')) {
+    if (req.body && typeof req.body === 'object') {
+      const pdfSanitize = (value) => {
+        if (value === null || value === undefined) return value;
+        if (typeof value === 'string') {
+          // Strip dangerous tags and javascript: protocols but keep valid HTML
+          return value
+            .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+            .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+            .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+            .replace(/<embed\b[^>]*>/gi, '')
+            .replace(/javascript:/gi, '')
+            .replace(/on\w+\s*=/gi, 'data-blocked=');
+        }
+        if (Array.isArray(value)) return value.map(pdfSanitize);
+        if (typeof value === 'object') {
+          const sanitized = {};
+          for (const key in value) {
+            if (Object.prototype.hasOwnProperty.call(value, key)) {
+              sanitized[key] = pdfSanitize(value[key]);
+            }
+          }
+          return sanitized;
+        }
+        return value;
+      };
+      req.body = pdfSanitize(req.body);
+    }
     return next();
   }
 

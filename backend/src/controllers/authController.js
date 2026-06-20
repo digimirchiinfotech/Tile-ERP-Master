@@ -25,6 +25,7 @@ import { syncCompanyDatabase } from '../utils/databaseProvisioning.js';
 import { notifySpecificUser } from '../services/notificationService.js';
 import { isWeakPassword } from '../utils/passwordPolicy.js';
 import debugLogger from '../utils/debugLogger.js';
+import { invalidateDashboardCache } from './dashboardController.js';
 
 
 export const register = async (req, res, next) => {
@@ -366,6 +367,9 @@ export const logout = async (req, res, next) => {
     } catch (err) {
       debugLogger.error('Auth', 'Error updating active session on logout', err);
     }
+
+    // Invalidate this user's dashboard cache on logout
+    try { invalidateDashboardCache(req.user.id); } catch (_) {}
 
     return successResponse(res, {}, 'Logout successful');
   } catch (error) {

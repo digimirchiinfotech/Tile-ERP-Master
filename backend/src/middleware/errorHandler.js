@@ -9,8 +9,6 @@
  * or reverse engineering of this file, via any medium, is strictly prohibited.
  */
 
-import fs from 'fs';
-import path from 'path';
 import env from '../config/env.js';
 import { debugLogger } from '../utils/debugLogger.js';
 
@@ -46,12 +44,7 @@ const errorHandler = (err, req, res, next) => {
 
   const statusCode = error.statusCode || error.status || err.statusCode || err.status || 500;
   
-  if (statusCode === 500) {
-    try {
-      const logPath = path.join(process.cwd(), 'test_error.log');
-      fs.appendFileSync(logPath, new Date().toISOString() + '\\n' + (err.stack || err.message) + '\\n\\n');
-    } catch (e) {}
-  }
+  // Async Winston logging — never use synchronous fs.appendFileSync in request handlers
 
   // Always log to console server-side
   debugLogger.error('ErrorHandler', `[${req.method}] ${req.originalUrl} - ${err.message}`, {
@@ -120,11 +113,16 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
-  // Standard 500 Server Error - Temporarily expose details for debugging
+  // Standard 500 Server Error
+  // In development, expose full details for debugging.
+  // In production, show a generic message — never leak internal error info to clients.
   if (statusCode === 500) {
+    const isDevelopment = env.node_env === 'development';
     return res.status(500).json({
       success: false,
-      message: 'Something went wrong. Please contact administrator. Error: ' + (error.message || err.message)
+      message: isDevelopment
+        ? `Internal server error: ${error.message || err.message}`
+        : 'Something went wrong. Please contact your administrator.'
     });
   }
 

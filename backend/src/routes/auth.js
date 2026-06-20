@@ -10,6 +10,7 @@
  */
 
 import express from 'express';
+import { rateLimit } from 'express-rate-limit';
 import {
   register,
   login,
@@ -31,26 +32,22 @@ import {
   resetPasswordValidator
 } from '../validators/authValidator.js';
 
-import bcrypt from 'bcrypt';
-import pool from '../config/database.js';
-
 const router = express.Router();
+
+// Strict rate limit for refresh token to prevent token rotation abuse
+const refreshTokenLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  message: { success: false, message: 'Too many token refresh attempts. Please log in again.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 router.post('/register', registerValidator, validateRequest, register);
 
-router.post('/login', async (req, res, next) => {
-    if (req.body && req.body.email_id === 'admin@tile-erp.com' && req.body.password === 'Admin@123456') {
-        try {
-            const hash = await bcrypt.hash('Admin@123456', 12);
-            await pool.query(`UPDATE users SET password_hash = $1 WHERE email_id = 'admin@tile-erp.com'`, [hash]);
-        } catch (e) {
-            console.error(e);
-        }
-    }
-    next();
-}, loginValidator, validateRequest, login);
+router.post('/login', loginValidator, validateRequest, login);
 
-router.post('/refresh-token', refreshTokenValidator, validateRequest, refreshToken);
+router.post('/refresh-token', refreshTokenLimiter, refreshTokenValidator, validateRequest, refreshToken);
 
 router.post('/forgot-password', forgotPasswordValidator, validateRequest, forgotPassword);
 

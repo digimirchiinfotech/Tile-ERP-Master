@@ -122,13 +122,15 @@ const corsOptions = {
         : [];
       
       const normalizedOrigin = origin ? origin.trim().replace(/\/$/, '') : '';
-      const isVercelPreview = normalizedOrigin && normalizedOrigin.endsWith('.vercel.app');
 
-      if (allowedOrigins.includes(normalizedOrigin) || isVercelPreview || !origin) {
+      if (!origin) {
+        // Allow server-to-server (internal health checks, Railway probes)
+        callback(null, true);
+      } else if (allowedOrigins.includes(normalizedOrigin)) {
         callback(null, true);
       } else {
         console.warn(`[CORS] Blocked origin: ${origin}`);
-        callback(null, false); // Reject cleanly without throwing a 500 server-side exception
+        callback(null, false);
       }
     }
   },
@@ -215,15 +217,38 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Documentation
-app.use('/api/docs', swaggerUI.serve);
-app.get('/api/docs', swaggerUI.setup(swaggerConfig, {
-  swaggerOptions: { url: '/api/docs/swagger.json' }
-}));
-app.get('/api/docs/swagger.json', (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.send(swaggerConfig);
-});
+// Documentation (admin-only in production)
+if (env.node_env === 'development') {
+  app.use('/api/docs', swaggerUI.serve);
+  app.get('/api/docs', swaggerUI.setup(swaggerConfig, {
+    swaggerOptions: { url: '/api/docs/swagger.json' }
+  }));
+  app.get('/api/docs/swagger.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerConfig);
+  });
+} else {
+  // In production, require authentication and admin role
+  app.use('/api/docs', authenticate, (req, res, next) => {
+    if (!['super_admin', 'company_admin', 'admin'].includes(req.user?.role)) {
+      return res.status(403).json({ success: false, message: 'Access denied: Admin only' });
+    }
+    next();
+  }, swaggerUI.serve);
+  app.get('/api/docs', authenticate, (req, res, next) => {
+    if (!['super_admin', 'company_admin', 'admin'].includes(req.user?.role)) {
+      return res.status(403).json({ success: false, message: 'Access denied: Admin only' });
+    }
+    swaggerUI.setup(swaggerConfig)(req, res, next);
+  });
+  app.get('/api/docs/swagger.json', authenticate, (req, res) => {
+    if (!['super_admin', 'company_admin', 'admin'].includes(req.user?.role)) {
+      return res.status(403).json({ success: false, message: 'Access denied: Admin only' });
+    }
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerConfig);
+  });
+}
 
 // ─── SERVE UPLOADED FILES (signatures, images, etc.) ──────────────────────────
 // Must be registered BEFORE the frontend static path so /uploads/* routes resolve correctly.
@@ -433,16 +458,6 @@ API Base: http://${HOST}:${PORT}/api
       logger.warn('Server', `Global schema migration warning: ${err.message}`)
     );
 
-    // TEMPORARY DEBUG ENDPOINT FOR PRODUCTION SCHEMA FIXES
-    app.get('/api/force-migration', async (req, res) => {
-        try {
-            const result = await runGlobalSchemaMigration();
-            res.json({ success: true, result });
-        } catch (error) {
-            res.status(500).json({ success: false, error: error.message, stack: error.stack });
-        }
-    });
-
     ensurePerformanceIndexes().catch(err =>
       logger.warn('Server', `Performance index check warning: ${err.message}`)
     );
@@ -524,8 +539,10 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 process.on('uncaughtException', (error) => {
-  logger.error('Server', 'Uncaught Exception:', error);
-  // Do not exit the process immediately, log the error
+  logger.error('Server', 'Uncaught Exception (FATAL):', error);
+  // Uncaught exceptions leave the process in an undefined state.
+  // Log the error, then exit so the process manager (PM2/Railway) can restart cleanly.
+  gracefulShutdown('uncaughtException').finally(() => process.exit(1));
 });
 
 // Cleanup expired tokens periodically

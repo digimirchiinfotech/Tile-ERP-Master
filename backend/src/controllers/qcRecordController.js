@@ -20,12 +20,14 @@ import { generateDocumentNumber, previewDocumentNumber } from '../utils/document
 import { notifyQCFailed, notifyQCCompleted } from '../services/notificationService.js';
 import { debugLogger } from '../utils/debugLogger.js';
 
-const ensureQCBoxTypeColumn = async (queryFn) => {
-  try {
-    await queryFn(`ALTER TABLE qc_records ADD COLUMN IF NOT EXISTS box_type VARCHAR(255)`);
-  } catch (err) {
-    debugLogger.warn('QCRecordController', 'box_type column heal skipped', { error: err.message });
-  }
+/**
+ * ensureQCBoxTypeColumn is now a no-op.
+ * The box_type column is guaranteed to exist via migration:
+ * 20260620_qc_schema_hardening.sql
+ * Kept as a stub to avoid breaking callers during transition.
+ */
+const ensureQCBoxTypeColumn = async (_queryFn) => {
+  // No-op: column guaranteed by migration
 };
 
 const pickBoxTypeFromLines = (productLines = []) => {
@@ -314,17 +316,13 @@ const saveQCItems = async (client, qcRecordId, companyId, orderId, orderNumber, 
     invoiceItems = itemsRes.rows;
   }
 
-  // Fallback to any export invoice item in the company if none found for this order/invoice
+  // If no export invoice items exist for this order/invoice, skip QC item insertion.
+  // DO NOT fall back to a random item — that would corrupt quality traceability
+  // by linking QC results to a completely unrelated product/invoice.
   if (invoiceItems.length === 0) {
-    const itemsRes = await client.query(
-      `SELECT id, product_id FROM export_invoice_items WHERE company_id = $1 LIMIT 1`,
-      [companyId]
-    );
-    invoiceItems = itemsRes.rows;
-  }
-
-  if (invoiceItems.length === 0) {
-    // If no export invoice items exist at all, we cannot insert qc_items due to NOT NULL constraint.
+    debugLogger.warn('QCRecordController', 'saveQCItems: No matching export invoice items found', {
+      qcRecordId, orderId, orderNumber, companyId
+    });
     return;
   }
 
@@ -398,14 +396,9 @@ const saveQCItems = async (client, qcRecordId, companyId, orderId, orderNumber, 
 export const create = async (req, res, next) => {
   let client;
   try {
-    // Self-healing schema for phase 2 transition to master_order_sheets
-    try {
-      await req.db.query(`ALTER TABLE qc_records ADD COLUMN IF NOT EXISTS order_sheet_id UUID`);
-      await req.db.query(`ALTER TABLE qc_records DROP CONSTRAINT IF EXISTS qc_records_order_id_fkey`);
-      await ensureQCBoxTypeColumn(req.db.query);
-    } catch (err) {
-      debugLogger.warn('QCRecordController', 'QC schema heal skipped or failed', { error: err.message });
-    }
+    // Schema columns (box_type, order_sheet_id) and FK constraint changes are
+    // now handled by migration 20260620_qc_schema_hardening.sql at startup.
+    // Runtime ALTER TABLE calls removed to prevent ACCESS EXCLUSIVE locks.
 
     const {
       order_id, order_number, client_name, product_name, qc_date,
@@ -497,13 +490,9 @@ export const create = async (req, res, next) => {
 export const update = async (req, res, next) => {
   let client;
   try {
-    // Self-healing schema for phase 2 transition to master_order_sheets
-    try {
-      await req.db.query(`ALTER TABLE qc_records ADD COLUMN IF NOT EXISTS order_sheet_id UUID`);
-      await req.db.query(`ALTER TABLE qc_records DROP CONSTRAINT IF EXISTS qc_records_order_id_fkey`);
-    } catch (err) {
-      debugLogger.warn('QCRecordController', 'QC schema heal skipped or failed', { error: err.message });
-    }
+    // Schema columns (box_type, order_sheet_id) and FK constraint changes are
+    // now handled by migration 20260620_qc_schema_hardening.sql at startup.
+    // Runtime ALTER TABLE calls removed to prevent ACCESS EXCLUSIVE locks.
 
     const { id } = req.params;
     const {

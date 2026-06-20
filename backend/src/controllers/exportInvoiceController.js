@@ -872,15 +872,7 @@ export const create = async (req, res, next) => {
     try {
       await client.query('BEGIN');
 
-      // Self-heal: ensure these columns are TEXT to support merged/longer values
-      await client.query(`
-        ALTER TABLE export_invoices 
-          ALTER COLUMN pallet_type TYPE TEXT,
-          ALTER COLUMN tiles_back TYPE TEXT,
-          ALTER COLUMN boxes_marking TYPE TEXT,
-          ALTER COLUMN box_type TYPE TEXT;
-      `);
-
+      // Removed dangerous runtime ALTER TABLE. Schema should be handled in databaseProvisioning.js
       const result = await client.query(
         `INSERT INTO export_invoices 
         (company_id, proforma_invoice_id, invoice_no, invoice_date, client_name, client_id,
@@ -1217,15 +1209,6 @@ export const update = async (req, res, next) => {
     paramCount++;
     values.push(companyId);
     whereClause += ` AND company_id = $${paramCount}`;
-
-    // Self-heal: ensure these columns are TEXT to support merged/longer values
-    await client.query(`
-      ALTER TABLE export_invoices 
-        ALTER COLUMN pallet_type TYPE TEXT,
-        ALTER COLUMN tiles_back TYPE TEXT,
-        ALTER COLUMN boxes_marking TYPE TEXT,
-        ALTER COLUMN box_type TYPE TEXT;
-    `);
 
     const result = await client.query(
       `UPDATE export_invoices SET ${updates.join(', ')} ${whereClause} RETURNING *`,

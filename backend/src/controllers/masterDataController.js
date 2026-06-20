@@ -70,19 +70,8 @@ const ensureTableExists = async (queryFn, config) => {
       `;
       await queryFn(createQuery);
       debugLogger.info(`[MasterData] Created table ${config.table}`);
-    } else {
-      // Table exists — run idempotent column migration to heal schemas from older deployments
-      // that may have been created without the correct column name.
-      try {
-        await queryFn(`ALTER TABLE public.${config.table} ADD COLUMN IF NOT EXISTS ${config.column} TEXT`);
-      } catch (colErr) {
-        debugLogger.warn(`[MasterData] Could not add column ${config.column} to ${config.table}: ${colErr.message}`);
-      }
-      if (config.table === 'box_types') {
-        try {
-          await queryFn(`ALTER TABLE public.${config.table} ADD COLUMN IF NOT EXISTS image_url TEXT`);
-        } catch (colErr) { /* ignore */ }
-      }
+      // Removed runtime ALTER TABLE statements to prevent locking issues.
+      // Schema updates must be done via databaseProvisioning.js or migrations.
     }
   } catch (err) {
     debugLogger.error(`[MasterData] Error ensuring table ${config.table} exists:`, err.message);

@@ -39,6 +39,51 @@ const parseProductId = (id) => {
  */
 
 /**
+ * Enforces credit limit rules for Proforma Invoices
+ */
+const enforceCreditLimit = async (req, m_client_id, companyId, m_total_amount, excludeInvoiceId = null) => {
+  const canOverrideCreditLimit = ['super_admin', 'company_admin', 'admin'].includes(req.user.role);
+  if (m_client_id && !canOverrideCreditLimit && m_total_amount > 0) {
+    try {
+      const clientRes = await req.db.query(
+        `SELECT credit_limit, credit_days FROM clients WHERE id = $1 AND company_id = $2`,
+        [m_client_id, companyId]
+      );
+      if (clientRes.rows.length > 0) {
+        const creditLimit = parseFloat(clientRes.rows[0].credit_limit || 0);
+        if (creditLimit > 0) {
+          let outQuery = `SELECT COALESCE(SUM(CAST(total_amount AS DECIMAL)), 0) as outstanding
+             FROM proforma_invoices
+             WHERE client_id = $1 AND company_id = $2
+               AND status NOT IN ('Cancelled', 'Revised', 'Paid')`;
+          let outParams = [m_client_id, companyId];
+          if (excludeInvoiceId) {
+             outQuery += ` AND id != $3`;
+             outParams.push(excludeInvoiceId);
+          }
+          const outstandingRes = await req.db.query(outQuery, outParams);
+          const outstanding = parseFloat(outstandingRes.rows[0]?.outstanding || 0);
+          const projectedBalance = outstanding + m_total_amount;
+          if (projectedBalance > creditLimit) {
+            return new AppError(
+              `Credit limit exceeded for this client. ` +
+              `Credit limit: ${creditLimit.toLocaleString()}, ` +
+              `Current outstanding: ${outstanding.toLocaleString()}, ` +
+              `New invoice amount: ${m_total_amount.toLocaleString()}. ` +
+              `Contact your administrator to increase the credit limit or override.`,
+              400
+            );
+          }
+        }
+      }
+    } catch (creditErr) {
+      debugLogger.warn('ProformaInvoice', 'Credit limit check failed (non-fatal)', { error: creditErr.message });
+    }
+  }
+  return null;
+};
+
+/**
  * Get all Proforma Invoices
  * Supports pagination, searching, and status filtering
  * Enforces company-based isolation
@@ -341,43 +386,9 @@ export const create = async (req, res, next) => {
     }
 
     // ── Credit Limit Enforcement ─────────────────────────────────────────────
-    // Non-admin roles cannot create a PI that would exceed the client's credit limit.
-    const canOverrideCreditLimit = ['super_admin', 'company_admin', 'admin'].includes(req.user.role);
-    if (m_client_id && !canOverrideCreditLimit && m_total_amount > 0) {
-      try {
-        const clientRes = await req.db.query(
-          `SELECT credit_limit, credit_days FROM clients WHERE id = $1 AND company_id = $2`,
-          [m_client_id, companyId]
-        );
-        if (clientRes.rows.length > 0) {
-          const creditLimit = parseFloat(clientRes.rows[0].credit_limit || 0);
-          if (creditLimit > 0) {
-            // Sum all non-cancelled, non-revised outstanding invoices for this client
-            const outstandingRes = await req.db.query(
-              `SELECT COALESCE(SUM(CAST(total_amount AS DECIMAL)), 0) as outstanding
-               FROM proforma_invoices
-               WHERE client_id = $1 AND company_id = $2
-                 AND status NOT IN ('Cancelled', 'Revised', 'Paid')`,
-              [m_client_id, companyId]
-            );
-            const outstanding = parseFloat(outstandingRes.rows[0]?.outstanding || 0);
-            const projectedBalance = outstanding + m_total_amount;
-            if (projectedBalance > creditLimit) {
-              return next(new AppError(
-                `Credit limit exceeded for this client. ` +
-                `Credit limit: ${creditLimit.toLocaleString()}, ` +
-                `Current outstanding: ${outstanding.toLocaleString()}, ` +
-                `New invoice amount: ${m_total_amount.toLocaleString()}. ` +
-                `Contact your administrator to increase the credit limit or override.`,
-                400
-              ));
-            }
-          }
-        }
-      } catch (creditErr) {
-        // Non-fatal: log and continue if credit check fails (don't block invoice creation)
-        debugLogger.warn('ProformaInvoice', 'Credit limit check failed (non-fatal)', { error: creditErr.message });
-      }
+    const creditError = await enforceCreditLimit(req, m_client_id, companyId, m_total_amount);
+    if (creditError) {
+      return next(creditError);
     }
 
     // Auto-calculate summary values if missing
@@ -608,6 +619,20 @@ export const update = async (req, res, next) => {
       const transition = validateStatusTransition('proforma_invoice', docStatus, incomingStatus);
       if (!transition.valid) {
         return next(new AppError(transition.reason, 400));
+      }
+    }
+
+    // ── Credit Limit Enforcement ─────────────────────────────────────────────
+    if (m_total_amount !== undefined && m_client_id !== undefined) {
+      const creditError = await enforceCreditLimit(
+        req, 
+        m_client_id, 
+        req.companyFilter || existingInvoice.rows[0].company_id, 
+        parseFloat(m_total_amount) || 0, 
+        id
+      );
+      if (creditError) {
+        return next(creditError);
       }
     }
 

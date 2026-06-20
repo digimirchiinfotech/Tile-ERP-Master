@@ -19,48 +19,7 @@ import { syncUpdatesAcrossStages } from '../services/exportWorkflowInterconnecti
 import { notificationService } from '../services/notificationService.js';
 
 const ensureAnnexureSchema = async (queryFn) => {
-  try {
-    const columns = [
-      { name: 'c_no', type: 'TEXT' },
-      { name: 'c_date', type: 'DATE' },
-      { name: 'examination_date', type: 'DATE' },
-      { name: 'examining_officer', type: 'TEXT' },
-      { name: 'appraiser_name', type: 'TEXT' },
-      { name: 'permission_no', type: 'TEXT' },
-      { name: 'division_range', type: 'TEXT' },
-      { name: 'samples_drawn', type: 'TEXT' },
-      { name: 'sample_seal_no', type: 'TEXT' },
-      { name: 'customs_seal_no', type: 'TEXT' },
-      { name: 'location_code', type: 'TEXT' },
-      { name: 'goods_description_match', type: 'TEXT' },
-      { name: 'declaration_text', type: 'TEXT' },
-      { name: 'range_name', type: 'TEXT' },
-      { name: 'division', type: 'TEXT' },
-      { name: 'commissionerate', type: 'TEXT' },
-      { name: 'lut_arn_no', type: 'TEXT' },
-      { name: 'lut_date', type: 'DATE' },
-      { name: 'manufacturer_name', type: 'TEXT' },
-      { name: 'manufacturer_address', type: 'TEXT' },
-      { name: 'factory_address', type: 'TEXT' },
-      { name: 'company_name', type: 'TEXT' },
-      { name: 'company_address', type: 'TEXT' },
-      { name: 'shipping_bill_no', type: 'TEXT' },
-      { name: 'shipping_bill_date', type: 'DATE' },
-      { name: 'iec_no', type: 'TEXT' },
-      { name: 'is_used', type: 'BOOLEAN DEFAULT false' },
-      { name: 'is_converted', type: 'BOOLEAN DEFAULT false' },
-      { name: 'linked_document_id', type: 'UUID' },
-      { name: 'document_status', type: 'VARCHAR(50) DEFAULT \'Draft\'' }
-    ];
-
-    for (const col of columns) {
-      await queryFn(
-        `ALTER TABLE export_invoice_annexures ADD COLUMN IF NOT EXISTS ${col.name} ${col.type}`
-      );
-    }
-  } catch (err) {
-    debugLogger.error('[Annexure Schema Self-Healing] Error:', err.message);
-  }
+  // Moved to databaseProvisioning.js to avoid runtime ALTER TABLE locks
 };
 
 const safeDateToISO = (val) => {

@@ -45,38 +45,7 @@ const CLIENT_ORDER_COLUMNS = `
  * Self-healing helper: ensures client_orders table exists and has all required columns.
  */
 const ensureClientOrderTableExists = async (db) => {
-  try {
-    // Basic table structure (if it somehow didn't exist)
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS public.client_orders (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        company_id UUID NOT NULL,
-        order_no VARCHAR(100) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    // Ensure all necessary columns exist (self-healing)
-    await db.query(`
-      ALTER TABLE public.client_orders 
-      ADD COLUMN IF NOT EXISTS date DATE,
-      ADD COLUMN IF NOT EXISTS client_id UUID,
-      ADD COLUMN IF NOT EXISTS invoice_ref VARCHAR(100),
-      ADD COLUMN IF NOT EXISTS total_amount NUMERIC(15,2) DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'Pending',
-      ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT 'Unpaid',
-      ADD COLUMN IF NOT EXISTS delivery_status VARCHAR(50) DEFAULT 'Pending',
-      ADD COLUMN IF NOT EXISTS expected_delivery DATE,
-      ADD COLUMN IF NOT EXISTS tracking_number VARCHAR(100),
-      ADD COLUMN IF NOT EXISTS product_lines JSONB DEFAULT '[]'::jsonb,
-      ADD COLUMN IF NOT EXISTS shipping_address TEXT,
-      ADD COLUMN IF NOT EXISTS country VARCHAR(100),
-      ADD COLUMN IF NOT EXISTS notes TEXT,
-      ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
-    `);
-  } catch (error) {
-    debugLogger.error('Failed to ensure client_orders schema:', error.message);
-  }
+  // Moved to databaseProvisioning.js to avoid runtime ALTER TABLE locks
 };
 
 export const getAll = async (req, res, next) => {

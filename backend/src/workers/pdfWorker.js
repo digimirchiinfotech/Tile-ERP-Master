@@ -26,8 +26,6 @@ import puppeteer from 'puppeteer';
         '--disable-dev-shm-usage',
         '--disable-accelerated-2d-canvas',
         '--no-first-run',
-        '--no-zygote',
-        '--single-process',
         '--disable-gpu'
       ]
     });
@@ -52,7 +50,7 @@ import puppeteer from 'puppeteer';
     });
 
     // Send the buffer back to the parent thread
-    parentPort.postMessage({ success: true, buffer: Array.from(pdfBuffer) });
+    parentPort.postMessage({ success: true, buffer: pdfBuffer });
 
   } catch (error) {
     parentPort.postMessage({ success: false, error: error.message });

@@ -15,148 +15,13 @@ import { successResponse, paginationResponse, getPagination, generateSequentialI
 import { generateFactoryAssignmentSheet, generateMasterOrderSheetExcel } from '../utils/excelExportService.js';
 import { ensureInventorySchema } from '../utils/inventorySchema.js';
 
-let ensuredSchemas = new Set();
-
-const ensureMasterOrderSheetSchemaExists = async (queryFn, companyId) => {
-  const cacheKey = companyId ? `company_${companyId}` : 'global';
-  if (ensuredSchemas.has(cacheKey)) return;
-
-  try {
-    await queryFn(`
-      CREATE TABLE IF NOT EXISTS master_order_sheets (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        company_id UUID NOT NULL,
-        proforma_order_id UUID REFERENCES proforma_orders(id) ON DELETE CASCADE,
-        po_no VARCHAR(100),
-        client_name VARCHAR(255),
-        supplier_name VARCHAR(255),
-        port_of_loading VARCHAR(255),
-        port_of_discharge VARCHAR(255),
-        pi_reference VARCHAR(100),
-        booking_number VARCHAR(100),
-        loading_status VARCHAR(50) DEFAULT 'Pending',
-        priority VARCHAR(50) DEFAULT 'Medium',
-        shipment_date DATE,
-        shipment_month VARCHAR(50),
-        etd DATE,
-        container_no VARCHAR(100),
-        production_sheet_no VARCHAR(100),
-        status VARCHAR(50) DEFAULT 'Pending',
-        internal_notes TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-
-      CREATE TABLE IF NOT EXISTS master_order_sheet_lines (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        company_id UUID NOT NULL,
-        master_order_sheet_id UUID REFERENCES master_order_sheets(id) ON DELETE CASCADE,
-        proforma_order_line_id UUID REFERENCES proforma_order_lines(id) ON DELETE CASCADE,
-        product_category VARCHAR(255),
-        design VARCHAR(255),
-        size VARCHAR(100),
-        surface VARCHAR(100),
-        thickness VARCHAR(50),
-        required_sqm NUMERIC(15,4) DEFAULT 0,
-        produced_sqm NUMERIC(15,4) DEFAULT 0,
-        factory_id UUID,
-        production_start_date DATE,
-        production_complete_date DATE,
-        status VARCHAR(50) DEFAULT 'Pending',
-        qc_status VARCHAR(50) DEFAULT 'Pending',
-        shade VARCHAR(100),
-        caliber VARCHAR(100),
-        grade VARCHAR(100),
-        boxes_required INTEGER DEFAULT 0,
-        boxes_produced INTEGER DEFAULT 0,
-        pallets_required INTEGER DEFAULT 0,
-        pallets_produced INTEGER DEFAULT 0,
-        total_production_boxes NUMERIC(12,2) DEFAULT 0,
-        factory_allocated_boxes NUMERIC(12,2) DEFAULT 0,
-        production_completed_boxes NUMERIC(12,2) DEFAULT 0,
-        qc_approved_boxes NUMERIC(12,2) DEFAULT 0,
-        ready_for_packing_boxes NUMERIC(12,2) DEFAULT 0,
-        packed_boxes NUMERIC(12,2) DEFAULT 0,
-        loaded_boxes NUMERIC(12,2) DEFAULT 0,
-        production_progress_percent NUMERIC(5,2) DEFAULT 0,
-        production_status VARCHAR(50) DEFAULT 'Not Started',
-        factory_notes TEXT,
-        delay_reason TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-
-      CREATE TABLE IF NOT EXISTS master_production_updates_history (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        master_order_sheet_id UUID REFERENCES master_order_sheets(id) ON DELETE CASCADE,
-        master_order_sheet_line_id UUID REFERENCES master_order_sheet_lines(id) ON DELETE CASCADE,
-        factory_id UUID,
-        update_date DATE,
-        boxes_produced NUMERIC(12,2),
-        remarks TEXT,
-        created_by UUID,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
-    // Heal factory_names schema — ensure the 'name' column exists.
-    // The getOrderSheets query runs "SELECT name FROM factory_names" directly,
-    // so if factory_names was previously created with a wrong schema this will fix it.
-    try {
-      await queryFn(`
-        CREATE TABLE IF NOT EXISTS factory_names (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          company_id UUID,
-          name TEXT NOT NULL,
-          status VARCHAR(20) DEFAULT 'Active',
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-      await queryFn(`ALTER TABLE factory_names ADD COLUMN IF NOT EXISTS name TEXT`);
-    } catch (factoryErr) {
-      debugLogger.warn('SchemaCheck', 'factory_names heal skipped: ' + factoryErr.message);
-    }
-
-    // Add columns that may have been added after initial table creation
-    const alterQuery = `
-      ALTER TABLE master_order_sheet_lines
-      ADD COLUMN IF NOT EXISTS tile_category VARCHAR(100),
-      ADD COLUMN IF NOT EXISTS qc_status VARCHAR(50) DEFAULT 'Pending',
-      ADD COLUMN IF NOT EXISTS shade VARCHAR(100),
-      ADD COLUMN IF NOT EXISTS caliber VARCHAR(100),
-      ADD COLUMN IF NOT EXISTS grade VARCHAR(100),
-      ADD COLUMN IF NOT EXISTS boxes_required INTEGER DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS boxes_produced INTEGER DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS pallets_required INTEGER DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS pallets_produced INTEGER DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS total_production_boxes NUMERIC(12,2) DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS factory_allocated_boxes NUMERIC(12,2) DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS production_completed_boxes NUMERIC(12,2) DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS qc_approved_boxes NUMERIC(12,2) DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS ready_for_packing_boxes NUMERIC(12,2) DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS packed_boxes NUMERIC(12,2) DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS loaded_boxes NUMERIC(12,2) DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS production_progress_percent NUMERIC(5,2) DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS production_status VARCHAR(50) DEFAULT 'Not Started',
-      ADD COLUMN IF NOT EXISTS factory_notes TEXT,
-      ADD COLUMN IF NOT EXISTS delay_reason TEXT;
-    `;
-    await queryFn(alterQuery);
-
-    ensuredSchemas.add(cacheKey);
-  } catch (error) {
-    debugLogger.error('SchemaCheck', 'Failed to ensure master_order_sheets schema', error);
-  }
-};
-
+// Removed ensureMasterOrderSheetSchemaExists to prevent production ALTER TABLE locks
 export const getOrderSheets = async (req, res, next) => {
   try {
     const { 
       page = 1, limit = 50, search, status, priority, 
       date_from, date_to, client_name, po_no
     } = req.query;
-    
-    await ensureMasterOrderSheetSchemaExists(req.db.query, req.companyFilter);
     
     const { limit: pageLimit, offset } = getPagination(page, limit);
     const companyId = req.companyFilter;
@@ -501,11 +366,7 @@ export const createOrderSheet = async (req, res, next) => {
 export const syncOrderSheetLines = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const companyId = req.companyFilter;
-
-    await ensureMasterOrderSheetSchemaExists(req.db.query, companyId);
-
-    // Fetch the master order sheet
+    const companyId = req.companyFilter;    // Fetch the master order sheet
     const osRes = await req.db.query(
       `SELECT os.*, po.product_lines as po_product_lines, po.snapshot_data as po_snapshot_data
        FROM master_order_sheets os

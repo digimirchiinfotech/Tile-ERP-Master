@@ -30,7 +30,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
   const { control, handleSubmit, reset, watch, setValue, formState: { errors, isSubmitting, isValid } } = useForm({
     resolver: zodResolver(supplierSchema),
     defaultValues: defaultSupplierValues,
-    mode: 'onTouched',
+    mode: 'onChange',
   });
 
   const [showErrorModal, setShowErrorModal] = useState(false);

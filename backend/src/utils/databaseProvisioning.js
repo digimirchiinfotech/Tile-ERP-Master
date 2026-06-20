@@ -2200,6 +2200,22 @@ export const syncCompanyDatabase = async (companyId, db) => {
         )`
       },
       {
+        name: 'warehouse_locations',
+        sql: `CREATE TABLE IF NOT EXISTS warehouse_locations (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          company_id UUID NOT NULL,
+          name VARCHAR(100) NOT NULL,
+          type VARCHAR(50) DEFAULT 'Warehouse',
+          address TEXT,
+          is_active BOOLEAN DEFAULT true,
+          created_by UUID,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          deleted_at TIMESTAMP,
+          UNIQUE(company_id, name)
+        )`
+      },
+      {
         name: 'ledger_entries',
         sql: `CREATE TABLE IF NOT EXISTS ledger_entries (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -2215,6 +2231,39 @@ export const syncCompanyDatabase = async (companyId, db) => {
 
     for (const table of tablesToCreate) {
       await db.query(table.sql);
+    }
+
+    try {
+      await db.query(`
+        -- Phase 6: Soft Delete Consistency
+        ALTER TABLE clients ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+        ALTER TABLE proforma_invoices ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+        ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+        ALTER TABLE products ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+        ALTER TABLE client_orders ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+        ALTER TABLE master_order_sheets ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+        ALTER TABLE order_sheets ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+
+        -- Phase 6: Foreign Key Integrity
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_clients_created_by') THEN
+            ALTER TABLE clients ADD CONSTRAINT fk_clients_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_pi_client_id') THEN
+            ALTER TABLE proforma_invoices ADD CONSTRAINT fk_pi_client_id FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE RESTRICT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_ei_client_id') THEN
+            ALTER TABLE export_invoices ADD CONSTRAINT fk_ei_client_id FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE RESTRICT;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_qc_inspector') THEN
+            ALTER TABLE qc_records ADD CONSTRAINT fk_qc_inspector FOREIGN KEY (inspector_id) REFERENCES users(id) ON DELETE SET NULL;
+          END IF;
+        EXCEPTION WHEN OTHERS THEN NULL;
+        END $$;
+      `);
+    } catch (e) {
+      debugLogger.warn('DatabaseProvisioning', 'Failed to apply Phase 6 schema hardening', e);
     }
 
     try {

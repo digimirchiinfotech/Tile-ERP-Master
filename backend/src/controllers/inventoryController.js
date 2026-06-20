@@ -118,6 +118,16 @@ export const recordStockMovement = async (req, res, next) => {
 
     await client.query('BEGIN');
 
+    // Phase 7: Validate Warehouse Location exists
+    const warehouseCheck = await client.query(
+      `SELECT id FROM warehouse_locations WHERE name = $1 AND company_id = $2 AND is_active = true`,
+      [warehouse_location, companyId]
+    );
+    if (warehouseCheck.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return next(new AppError(\`Invalid or inactive warehouse location: \${warehouse_location}\`, 400));
+    }
+
     const productRes = await client.query(
       `SELECT sqm_per_box FROM products WHERE id = $1 AND company_id = $2`,
       [product_id, companyId]

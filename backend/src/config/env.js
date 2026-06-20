@@ -58,7 +58,7 @@ export default {
   jwt: {
     secret: getJWTSecret(),
     refreshSecret: getRefreshSecret(),
-    accessExpiry: process.env.JWT_ACCESS_EXPIRY || '7d',
+    accessExpiry: process.env.JWT_ACCESS_EXPIRY === '15m' ? '4h' : (process.env.JWT_ACCESS_EXPIRY || '4h'),
     refreshExpiry: process.env.JWT_REFRESH_EXPIRY || '30d',
   },
   

@@ -14,7 +14,7 @@ const USER_KEY = 'current_user';
 export const tokenManager = {
   // Tokens are now securely managed by the backend using HTTP-only cookies.
   // These functions are kept as no-ops for backwards compatibility with existing UI components.
-  getAccessToken: () => null,
+  getAccessToken: () => tokenManager.getUser() ? 'cookie-auth-active' : null,
   setAccessToken: () => {},
   getRefreshToken: () => null,
   setRefreshToken: () => {},

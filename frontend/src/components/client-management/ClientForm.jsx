@@ -568,7 +568,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
       </Modal.Body>
       <Modal.Footer className="border-top p-3">
         <Button variant="secondary" onClick={onCancel} className="flex-fill flex-sm-grow-0" disabled={isSubmitting}><X size={16} className="me-1" />Cancel</Button>
-        <Button variant="primary" onClick={handleSubmit} className="flex-fill flex-sm-grow-0" disabled={!isFormValid() || isSubmitting} loading={isSubmitting} loadingText="Saving..." title={!isFormValid() ? "Please fill all required fields (*) to enable" : "Save changes"}><Save size={16} className="me-1" />{client ? 'Update Client' : 'Create Client'}</Button>
+        <Button variant="primary" onClick={handleSubmit} className="flex-fill flex-sm-grow-0" disabled={isSubmitting} loading={isSubmitting} loadingText="Saving..." title="Save changes"><Save size={16} className="me-1" />{client ? 'Update Client' : 'Create Client'}</Button>
       </Modal.Footer>
     </Modal>
   );

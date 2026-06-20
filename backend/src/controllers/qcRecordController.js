@@ -415,11 +415,11 @@ export const create = async (req, res, next) => {
       return next(new AppError('Company context is required. Please select a company.', 400));
     }
 
-    const documentNumber = await generateDocumentNumber('QC', companyId, req.db);
-    const qcId = documentNumber.baseNumber;
-
     client = await req.db.getClient();
     await client.query('BEGIN');
+
+    const documentNumber = await generateDocumentNumber('QC', companyId, client);
+    const qcId = documentNumber.baseNumber;
 
     // Final safety check for uniqueness
     const duplicateCheck = await client.query(

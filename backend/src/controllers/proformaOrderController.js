@@ -268,9 +268,6 @@ export const create = async (req, res, next) => {
       return next(new AppError('Company context is required. Please select a company.', 400));
     }
 
-    // Generate PO number in format: PO/MM/YY/SSS
-    const documentNumber = await generateDocumentNumber('PO', companyId, req.db, new Date(date));
-
     // Sanitize supplier_id: convert empty strings to null, keep valid UUIDs
     const sanitizedSupplierId = (supplier_id && typeof supplier_id === 'string' && supplier_id.trim()) ? supplier_id.trim() : null;
 
@@ -293,6 +290,10 @@ export const create = async (req, res, next) => {
     const client = await req.db.getClient();
     try {
       await client.query('BEGIN');
+
+      // Generate PO number in format: PO/MM/YY/SSS inside transaction
+      const documentNumber = await generateDocumentNumber('PO', companyId, client, new Date(date));
+
       const result = await client.query(
         `INSERT INTO proforma_orders 
         (company_id, order_no, date, supplier_id, supplier_name, invoice_ref, tariff_code,

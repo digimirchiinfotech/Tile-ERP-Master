@@ -409,12 +409,13 @@ export const create = async (req, res, next) => {
     const finalPallets = m_pallets !== undefined && m_pallets !== null && m_pallets !== '' ? m_pallets : calculatedPallets;
     const finalSqm = m_total_sqm !== undefined && m_total_sqm !== null && m_total_sqm !== '' ? m_total_sqm : calculatedSqm;
 
-    // Generate PI number
-    const documentNumber = await generateDocumentNumber('PI', companyId, req.db, new Date(effectiveDate));
-
     const client = await req.db.getClient();
     try {
       await client.query('BEGIN');
+
+      // Generate PI number inside transaction
+      const documentNumber = await generateDocumentNumber('PI', companyId, client, new Date(effectiveDate));
+
       const result = await client.query(
         `INSERT INTO proforma_invoices 
         (company_id, invoice_no, date, client_id, client_name, country, subtotal, discount, tax,
@@ -991,7 +992,7 @@ export const convertToOrder = async (req, res, next) => {
       [invoice.company_id]
     );
     const count = parseInt(orderNoResult.rows[0].count) + 1;
-    const documentNumber = await generateDocumentNumber('PO', invoice.company_id, req.db, new Date());
+    const documentNumber = await generateDocumentNumber('PO', invoice.company_id, client, new Date());
     const orderNo = documentNumber.baseNumber;
 
     const orderResult = await client.query(

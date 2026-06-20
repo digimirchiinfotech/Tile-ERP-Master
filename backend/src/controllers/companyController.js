@@ -72,7 +72,7 @@ export const getAllCompanies = async (req, res, next) => {
     const result = await req.db.globalQuery(
       `SELECT c.id, c.name, c.industry, c.contact_person_name, c.email_id, c.contact_number, c.address, c.city, c.country, 
               c.website, c.iec_no, c.gstn, c.pan, c.logo_url, c.subscription_plan, c.status, 
-              c.registered_date, c.created_at, c.updated_at,
+              c.created_at, c.updated_at,
               u_agg.last_login,
               COALESCE(u_agg.total_users, 0) as total_users,
               cs_agg.monthly_revenue,

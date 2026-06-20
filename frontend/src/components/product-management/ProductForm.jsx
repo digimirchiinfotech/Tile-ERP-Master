@@ -286,19 +286,15 @@ function ProductForm({
       newErrors.hsCode = 'HSN Code is required';
     }
 
-    // SQM per Box - required for calculations
-    if (!formData.sqmPerBox || parseFloat(formData.sqmPerBox) <= 0) {
-      newErrors.sqmPerBox = 'SQM per Box is required and must be greater than 0';
+    // Packing weights and calculations are optional but cannot be negative
+    if (formData.sqmPerBox && parseFloat(formData.sqmPerBox) < 0) {
+      newErrors.sqmPerBox = 'SQM per Box cannot be negative';
     }
-
-    // Per Box Weight - required for calculations
-    if (!formData.boxWeight || parseFloat(formData.boxWeight) <= 0) {
-      newErrors.boxWeight = 'Per Box Weight is required and must be greater than 0';
+    if (formData.boxWeight && parseFloat(formData.boxWeight) < 0) {
+      newErrors.boxWeight = 'Per Box Weight cannot be negative';
     }
-
-    // Per Pallet Weight - required for calculations
-    if (!formData.defaultPerPalletWeight || parseFloat(formData.defaultPerPalletWeight) <= 0) {
-      newErrors.defaultPerPalletWeight = 'Per Pallet Weight is required and must be greater than 0';
+    if (formData.defaultPerPalletWeight && parseFloat(formData.defaultPerPalletWeight) < 0) {
+      newErrors.defaultPerPalletWeight = 'Per Pallet Weight cannot be negative';
     }
 
     // OPTIONAL FIELDS - Only validate if provided (don't set errors for empty values)
@@ -335,10 +331,6 @@ function ProductForm({
     }
 
 
-
-    if (formData.boxWeight && parseFloat(formData.boxWeight) < 0) {
-      newErrors.boxWeight = 'Box Weight cannot be negative';
-    }
 
     // Status validation - required
     const allowedStatuses = ['Active', 'Inactive', 'Discontinued'];

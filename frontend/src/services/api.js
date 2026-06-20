@@ -41,58 +41,12 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
   timeout: 24 * 60 * 60 * 1000,
 });
 
 api.interceptors.request.use(
   async (config) => {
-    let token = tokenManager.getAccessToken();
-    const url = config.url || '';
-
-    // Public/auth endpoints do not need token checks
-    const publicAuthPaths = ['/auth/login', '/auth/register', '/auth/refresh-token', '/auth/forgot-password', '/auth/reset-password', '/auth/validate-reset-token'];
-    const isPublicAuth = publicAuthPaths.some((p) => url.endsWith(p) || url.includes(p));
-
-    if (token && !isPublicAuth) {
-      // PROACTIVE REFRESH: If token expires in less than 1 minute, refresh it before sending the request
-      if (tokenManager.isTokenExpired(token, 60)) {
-        if (!isRefreshing) {
-          isRefreshing = true;
-          try {
-            const currentRefreshToken = tokenManager.getRefreshToken();
-            if (currentRefreshToken) {
-              console.debug('[API] Proactively refreshing token...');
-              const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {
-                refreshToken: currentRefreshToken,
-              });
-              const responseData = response.data?.data || response.data;
-              token = responseData.accessToken;
-
-              tokenManager.setAccessToken(token);
-              if (responseData.refreshToken) {
-                tokenManager.setRefreshToken(responseData.refreshToken);
-              }
-              processQueue(null, token);
-            }
-          } catch (refreshError) {
-            console.error('[API] Proactive refresh failed:', refreshError.message);
-            processQueue(refreshError, null);
-            // Don't clear tokens here, let the 401 handler deal with it if the request fails
-          } finally {
-            isRefreshing = false;
-          }
-        } else {
-          // Wait for the ongoing refresh
-          token = await new Promise((resolve, reject) => {
-            failedQueue.push({ resolve, reject });
-          });
-        }
-      }
-      config.headers.Authorization = `Bearer ${token}`;
-    } else if (!isPublicAuth && !token) {
-      console.warn('[API Request Interceptor] ⚠️ NO TOKEN FOUND - request will likely fail with 401');
-    }
-
     // Multi-tenant isolation headers
     const selectedCompanyId = localStorage.getItem('selected_company_id');
     if (selectedCompanyId && selectedCompanyId !== 'null' && selectedCompanyId !== 'undefined') {
@@ -160,23 +114,12 @@ api.interceptors.response.use(
     }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
-      const currentAccessToken = tokenManager.getAccessToken();
-      const currentRefreshToken = tokenManager.getRefreshToken();
-
-      // If no token exists at all, user was never logged in
-      if (!currentAccessToken) {
-        isRefreshing = false;
-        processQueue(new Error('Not authenticated'), null);
-        return Promise.reject(error);
-      }
-
       // If already retrying, queue the request
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
+          .then(() => {
             return api(originalRequest);
           })
           .catch((err) => {
@@ -187,36 +130,14 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
-      // Only attempt refresh if we have a refresh token
-      if (!currentRefreshToken) {
-        isRefreshing = false;
-        tokenManager.clearTokens();
-        window.dispatchEvent(new CustomEvent('auth:logout', { detail: { reason: 'No refresh token available' } }));
-        processQueue(new Error('Not authenticated'), null);
-        return Promise.reject(error);
-      }
-
       try {
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {
-          refreshToken: currentRefreshToken,
-        });
+        // Attempt to refresh via HTTP-only cookie by calling the refresh endpoint
+        const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {}, { withCredentials: true });
 
-        const responseData = response.data?.data || response.data;
-        const { accessToken, refreshToken: newRefreshToken } = responseData;
-
-        if (!accessToken) {
-          throw new Error('No access token in refresh response');
-        }
-
-        tokenManager.setAccessToken(accessToken);
-        if (newRefreshToken) {
-          tokenManager.setRefreshToken(newRefreshToken);
-        }
-
-        processQueue(null, accessToken);
+        processQueue(null, null);
         isRefreshing = false;
 
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        // Re-try the original request
         return api(originalRequest);
       } catch (refreshError) {
         console.error('[API 401 Handler] ❌ Token refresh failed:', refreshError.message);

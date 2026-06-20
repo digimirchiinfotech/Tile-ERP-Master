@@ -14,6 +14,7 @@ import { useActivityTracker } from './hooks/useActivityTracker.js';
 import { useSessionManager } from './hooks/useSessionManager.js';
 import { useAppNavigation } from './hooks/useAppNavigation.js';
 import useKeyboardShortcuts from './hooks/useKeyboardShortcuts.js';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 // Shared Components
 import Layout from './components/shared/Layout.jsx';
@@ -30,7 +31,8 @@ import NotificationManager, { showSuccess, showError } from './components/shared
  */
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
-  const [currentView, setCurrentView] = useState('dashboard');
+  const location = useLocation();
+  const navigate = useNavigate();
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetPasswordData, setResetPasswordData] = useState(null);
   const [showSessionWarning, setShowSessionWarning] = useState(false);
@@ -60,8 +62,12 @@ function App() {
     return dashboards[role] || 'dashboard';
   }, []);
 
-  const { handleNavigate, syncURLWithState } = useAppNavigation(setCurrentView, getDashboardForRole);
+  const { handleNavigate, syncURLWithState } = useAppNavigation(getDashboardForRole);
 
+  let currentView = location.pathname.replace('/', '') || 'login';
+  if (currentUser) {
+     currentView = location.pathname === '/' || location.pathname === '' ? getDashboardForRole(currentUser.role) : location.pathname.substring(1);
+  }
   // Global keyboard shortcuts (Alt+N, Alt+D, Alt+C, etc.)
   useKeyboardShortcuts(handleNavigate, currentUser);
 
@@ -84,16 +90,15 @@ function App() {
 
       // Handle Session Restore
       const savedUser = localStorage.getItem('current_user');
-      const accessToken = tokenManager.getAccessToken();
 
       let authenticatedUser = null;
-      if (savedUser && accessToken && !tokenManager.isTokenExpired(accessToken)) {
+      if (savedUser) {
         try {
           authenticatedUser = JSON.parse(savedUser);
           setCurrentUser(authenticatedUser);
           setContextUser(authenticatedUser);
 
-          // Fetch latest profile to ensure permissions are up to date
+          // Fetch latest profile to ensure permissions are up to date and HTTP-only cookie is valid
           authAPI.getCurrentUser().then(response => {
             const latestUser = response.data || response;
             if (latestUser) {
@@ -101,84 +106,63 @@ function App() {
               setCurrentUser(latestUser);
               setContextUser(latestUser);
             }
-          }).catch(() => { }); // Silent sync failure
+          }).catch(() => {
+            // If the HTTP-only cookie is invalid or expired, the request will fail
+            // We should clear the user session
+            handleLogout();
+          });
         } catch (error) {
           // Fail gracefully if session is corrupted
+          handleLogout();
         }
       }
 
       // Handle Deep Links
-      if (authenticatedUser && view) {
+      if (authenticatedUser && currentView && currentView !== 'login') {
         if (id) {
           try {
             let recordData = null;
-            if (view.includes('invoice')) {
+            if (currentView.includes('invoice')) {
               const resp = await invoiceService.getById(id);
               recordData = { invoice: resp.data?.data || resp.data };
-            } else if (view.includes('order')) {
+            } else if (currentView.includes('order')) {
               const resp = await orderService.getById(id);
               recordData = { order: resp.data?.data || resp.data };
             }
             if (recordData) sessionStorage.setItem('navigationData', JSON.stringify(recordData));
           } catch (e) { }
         }
-        setTimeout(() => handleNavigate(view, id ? { id } : {}, false), 100);
-      } else if (authenticatedUser) {
-        setCurrentView(getDashboardForRole(authenticatedUser.role));
+      } else if (authenticatedUser && (location.pathname === '/' || location.pathname === '')) {
+         navigate(`/${getDashboardForRole(authenticatedUser.role)}`, { replace: true });
       }
     };
     initializeApp();
-  }, [handleNavigate, setContextUser]);
+  }, [setContextUser]);
 
   // Sync state to Context
   useEffect(() => { setContextUser(currentUser); }, [currentUser, setContextUser]);
 
-  // Listen for PopState & Global Navigate
+  // Listen for Global Navigate (CustomEvents dispatched by non-React code if any)
   useEffect(() => {
-    const handlePopState = (event) => {
-      // Prefer the state object pushed by pushState for reliable back navigation
-      const state = event?.state;
-      let view, id;
-
-      if (state && state.view) {
-        view = state.view;
-        id = state.id;
-      } else {
-        // Fallback to URL params
-        const urlParams = new URLSearchParams(window.location.search);
-        view = urlParams.get('view') || (currentUser ? getDashboardForRole(currentUser.role) : 'dashboard');
-        id = urlParams.get('id');
-      }
-
-      // Clear stale navigation data on back button press
-      sessionStorage.removeItem('navigationData');
-
-      // Only pass id if it actually exists - prevents {id: null} from corrupting data
-      const navData = id ? { id } : {};
-      handleNavigate(view, navData, false);
-    };
-
     const handleGlobalNavigate = (e) => {
       const { page, ...data } = e.detail || {};
       if (page) handleNavigate(page, data);
     };
 
-    window.addEventListener('popstate', handlePopState);
     window.addEventListener('navigate', handleGlobalNavigate);
     return () => {
-      window.removeEventListener('popstate', handlePopState);
       window.removeEventListener('navigate', handleGlobalNavigate);
     };
-  }, [currentUser, handleNavigate, getDashboardForRole]);
+  }, [handleNavigate]);
 
   // Auth Logout Listener
   useEffect(() => {
     const handleAuthLogout = () => {
       dataSyncManager.stopAllPolling();
       setCurrentUser(null);
-      setCurrentView('dashboard');
       tokenManager.clearTokens();
       localStorage.removeItem('current_user');
+      navigate('/', { replace: true });
       showError('Your session has expired. Please log in again.');
     };
     window.addEventListener('auth:logout', handleAuthLogout);
@@ -199,10 +183,9 @@ function App() {
   const handleLogout = () => {
     dataSyncManager.stopAllPolling();
     setCurrentUser(null);
-    setCurrentView('login');
     tokenManager.clearTokens();
     localStorage.removeItem('current_user');
-    window.history.replaceState({}, '', '/');
+    navigate('/', { replace: true });
   };
 
   return (
@@ -232,7 +215,6 @@ function App() {
                     searchResults={searchResults}
                     searchQuery={searchQuery}
                     setSearchResults={setSearchResults}
-                    setCurrentView={setCurrentView}
                     showForgotPassword={showForgotPassword}
                     setShowForgotPassword={setShowForgotPassword}
                     resetPasswordData={resetPasswordData}

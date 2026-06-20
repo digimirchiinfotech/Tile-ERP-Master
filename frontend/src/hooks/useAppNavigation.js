@@ -9,67 +9,21 @@
  * or reverse engineering of this file, via any medium, is strictly prohibited.
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 /**
- * Hook to handle application-wide navigation and URL synchronization
+ * Bridge hook to handle application-wide navigation using React Router v6
  */
-export const useAppNavigation = (setCurrentView, getDashboardForRole) => {
-  // Track navigation history for proper back button support
+export const useAppNavigation = (getDashboardForRole) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const navigationHistory = useRef([]);
   
-  /**
-   * Synchronize the browser URL with the current application state
-   */
-  const syncURLWithState = useCallback((view, data = {}) => {
-    try {
-      const url = new URL(window.location.href);
-      
-      if (view === 'dashboard' || view === 'login') {
-        url.search = '';
-      } else {
-        url.searchParams.set('view', view);
-        
-        const id = data.id || 
-                  data.invoice?.id || data.invoice?._id || 
-                  data.order?.id || data.order?._id ||
-                  data.client?.id || data.client?._id ||
-                  data.qcRecord?.id || data.qcRecord?._id ||
-                  data.packingList?.id || data.packingList?._id;
-        
-        if (id) {
-          url.searchParams.set('id', id);
-        } else {
-          url.searchParams.delete('id');
-        }
-      }
-      
-      // Always push state so browser back button works correctly
-      const stateObj = { view, id: url.searchParams.get('id') || null };
-      
-      if (window.location.search !== url.search) {
-        window.history.pushState(stateObj, '', url.search || url.pathname);
-      }
-    } catch (error) {
-      console.warn('Failed to sync URL with state:', error);
-    }
-  }, []);
+  // This is kept for backwards compatibility but we no longer manually sync URL
+  const syncURLWithState = useCallback((view, data = {}) => {}, []);
 
-  /**
-   * Handle navigation between views with optional URL update
-   */
   const handleNavigate = useCallback((view, data = {}, pushState = true, hooks = {}) => {
-    setCurrentView(view);
-    
-    // Track navigation history for back button
-    if (pushState) {
-      navigationHistory.current.push(view);
-      // Keep history manageable
-      if (navigationHistory.current.length > 50) {
-        navigationHistory.current = navigationHistory.current.slice(-30);
-      }
-    }
-    
     // Optional: trigger refreshes if hooks are provided
     const refreshMap = {
       'order-dashboard': hooks.ordersHook?.fetchOrders,
@@ -87,15 +41,9 @@ export const useAppNavigation = (setCurrentView, getDashboardForRole) => {
       refreshMap[view]();
     }
 
-    if (pushState) {
-      syncURLWithState(view, data);
-    }
-
-    // Only store navigation data if there's meaningful data (not just {id: null})
+    // Only store navigation data if there's meaningful data
     const meaningfulData = Object.entries(data).reduce((acc, [key, value]) => {
-      if (value !== null && value !== undefined) {
-        acc[key] = value;
-      }
+      if (value !== null && value !== undefined) acc[key] = value;
       return acc;
     }, {});
 
@@ -104,7 +52,26 @@ export const useAppNavigation = (setCurrentView, getDashboardForRole) => {
     } else {
       sessionStorage.removeItem('navigationData');
     }
-  }, [setCurrentView, syncURLWithState]);
+
+    if (pushState) {
+      let route = view.startsWith('/') ? view : `/${view}`;
+      
+      // Determine if there's an ID to append to the search string
+      const id = data.id || 
+                 data.invoice?.id || data.invoice?._id || 
+                 data.order?.id || data.order?._id ||
+                 data.client?.id || data.client?._id ||
+                 data.qcRecord?.id || data.qcRecord?._id ||
+                 data.packingList?.id || data.packingList?._id ||
+                 data.exportInvoice?.id || data.exportInvoice?._id;
+                 
+      if (id) {
+        route += `?id=${id}`;
+      }
+
+      navigate(route, { state: meaningfulData });
+    }
+  }, [navigate]);
 
   return { handleNavigate, syncURLWithState, navigationHistory };
 };

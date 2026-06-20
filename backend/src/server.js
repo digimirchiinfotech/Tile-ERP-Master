@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
 import fs from 'fs';
+import cookieParser from 'cookie-parser';
 import swaggerUI from 'swagger-ui-express';
 import { rateLimit } from 'express-rate-limit';
 import { fileURLToPath } from 'url';
@@ -161,6 +162,7 @@ app.use(securityHeaders);
 
 
 
+app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 

@@ -9,9 +9,9 @@
  * or reverse engineering of this file, via any medium, is strictly prohibited.
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { tokenManager } from '../../utils/tokenManager.js';
-import { dataSyncManager } from '../../services/dataSyncManager.js';
+import { SocketContext } from '../../contexts/SocketContext.jsx';
 
 // Hooks for data fetching
 import { useInvoices } from '../../hooks/useInvoices.js';
@@ -39,26 +39,38 @@ const PollingManager = ({ currentUser, children }) => {
   const packingListsHook = usePackingLists();
   const suppliersHook = useSuppliers();
 
+  const { socket, isConnected } = useContext(SocketContext);
+
   /**
-   * Initialize global background data polling when user logs in
+   * Listen to real-time WebSocket push events instead of aggressive polling
    */
   useEffect(() => {
-    if (currentUser && tokenManager.isAuthenticated()) {
-      // Start background polling
-      dataSyncManager.startPolling('clients', clientsHook.fetchClients);
-      dataSyncManager.startPolling('suppliers', suppliersHook.fetchSuppliers);
-      dataSyncManager.startPolling('products', productsHook.fetchProducts);
-      dataSyncManager.startPolling('leads', leadsHook.fetchLeads);
-      dataSyncManager.startPolling('invoices', invoicesHook.fetchInvoices);
-      dataSyncManager.startPolling('orders', ordersHook.fetchOrders);
+    if (currentUser && socket && isConnected) {
+      
+      const refreshClients = () => clientsHook.fetchClients();
+      const refreshSuppliers = () => suppliersHook.fetchSuppliers();
+      const refreshProducts = () => productsHook.fetchProducts();
+      const refreshLeads = () => leadsHook.fetchLeads();
+      const refreshInvoices = () => invoicesHook.fetchInvoices();
+      const refreshOrders = () => ordersHook.fetchOrders();
+
+      socket.on('client_updated', refreshClients);
+      socket.on('supplier_updated', refreshSuppliers);
+      socket.on('product_updated', refreshProducts);
+      socket.on('lead_updated', refreshLeads);
+      socket.on('invoice_updated', refreshInvoices);
+      socket.on('order_updated', refreshOrders);
       
       return () => {
-        dataSyncManager.stopAllPolling();
+        socket.off('client_updated', refreshClients);
+        socket.off('supplier_updated', refreshSuppliers);
+        socket.off('product_updated', refreshProducts);
+        socket.off('lead_updated', refreshLeads);
+        socket.off('invoice_updated', refreshInvoices);
+        socket.off('order_updated', refreshOrders);
       };
-    } else {
-      dataSyncManager.stopAllPolling();
     }
-  }, [currentUser]);
+  }, [currentUser, socket, isConnected]);
 
   // Provide the hooks to children via a render prop or just by passing them down
   // In this case, we'll use it as a wrapper that might provide a context later

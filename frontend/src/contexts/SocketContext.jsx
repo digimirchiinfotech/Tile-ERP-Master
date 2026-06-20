@@ -25,8 +25,7 @@ export const SocketProvider = ({ children }) => {
   }, []);
 
   const connectSocket = useCallback(() => {
-    const token = localStorage.getItem('access_token');
-    if (!user || !token) return;
+    if (!user) return;
 
     disconnectSocket();
 
@@ -36,7 +35,7 @@ export const SocketProvider = ({ children }) => {
 
     const newSocket = io(apiUrl || undefined, {
       path: '/socket.io',
-      auth: { token: `Bearer ${token}` },
+      withCredentials: true,
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionAttempts: Infinity,

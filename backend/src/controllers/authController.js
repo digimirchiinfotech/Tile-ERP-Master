@@ -56,6 +56,16 @@ export const register = async (req, res, next) => {
 
     await req.db.globalQuery('INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)', [user.id, refreshToken, refreshExpiry]);
 
+    const cookieOptions = {
+      httpOnly: true,
+      secure: env.node_env === 'production',
+      sameSite: env.node_env === 'production' ? 'none' : 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    };
+
+    res.cookie('accessToken', accessToken, cookieOptions);
+    res.cookie('refreshToken', refreshToken, cookieOptions);
+
     return successResponse(res, {
       user: sanitizeUser(user),
       accessToken,
@@ -193,6 +203,16 @@ export const login = async (req, res, next) => {
     }
     sanitizedUser.permissions = userPermissions;
 
+    const cookieOptions = {
+      httpOnly: true,
+      secure: env.node_env === 'production',
+      sameSite: env.node_env === 'production' ? 'none' : 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    };
+
+    res.cookie('accessToken', accessToken, cookieOptions);
+    res.cookie('refreshToken', refreshToken, cookieOptions);
+
     return successResponse(res, {
       user: sanitizedUser,
       accessToken,
@@ -245,6 +265,18 @@ export const refreshToken = async (req, res, next) => {
     refreshExpiry.setDate(refreshExpiry.getDate() + 30);
 
     await req.db.globalQuery('INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)', [user.id, newRefreshToken, refreshExpiry]);
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: env.node_env === 'production',
+      sameSite: env.node_env === 'production' ? 'none' : 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    };
+
+    res.cookie('accessToken', newAccessToken, cookieOptions);
+    if (newRefreshToken) {
+      res.cookie('refreshToken', newRefreshToken, cookieOptions);
+    }
 
     return successResponse(res, {
       accessToken: newAccessToken,
@@ -370,6 +402,9 @@ export const logout = async (req, res, next) => {
 
     // Invalidate this user's dashboard cache on logout
     try { invalidateDashboardCache(req.user.id); } catch (_) {}
+
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
 
     return successResponse(res, {}, 'Logout successful');
   } catch (error) {

@@ -20,11 +20,11 @@ export const authenticate = async (req, res, next) => {
   try {
     let token;
 
-    // SECURITY FIX (HIGH-SEC-001): Only accept tokens via Authorization header.
-    // Query-string tokens are logged in server access logs, browser history,
-    // and referrer headers — a significant token leakage vector.
+    // SECURITY FIX (HIGH-SEC-001): Accept tokens via Authorization header OR HttpOnly cookie.
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
+    } else if (req.cookies && req.cookies.accessToken) {
+      token = req.cookies.accessToken;
     }
 
     if (!token) {
@@ -103,6 +103,8 @@ export const optionalAuth = async (req, res, next) => {
 
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
+    } else if (req.cookies && req.cookies.accessToken) {
+      token = req.cookies.accessToken;
     }
 
     if (!token) {

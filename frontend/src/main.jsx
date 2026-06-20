@@ -48,17 +48,21 @@ const queryClient = new QueryClient({
   },
 });
 
+import { BrowserRouter } from 'react-router-dom';
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <UserProvider>
-          <SocketProvider>
-            <App />
-          </SocketProvider>
-        </UserProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <UserProvider>
+            <SocketProvider>
+              <App />
+            </SocketProvider>
+          </UserProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   </StrictMode>
 );
 

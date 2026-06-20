@@ -14,15 +14,40 @@ import masterPool from '../config/masterDatabase.js';
 import debugLogger from '../utils/debugLogger.js';
 
 /**
+ * Acquire distributed lock and run subscription check
+ */
+const runWithLock = async () => {
+  const client = await masterPool.connect();
+  try {
+    // 1001 is the advisory lock ID for subscription expiry checks
+    const { rows } = await client.query('SELECT pg_try_advisory_lock(1001) as locked');
+    if (!rows[0].locked) {
+      debugLogger.info('Scheduler', 'Subscription check lock held by another instance. Skipping.');
+      return;
+    }
+    
+    debugLogger.info('Scheduler', 'Acquired subscription check lock. Running...');
+    await checkSubscriptionExpiry(client);
+  } catch (err) {
+    debugLogger.error('Scheduler', 'Subscription check failed', err);
+  } finally {
+    try {
+      await client.query('SELECT pg_advisory_unlock(1001)');
+    } catch (e) {
+      debugLogger.error('Scheduler', 'Failed to release lock', e);
+    }
+    client.release();
+  }
+};
+
+/**
  * Initialize subscription expiry check scheduler
  * Runs daily at midnight to check for expiring and expired subscriptions
  */
 export const initSubscriptionScheduler = () => {
 
   // Run check immediately on startup
-  checkSubscriptionExpiry(masterPool).catch(err => {
-    debugLogger.error('Scheduler', 'Initial subscription check failed', err);
-  });
+  runWithLock();
 
   // Schedule daily check at midnight (00:00 UTC)
   const scheduleNextCheck = () => {
@@ -33,9 +58,7 @@ export const initSubscriptionScheduler = () => {
     const delay = next - now;
 
     setTimeout(() => {
-      checkSubscriptionExpiry(masterPool).catch(err => {
-        debugLogger.error('Scheduler', 'Scheduled subscription check failed', err);
-      });
+      runWithLock();
       scheduleNextCheck(); // Reschedule for next day
     }, delay);
   };

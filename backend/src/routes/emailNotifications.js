@@ -189,16 +189,26 @@ router.post('/bulk', authenticate, async (req, res, next) => {
       .replace(/{{message}}/g, data.message || '')
       .replace(/{{actionUrl}}/g, data.actionUrl || '#');
 
-    const mailPromises = recipients.map(email =>
-      transporter.sendMail({
-        from: env.email_user || 'noreply@tileexporter.com',
-        to: email,
-        subject,
-        html: htmlContent
-      })
-    );
-
-    await Promise.all(mailPromises);
+    // Send emails in batches of 50 to prevent SMTP connection pooling exhaustion and spam flags
+    const BATCH_SIZE = 50;
+    for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
+      const batch = recipients.slice(i, i + BATCH_SIZE);
+      const mailPromises = batch.map(email =>
+        transporter.sendMail({
+          from: env.email_user || 'noreply@tileexporter.com',
+          to: email,
+          subject,
+          html: htmlContent
+        })
+      );
+      
+      await Promise.all(mailPromises);
+      
+      // Delay 1 second between batches to respect rate limits
+      if (i + BATCH_SIZE < recipients.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
     res.json({ 
       success: true, 
       message: `Bulk email sent to ${recipients.length} recipients` 

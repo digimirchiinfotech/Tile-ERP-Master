@@ -32,14 +32,36 @@ router.post('/products', authenticate, async (req, res, next) => {
     }
 
     const imported = [];
-    for (const row of data) {
+    // Batch inserts for performance and memory protection
+    const BATCH_SIZE = 500;
+    
+    for (let i = 0; i < data.length; i += BATCH_SIZE) {
+      const batch = data.slice(i, i + BATCH_SIZE);
+      
+      const values = [];
+      const queryParams = [];
+      let paramCount = 1;
+      
+      batch.forEach((row) => {
+        values.push(`($${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, NOW())`);
+        queryParams.push(
+          row.name, 
+          row.category, 
+          row.description || '', 
+          row.price || 0, 
+          companyId, 
+          req.user?.id
+        );
+      });
+      
       const result = await req.db.query(
         `INSERT INTO products (name, category, description, price, company_id, created_by, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, NOW())
+         VALUES ${values.join(', ')}
          RETURNING id, name, category, price`,
-        [row.name, row.category, row.description || '', row.price || 0, companyId, req.user?.id]
+        queryParams
       );
-      imported.push(result.rows[0]);
+      
+      imported.push(...result.rows);
     }
 
     res.json({ 
@@ -68,14 +90,36 @@ router.post('/clients', authenticate, async (req, res, next) => {
     }
 
     const imported = [];
-    for (const row of data) {
+    const BATCH_SIZE = 500;
+
+    for (let i = 0; i < data.length; i += BATCH_SIZE) {
+      const batch = data.slice(i, i + BATCH_SIZE);
+      
+      const values = [];
+      const queryParams = [];
+      let paramCount = 1;
+      
+      batch.forEach((row) => {
+        values.push(`($${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, NOW())`);
+        queryParams.push(
+          row.name, 
+          row.city, 
+          row.state || '', 
+          row.country || '', 
+          row.email || '', 
+          row.phone || '', 
+          companyId, 
+          req.user?.id
+        );
+      });
+      
       const result = await req.db.query(
         `INSERT INTO clients (name, city, state, country, email, phone, company_id, created_by, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+         VALUES ${values.join(', ')}
          RETURNING id, name, city, email`,
-        [row.name, row.city, row.state || '', row.country || '', row.email || '', row.phone || '', companyId, req.user?.id]
+        queryParams
       );
-      imported.push(result.rows[0]);
+      imported.push(...result.rows);
     }
 
     res.json({ 
@@ -104,14 +148,35 @@ router.post('/leads', authenticate, async (req, res, next) => {
     }
 
     const imported = [];
-    for (const row of data) {
+    const BATCH_SIZE = 500;
+
+    for (let i = 0; i < data.length; i += BATCH_SIZE) {
+      const batch = data.slice(i, i + BATCH_SIZE);
+      
+      const values = [];
+      const queryParams = [];
+      let paramCount = 1;
+      
+      batch.forEach((row) => {
+        values.push(`($${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, NOW())`);
+        queryParams.push(
+          row.title, 
+          row.client_name, 
+          row.city || '', 
+          row.description || '', 
+          'New', 
+          companyId, 
+          req.user?.id
+        );
+      });
+      
       const result = await req.db.query(
         `INSERT INTO leads (title, client_name, city, description, status, company_id, created_by, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+         VALUES ${values.join(', ')}
          RETURNING id, title, client_name, status`,
-        [row.title, row.client_name, row.city || '', row.description || '', 'New', companyId, req.user?.id]
+        queryParams
       );
-      imported.push(result.rows[0]);
+      imported.push(...result.rows);
     }
 
     res.json({ 

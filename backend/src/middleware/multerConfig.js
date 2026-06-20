@@ -41,18 +41,24 @@ if (!fs.existsSync(uploadsDir)) {
 const storage = s3Config ? multerS3({
   s3: s3Config,
   bucket: process.env.AWS_S3_BUCKET_NAME || 'tile-exporter-assets',
-  acl: 'public-read',
+  acl: 'private', // Enforce private bucket objects for enterprise security
   metadata: function (req, file, cb) {
     cb(null, { fieldName: file.fieldname });
   },
   key: function (req, file, cb) {
     const randomHex = crypto.randomBytes(16).toString('hex');
     const ext = path.extname(file.originalname).slice(0, 10).replace(/[^a-zA-Z0-9.]/g, '');
-    cb(null, `${Date.now()}-${randomHex}${ext}`);
+    const companyId = req.headers['x-company-id'] || req.headers['x-selected-company-id'] || 'system';
+    cb(null, `tenant_${companyId}/${Date.now()}-${randomHex}${ext}`);
   }
 }) : multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, uploadsDir);
+    const companyId = req.headers['x-company-id'] || req.headers['x-selected-company-id'] || 'system';
+    const tenantDir = join(uploadsDir, `tenant_${companyId}`);
+    if (!fs.existsSync(tenantDir)) {
+      fs.mkdirSync(tenantDir, { recursive: true });
+    }
+    cb(null, tenantDir);
   },
   filename: (req, file, cb) => {
     const randomHex = crypto.randomBytes(16).toString('hex');

@@ -23,6 +23,7 @@ import { validateUUID } from '../utils/validators.js';
 import { notificationService } from '../services/notificationService.js';
 import { syncUpdatesAcrossStages } from '../services/exportWorkflowInterconnectionService.js';
 import { createReceivableFromInvoice } from '../services/accountLedgerIntegrationService.js';
+import { syncInventoryFromInvoice } from '../services/inventoryIntegrationService.js';
 import { validateStatusTransition } from '../utils/validateStatusTransition.js';
 
 export function mergeUniqueFieldValues(values, separator = ' | ') {
@@ -1331,6 +1332,16 @@ export const update = async (req, res, next) => {
       );
     }
 
+    // Auto Inventory Integration
+    if (req.body.status === 'Dispatched' || req.body.status === 'Shipped') {
+      try {
+        const linesResult = await req.db.query('SELECT * FROM export_invoice_lines WHERE export_invoice_id = $1', [id]);
+        await syncInventoryFromInvoice(result.rows[0], linesResult.rows, req);
+      } catch (err) {
+        debugLogger.error('[InventorySync] Failed to sync inventory for invoice:', err.message);
+      }
+    }
+
     // Fetch enriched record for response (includes company_info and proforma details)
     const enrichedRes = await req.db.query(
       `SELECT ei.*, pi.invoice_no as proforma_invoice_no, pi.date as proforma_date
@@ -1706,6 +1717,16 @@ export const updateStatus = async (req, res, next) => {
 
     if (result.rows.length === 0) {
       return next(new AppError('Document not found', 404));
+    }
+
+    // Auto Inventory Integration
+    if (status === 'Dispatched' || status === 'Shipped') {
+      try {
+        const linesResult = await req.db.query('SELECT * FROM export_invoice_lines WHERE export_invoice_id = $1', [id]);
+        await syncInventoryFromInvoice(result.rows[0], linesResult.rows, req);
+      } catch (err) {
+        debugLogger.error('[InventorySync] Failed to sync inventory for invoice status update:', err.message);
+      }
     }
 
     return successResponse(res, result.rows[0], `Status updated to ${status}`);

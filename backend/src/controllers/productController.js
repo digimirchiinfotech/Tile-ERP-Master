@@ -763,21 +763,70 @@ export const bulkUpsert = async (req, res, next) => {
 
     let insertedCount = 0;
     let updatedCount = 0;
-
-    // Use synchronous batch inserts
-    // Batch size of 100 to 500 is good for standard parameters limits
+    // Process in batches of 500 to protect the database pool and memory
+    const BATCH_SIZE = 500;
+    
+    // First, generate IDs for all products sequentially if needed
     for (const prod of products) {
-      const finalProductCode = prod.productCode || prod.product_code || await generateSequentialId('PROD', 'products', 'product_code', companyId, req.db);
+      if (!prod.productCode && !prod.product_code) {
+         prod.finalProductCode = await generateSequentialId('PROD', 'products', 'product_code', companyId, req.db);
+      } else {
+         prod.finalProductCode = prod.productCode || prod.product_code;
+      }
+    }
+
+    for (let i = 0; i < products.length; i += BATCH_SIZE) {
+      const batch = products.slice(i, i + BATCH_SIZE);
       
-      const result = await client.query(
-        `INSERT INTO products 
+      const valueStrings = [];
+      const queryParams = [];
+      let paramCount = 1;
+
+      for (const prod of batch) {
+        valueStrings.push(`($${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, $${paramCount++}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`);
+        
+        queryParams.push(
+          companyId,
+          prod.finalProductCode,
+          normalizeEmptyToNull(prod.item_ref || prod.itemRef),
+          cleanAndUppercase(prod.name || prod.productName),
+          normalizeEmptyToNull(prod.description),
+          cleanAndUppercase(prod.category),
+          normalizeEmptyToNull(prod.size),
+          cleanAndUppercase(prod.surface),
+          cleanAndUppercase(prod.thickness),
+          normalizeEmptyToNull(prod.sqm_per_box || prod.sqmPerBox),
+          normalizeEmptyToNull(prod.boxes_per_pallet || prod.boxesPerPallet),
+          normalizeEmptyToNull(prod.box_weight || prod.boxWeight),
+          normalizeEmptyToNull(prod.factory_price || prod.factoryPrice),
+          normalizeEmptyToNull(prod.selling_price || prod.sellingPrice || prod.price),
+          normalizeEmptyToNull(prod.hs_code || prod.hsCode),
+          JSON.stringify(prod.images || []),
+          prod.status || 'Active',
+          cleanAndUppercase(prod.factory_name || prod.factoryName),
+          cleanAndUppercase(prod.factory_product_name || prod.factoryProductName),
+          cleanAndUppercase(prod.company_product_name || prod.companyProductName),
+          cleanAndUppercase(prod.catalogue_name || prod.catalogueName),
+          cleanAndUppercase(prod.application),
+          normalizeEmptyToNull(prod.box_pcs || prod.boxPcs),
+          normalizeEmptyToNull(prod.default_boxes_per_kathali || prod.defaultBoxesPerKathali),
+          normalizeEmptyToNull(prod.default_per_box_weight || prod.defaultPerBoxWeight),
+          normalizeEmptyToNull(prod.default_per_pallet_weight || prod.defaultPerPalletWeight),
+          normalizeEmptyToNull(prod.base_price || prod.basePrice),
+          normalizeEmptyToNull(prod.margin),
+          req.user.id
+        );
+      }
+
+      const query = `
+         INSERT INTO products 
          (company_id, product_code, item_ref, name, description, category, size, surface,
           thickness, sqm_per_box, boxes_per_pallet, box_weight, factory_price,
           selling_price, hs_code, images, status, factory_name, factory_product_name,
           company_product_name, catalogue_name, application, box_pcs, 
           default_boxes_per_kathali, default_per_box_weight, default_per_pallet_weight,
           base_price, margin, created_by, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+         VALUES ${valueStrings.join(', ')}
          ON CONFLICT (company_id, product_code) 
          DO UPDATE SET
             name = EXCLUDED.name,
@@ -799,25 +848,24 @@ export const bulkUpsert = async (req, res, next) => {
             catalogue_name = COALESCE(EXCLUDED.catalogue_name, products.catalogue_name),
             application = COALESCE(EXCLUDED.application, products.application),
             box_pcs = COALESCE(EXCLUDED.box_pcs, products.box_pcs),
+            default_boxes_per_kathali = COALESCE(EXCLUDED.default_boxes_per_kathali, products.default_boxes_per_kathali),
+            default_per_box_weight = COALESCE(EXCLUDED.default_per_box_weight, products.default_per_box_weight),
+            default_per_pallet_weight = COALESCE(EXCLUDED.default_per_pallet_weight, products.default_per_pallet_weight),
+            base_price = COALESCE(EXCLUDED.base_price, products.base_price),
+            margin = COALESCE(EXCLUDED.margin, products.margin),
             status = COALESCE(EXCLUDED.status, products.status),
             updated_at = CURRENT_TIMESTAMP
-         RETURNING (xmax = 0) AS inserted`,
-        [
-          companyId, finalProductCode, normalizeEmptyToNull(prod.itemRef || prod.item_ref), cleanAndUppercase(prod.name), normalizeEmptyToNull(prod.description),
-          cleanAndUppercase(prod.category), normalizeEmptyToNull(prod.size), cleanAndUppercase(prod.surface), cleanAndUppercase(prod.thickness),
-          normalizeEmptyToNull(prod.sqmPerBox || prod.sqm_per_box), normalizeEmptyToNull(prod.boxesPerPallet || prod.boxes_per_pallet), normalizeEmptyToNull(prod.boxWeight || prod.box_weight),
-          normalizeEmptyToNull(prod.factoryPrice || prod.factory_price), normalizeEmptyToNull(prod.sellingPrice || prod.selling_price), normalizeEmptyToNull(prod.hsCode || prod.hs_code),
-          JSON.stringify(prod.images || []), prod.status || 'Active', cleanAndUppercase(prod.factoryName || prod.factory_name), cleanAndUppercase(prod.factoryProductName || prod.factory_product_name),
-          cleanAndUppercase(prod.companyProductName || prod.company_product_name), cleanAndUppercase(prod.catalogueName || prod.catalogue_name), cleanAndUppercase(prod.application),
-          normalizeEmptyToNull(prod.boxPcs || prod.box_pcs), normalizeEmptyToNull(prod.defaultBoxesPerKathali || prod.default_boxes_per_kathali), normalizeEmptyToNull(prod.defaultPerBoxWeight || prod.default_per_box_weight),
-          normalizeEmptyToNull(prod.defaultPerPalletWeight || prod.default_per_pallet_weight), normalizeEmptyToNull(prod.basePrice || prod.base_price), normalizeEmptyToNull(prod.margin),
-          req.user.id
-        ]
-      );
-      if (result.rows[0].inserted) {
-        insertedCount++;
-      } else {
-        updatedCount++;
+         RETURNING id, xmax
+      `;
+      
+      const result = await client.query(query, queryParams);
+      
+      for (const row of result.rows) {
+        if (row.xmax === 0 || row.xmax === '0') {
+          insertedCount++;
+        } else {
+          updatedCount++;
+        }
       }
     }
 

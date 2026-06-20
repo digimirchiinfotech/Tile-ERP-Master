@@ -33,10 +33,23 @@ const scheduleBackup = (frequency) => {
   
   activeJob = cron.schedule(cronExpression, async () => {
     logger.info('Scheduler', 'Starting automated scheduled backup');
+    const client = await pool.connect();
     try {
+      const { rows } = await client.query('SELECT pg_try_advisory_lock(1002) as locked');
+      if (!rows[0].locked) {
+        logger.info('Scheduler', 'Backup already in progress by another instance. Skipping.');
+        return;
+      }
       await createFullBackup('automated');
     } catch (err) {
       logger.error('Scheduler', 'Automated backup failed', err);
+    } finally {
+      try {
+        await client.query('SELECT pg_advisory_unlock(1002)');
+      } catch (e) {
+        logger.error('Scheduler', 'Failed to release backup lock', e);
+      }
+      client.release();
     }
   });
 };

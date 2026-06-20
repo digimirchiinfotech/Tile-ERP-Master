@@ -833,6 +833,15 @@ export const create = async (req, res, next) => {
       return next(new AppError('Company context is required. Please select a company.', 400));
     }
 
+    const m_delivery_terms = (delivery_terms !== undefined ? delivery_terms : req.body.deliveryTerms || '').toString().trim().toUpperCase();
+    if (m_delivery_terms) {
+      const VALID_INCOTERMS = ['EXW', 'FCA', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP', 'FAS', 'FOB', 'CFR', 'CIF'];
+      const isValidIncoterm = VALID_INCOTERMS.some(term => m_delivery_terms.startsWith(term));
+      if (!isValidIncoterm) {
+        return next(new AppError(`Invalid delivery term: ${m_delivery_terms}. Must start with a valid INCOTERM (e.g., FOB, CIF, EXW).`, 400));
+      }
+    }
+
 
     const piIdsToCheck = req.body.proforma_invoice_ids && req.body.proforma_invoice_ids.length > 0
       ? req.body.proforma_invoice_ids

@@ -616,6 +616,17 @@ export const getUnreadCount = async (userId, db) => {
   }
 };
 
+/**
+ * Broadcast data update to all users in a company (used to trigger frontend React Query invalidations)
+ */
+export const broadcastDataUpdate = (companyId, entityType, data = null) => {
+  try {
+    socketService.emitToCompany(companyId, 'data_updated', { entityType, data });
+  } catch (error) {
+    debugLogger.error(CONTEXT, `Error broadcasting data update for ${entityType}: ${error.message}`);
+  }
+};
+
 // Export as a service object for centralized usage
 export const notificationService = {
   createNotification,
@@ -639,7 +650,8 @@ export const notificationService = {
   markNotificationAsRead,
   markAllNotificationsAsRead,
   deleteNotification,
-  getUnreadCount
+  getUnreadCount,
+  broadcastDataUpdate
 };
 
 export default notificationService;

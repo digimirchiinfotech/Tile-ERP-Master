@@ -403,7 +403,8 @@ export const create = async (req, res, next) => {
     const {
       order_id, order_number, client_name, product_name, qc_date,
       qc_status = 'Pending', inspectorId, inspector_id, inspection_details = {}, inspection_media = {},
-      overall_grade, notes, product_lines = [], box_type, boxType
+      overall_grade, notes, product_lines = [], box_type, boxType,
+      batch_number, lot_number, manufacturing_date
     } = req.body;
 
     const finalInspectorId = inspector_id || inspectorId;
@@ -441,15 +442,15 @@ export const create = async (req, res, next) => {
       `INSERT INTO qc_records 
        (company_id, qc_id, order_id, order_sheet_id, order_number, client_name, product_name,
         qc_date, qc_status, inspector_id, inspection_details, inspection_media, overall_grade,
-        notes, product_lines, box_type, created_by, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        notes, product_lines, box_type, batch_number, lot_number, manufacturing_date, created_by, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
        RETURNING *`,
       [
         companyId, qcId, order_id || null, order_id || null, order_number || null,
         client_name || null, product_name || null, qc_date, qc_status, finalInspectorId || null,
         JSON.stringify(inspection_details), JSON.stringify(inspection_media),
-        overall_grade || null, notes || null,
-        JSON.stringify(enrichedLines), resolvedBoxType || null, req.user.id
+        overall_grade || null, notes || null, JSON.stringify(enrichedLines), resolvedBoxType || null,
+        batch_number || null, lot_number || null, manufacturing_date || null, req.user.id
       ]
     );
 
@@ -497,7 +498,8 @@ export const update = async (req, res, next) => {
     const { id } = req.params;
     const {
       order_id, order_number, client_name, product_name, qc_date, qc_status, inspectorId, inspector_id,
-      inspection_details, inspection_media, overall_grade, notes, product_lines, box_type, boxType
+      inspection_details, inspection_media, overall_grade, notes, product_lines, box_type, boxType,
+      batch_number, lot_number, manufacturing_date
     } = req.body;
 
     const finalInspectorId = inspector_id !== undefined ? inspector_id : inspectorId;
@@ -598,6 +600,24 @@ export const update = async (req, res, next) => {
     if (notes !== undefined) {
       updates.push(`notes = $${paramCount}`);
       values.push(notes);
+      paramCount++;
+    }
+
+    if (batch_number !== undefined) {
+      updates.push(`batch_number = $${paramCount}`);
+      values.push(batch_number);
+      paramCount++;
+    }
+
+    if (lot_number !== undefined) {
+      updates.push(`lot_number = $${paramCount}`);
+      values.push(lot_number);
+      paramCount++;
+    }
+
+    if (manufacturing_date !== undefined) {
+      updates.push(`manufacturing_date = $${paramCount}`);
+      values.push(manufacturing_date);
       paramCount++;
     }
 

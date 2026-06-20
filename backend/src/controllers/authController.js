@@ -68,8 +68,6 @@ export const register = async (req, res, next) => {
 
     return successResponse(res, {
       user: sanitizeUser(user),
-      accessToken,
-      refreshToken,
       expiresIn: env.jwt.accessExpiry
     }, 'User registered successfully', 201);
   } catch (error) {
@@ -215,8 +213,6 @@ export const login = async (req, res, next) => {
 
     return successResponse(res, {
       user: sanitizedUser,
-      accessToken,
-      refreshToken,
       expiresIn: env.jwt.accessExpiry,
       mustChangePassword,
     }, mustChangePassword ? 'Login successful — password change required' : 'Login successful');
@@ -279,8 +275,6 @@ export const refreshToken = async (req, res, next) => {
     }
 
     return successResponse(res, {
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
       expiresIn: env.jwt.accessExpiry
     }, 'Token refreshed successfully');
   } catch (error) {

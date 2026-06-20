@@ -374,7 +374,14 @@ export const create = async (req, res, next) => {
     const effectivePortOfLoading = (m_port_of_loading || '').toString().trim() || 'MUNDRA PORT';
     const effectiveFinalDestination = (m_final_destination || '').toString().trim() || 'UNKNOWN';
     const effectivePaymentTerms = (m_payment_terms || '').toString().trim() || 'Due on Receipt';
-    const effectiveDeliveryTerms = (m_delivery_terms || '').toString().trim() || 'FOB';
+    const effectiveDeliveryTerms = (m_delivery_terms || '').toString().trim().toUpperCase() || 'FOB';
+
+    const VALID_INCOTERMS = ['EXW', 'FCA', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP', 'FAS', 'FOB', 'CFR', 'CIF'];
+    const isValidIncoterm = VALID_INCOTERMS.some(term => effectiveDeliveryTerms.startsWith(term));
+    if (!isValidIncoterm) {
+      return next(new AppError(`Invalid delivery term: ${m_delivery_terms}. Must start with a valid INCOTERM (e.g., FOB, CIF, EXW).`, 400));
+    }
+
     const effectiveTariffCode = (m_tariff_code || '').toString().trim() || '';
     const effectiveValidityDays = parseInt(m_validity_days || 30) || 30;
 
@@ -557,7 +564,15 @@ export const update = async (req, res, next) => {
     const m_port_of_loading = port_of_loading !== undefined ? port_of_loading : req.body.portOfLoading;
     const m_port_of_discharge = port_of_discharge !== undefined ? port_of_discharge : req.body.portOfDischarge;
     const m_payment_terms = payment_terms !== undefined ? payment_terms : req.body.paymentTerms;
-    const m_delivery_terms = delivery_terms !== undefined ? delivery_terms : req.body.deliveryTerms;
+    const m_delivery_terms = (delivery_terms !== undefined ? delivery_terms : req.body.deliveryTerms || '').toString().trim().toUpperCase();
+
+    if (m_delivery_terms) {
+      const VALID_INCOTERMS = ['EXW', 'FCA', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP', 'FAS', 'FOB', 'CFR', 'CIF'];
+      const isValidIncoterm = VALID_INCOTERMS.some(term => m_delivery_terms.startsWith(term));
+      if (!isValidIncoterm) {
+        return next(new AppError(`Invalid delivery term: ${m_delivery_terms}. Must start with a valid INCOTERM (e.g., FOB, CIF, EXW).`, 400));
+      }
+    }
     const m_client_id = client_id !== undefined ? client_id : req.body.clientId;
     const m_client_name = client_name !== undefined ? client_name : req.body.clientName;
     const m_total_sqm = total_sqm !== undefined ? total_sqm : req.body.totalSqm;

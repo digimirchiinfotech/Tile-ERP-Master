@@ -21,8 +21,20 @@ export const initSocket = (serverIo) => {
   // Middleware to authenticate socket connection
   io.use((socket, next) => {
     try {
-      const token = socket.handshake.auth.token || socket.handshake.headers['authorization'];
+      let token = socket.handshake.auth.token || socket.handshake.headers['authorization'];
       
+      if (!token && socket.handshake.headers.cookie) {
+        // Simple cookie parser for the JWT cookie
+        const cookies = socket.handshake.headers.cookie.split(';');
+        for (const cookie of cookies) {
+          const [name, value] = cookie.trim().split('=');
+          if (name === 'jwt') {
+            token = value;
+            break;
+          }
+        }
+      }
+
       if (!token) {
         return next(new Error('Authentication error: No token provided'));
       }

@@ -11,6 +11,11 @@
 
 import { tokenManager } from '../utils/tokenManager.js';
 
+import { io } from 'socket.io-client';
+
+const isDev = import.meta.env.DEV || import.meta.env.MODE === 'development';
+const SOCKET_URL = isDev ? '/' : 'https://tile-erp-master-production.up.railway.app';
+
 class DataSyncManager {
   constructor() {
     this.listeners = {};
@@ -26,6 +31,44 @@ class DataSyncManager {
       qcRecords: { interval: 300000, enabled: true },  // 300 seconds (5 min) - reduced API load
       stats: { interval: 60000, enabled: true }        // 60 seconds (1 min) - live dashboard updates
     };
+    
+    this.socket = null;
+    this.initSocket();
+  }
+
+  initSocket() {
+    this.socket = io(SOCKET_URL, {
+      withCredentials: true,
+      autoConnect: false, // Connect manually when authenticated
+      transports: ['websocket', 'polling']
+    });
+
+    this.socket.on('connect', () => {
+      console.log('[DataSync] WebSocket Connected');
+    });
+
+    this.socket.on('data_updated', (payload) => {
+      // payload: { entityType: 'invoices', data: {...} }
+      if (payload && payload.entityType) {
+        this.notifyChange(payload.entityType, payload.data);
+      }
+    });
+
+    this.socket.on('disconnect', () => {
+      console.log('[DataSync] WebSocket Disconnected');
+    });
+  }
+
+  connectSocket() {
+    if (this.socket && !this.socket.connected) {
+      this.socket.connect();
+    }
+  }
+
+  disconnectSocket() {
+    if (this.socket && this.socket.connected) {
+      this.socket.disconnect();
+    }
   }
 
   /**
@@ -78,13 +121,13 @@ class DataSyncManager {
     const config = this.pollConfigs[entityType];
     if (!config || !config.enabled) return;
 
+    // Start the socket connection if not connected
+    this.connectSocket();
+
+    // Still keep a VERY slow interval just as a fallback/sync mechanism (e.g. 5 minutes)
+    // Real-time updates are handled by the socket 'data_updated' event.
     this.pollingIntervals[entityType] = setInterval(async () => {
       try {
-        // Check authentication before polling to prevent 401 errors
-        if (!tokenManager.isAuthenticated()) {
-          this.stopPolling(entityType);
-          return;
-        }
         await fetchFn();
       } catch (error) {
         // Polling error handled silently

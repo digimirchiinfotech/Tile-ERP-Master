@@ -80,7 +80,7 @@ export const getDashboardData = async (req, res, next) => {
       const unifiedQuery = `
         SELECT
           (SELECT COUNT(*) FROM proforma_invoices ${companyConds}) AS invoices,
-          (SELECT SUM(COALESCE(CAST(total_amount AS DECIMAL), 0)) FROM proforma_invoices ${companyConds}) AS revenue,
+          (SELECT SUM(COALESCE(CAST(total_amount AS DECIMAL), 0) * COALESCE(CAST(exchange_rate AS DECIMAL), 1)) FROM proforma_invoices ${companyConds}) AS revenue,
           (SELECT COUNT(*) FROM proforma_orders WHERE status NOT IN ('Completed', 'Locked', 'Deleted') ${companyConds ? "AND " + companyConds.substring(6) : ""}) AS open_orders,
           (SELECT COUNT(*) FROM qc_records WHERE qc_status != 'Passed' ${companyConds ? "AND " + companyConds.substring(6) : ""}) AS pending_qc,
           (SELECT COUNT(*) FROM export_invoices WHERE status IN ('In Transit', 'Shipped', 'Active') ${companyConds ? "AND " + companyConds.substring(6) : ""}) AS shipments,
@@ -127,7 +127,7 @@ export const getDashboardData = async (req, res, next) => {
           (SELECT COUNT(*) FROM proforma_invoices WHERE status != 'Revised' AND company_id = $1) AS invoices,
           (SELECT COUNT(*) FROM leads WHERE company_id = $1) AS leads,
           (SELECT COUNT(*) FROM clients WHERE company_id = $1) AS clients,
-          (SELECT SUM(COALESCE(CAST(total_amount AS DECIMAL), 0)) FROM proforma_invoices WHERE status != 'Revised' AND company_id = $1) AS revenue,
+          (SELECT SUM(COALESCE(CAST(total_amount AS DECIMAL), 0) * COALESCE(CAST(exchange_rate AS DECIMAL), 1)) FROM proforma_invoices WHERE status != 'Revised' AND company_id = $1) AS revenue,
           (SELECT COUNT(*) FROM proforma_orders WHERE status != 'Revised' AND company_id = $1) AS open_orders,
           (SELECT COUNT(*) FROM qc_records WHERE company_id = $1) AS pending_qc,
           (SELECT COUNT(*) FROM export_invoices WHERE status IN ('In Transit', 'Shipped', 'Active') AND company_id = $1) AS shipments,
@@ -138,7 +138,7 @@ export const getDashboardData = async (req, res, next) => {
           (SELECT COUNT(*) FROM proforma_orders WHERE status IN ('Approved', 'Finalized', 'Ready', 'Active', 'Locked', 'Completed') AND company_id = $1) AS confirmed_po,
           (SELECT COUNT(*) FROM proforma_orders WHERE qc_status IN ('Approved', 'Passed', 'Ready') AND company_id = $1) AS ready_po,
           (SELECT COUNT(*) FROM qc_records WHERE company_id = $1) AS total_qc,
-          (SELECT COALESCE(SUM(CAST(total_amount AS DECIMAL)), 0) FROM proforma_invoices WHERE status != 'Revised' AND company_id = $1 AND date_trunc('month', created_at) = date_trunc('month', CURRENT_TIMESTAMP)) AS monthly_revenue
+          (SELECT COALESCE(SUM(CAST(total_amount AS DECIMAL) * COALESCE(CAST(exchange_rate AS DECIMAL), 1)), 0) FROM proforma_invoices WHERE status != 'Revised' AND company_id = $1 AND date_trunc('month', created_at) = date_trunc('month', CURRENT_TIMESTAMP)) AS monthly_revenue
       `;
 
       const [users, unifiedRes] = await Promise.all([
@@ -199,7 +199,7 @@ export const getDashboardData = async (req, res, next) => {
         req.db.query('SELECT COUNT(*) as count FROM proforma_invoices WHERE company_id = $1', [companyId]),
         req.db.query('SELECT COUNT(*) as count FROM account_entries WHERE company_id = $1', [companyId]),
         req.db.query("SELECT COUNT(*) as count FROM account_entries WHERE company_id = $1 AND status IN ('Paid', 'paid')", [companyId]),
-        req.db.query('SELECT SUM(COALESCE(CAST(total_amount AS DECIMAL), 0)) as total FROM proforma_invoices WHERE company_id = $1', [companyId])
+        req.db.query('SELECT SUM(COALESCE(CAST(total_amount AS DECIMAL), 0) * COALESCE(CAST(exchange_rate AS DECIMAL), 1)) as total FROM proforma_invoices WHERE company_id = $1', [companyId])
       ]);
 
       stats = {
@@ -257,7 +257,7 @@ export const getDashboardData = async (req, res, next) => {
       const [orders, invoices, spend] = await Promise.all([
         req.db.query('SELECT COUNT(*) as count FROM client_orders WHERE company_id = $1', [companyId]),
         req.db.query('SELECT COUNT(*) as count FROM proforma_invoices WHERE company_id = $1', [companyId]),
-        req.db.query('SELECT SUM(COALESCE(CAST(total_amount AS DECIMAL), 0)) as total FROM proforma_invoices WHERE company_id = $1', [companyId])
+        req.db.query('SELECT SUM(COALESCE(CAST(total_amount AS DECIMAL), 0) * COALESCE(CAST(exchange_rate AS DECIMAL), 1)) as total FROM proforma_invoices WHERE company_id = $1', [companyId])
       ]);
 
       stats = {
@@ -309,7 +309,7 @@ export const getDashboardData = async (req, res, next) => {
           // Activity Trend (Revenue over last 6 months)
           req.db.query(`
             SELECT TO_CHAR(date_trunc('month', created_at), 'Mon') as name, 
-                  COALESCE(SUM(CAST(total_amount AS DECIMAL)), 0) as value
+                  COALESCE(SUM(COALESCE(CAST(total_amount AS DECIMAL), 0) * COALESCE(CAST(exchange_rate AS DECIMAL), 1)), 0) as value
             FROM proforma_invoices 
             ${chartConds}
             GROUP BY date_trunc('month', created_at)

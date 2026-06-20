@@ -115,10 +115,7 @@ function SignupForm({ onSignup, onBackToLogin }) {
         password: formData.password,
       });
 
-      const { accessToken, refreshToken, user } = response.data;
-      
-      tokenManager.setAccessToken(accessToken);
-      tokenManager.setRefreshToken(refreshToken);
+      const { user } = response.data;
       
       const userData = {
         id: user.id,
@@ -127,8 +124,6 @@ function SignupForm({ onSignup, onBackToLogin }) {
         contactNumber: user.contactNumber,
         role: user.role,
         permissions: user.permissions || ['all'],
-        token: accessToken,
-        refreshToken: refreshToken,
         companyId: user.companyId,
         lastLogin: new Date().toISOString(),
       };

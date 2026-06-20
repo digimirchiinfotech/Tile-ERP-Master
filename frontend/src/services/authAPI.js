@@ -25,8 +25,8 @@ export const authAPI = {
       // Return the inner data object (user, accessToken, refreshToken) for consumers
       const payload = (response && response.data && response.data.data) ? response.data.data : response.data;
       
-      if (!payload || !payload.accessToken || !payload.refreshToken) {
-        throw new Error('Invalid login response: missing tokens');
+      if (!payload || !payload.user) {
+        throw new Error('Invalid login response: missing user data');
       }
       
       return payload;

@@ -58,14 +58,13 @@ function SimpleLoginForm({ onLogin, onShowForgotPassword, onNavigate }) {
 
     try {
       const payload = await authAPI.login(formData.emailOrUsername, formData.password);
-      const { accessToken, refreshToken, user } = payload || {};
+      const { user } = payload || {};
 
-      if (!accessToken || !refreshToken || !user) {
-        throw new Error('Invalid response from server: missing authentication tokens');
+      if (!user) {
+        throw new Error('Login failed: Invalid server response.');
       }
 
-      tokenManager.setAccessToken(accessToken);
-      tokenManager.setRefreshToken(refreshToken);
+      // Tokens are now handled via HttpOnly cookies securely by the backend
 
       // Normalize possible backend naming variations (snake_case, camelCase)
       const normalizedUser = {
@@ -83,8 +82,6 @@ function SimpleLoginForm({ onLogin, onShowForgotPassword, onNavigate }) {
 
       const userData = {
         ...normalizedUser,
-        token: accessToken,
-        refreshToken: refreshToken,
         permissions: rolePermissions[normalizedUser.role] || normalizedUser.permissions || [],
         lastLogin: normalizedUser.lastLogin || new Date().toISOString(),
       };

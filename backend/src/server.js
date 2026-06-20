@@ -163,12 +163,12 @@ app.use(securityHeaders);
 
 
 app.use(cookieParser());
+app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(standardizePayload);
 app.use(sanitizeInput);
-app.use(compression());
 app.use(requestLogger);
 app.use(performanceMonitor);
 app.use(preventParameterPollution);

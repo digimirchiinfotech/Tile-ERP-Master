@@ -77,94 +77,100 @@ export const getDashboardData = async (req, res, next) => {
         }
       }
 
-      const [companies, users, invoices, revenue, openOrders, pendingQC, shipmentsInProgress, outstandingPayments, pendingPI, confirmedPI, pendingPO, confirmedPO, readyPO] = await Promise.all([
+      const unifiedQuery = `
+        SELECT
+          (SELECT COUNT(*) FROM proforma_invoices ${companyConds}) AS invoices,
+          (SELECT SUM(COALESCE(CAST(total_amount AS DECIMAL), 0)) FROM proforma_invoices ${companyConds}) AS revenue,
+          (SELECT COUNT(*) FROM proforma_orders WHERE status NOT IN ('Completed', 'Locked', 'Deleted') ${companyConds ? "AND " + companyConds.substring(6) : ""}) AS open_orders,
+          (SELECT COUNT(*) FROM qc_records WHERE qc_status != 'Passed' ${companyConds ? "AND " + companyConds.substring(6) : ""}) AS pending_qc,
+          (SELECT COUNT(*) FROM export_invoices WHERE status IN ('In Transit', 'Shipped', 'Active') ${companyConds ? "AND " + companyConds.substring(6) : ""}) AS shipments,
+          (SELECT COUNT(*) FROM account_entries WHERE status IN ('Pending', 'Overdue') ${companyConds ? "AND " + companyConds.substring(6) : ""}) AS outstanding_payments,
+          (SELECT COUNT(*) FROM proforma_invoices WHERE status IN ('Draft', 'Pending') ${companyConds ? "AND " + companyConds.substring(6) : ""}) AS pending_pi,
+          (SELECT COUNT(*) FROM proforma_invoices WHERE status IN ('Approved', 'Finalized', 'Ready', 'Active', 'Locked', 'Completed') ${companyConds ? "AND " + companyConds.substring(6) : ""}) AS confirmed_pi,
+          (SELECT COUNT(*) FROM proforma_orders WHERE status IN ('Draft', 'Pending') ${companyConds ? "AND " + companyConds.substring(6) : ""}) AS pending_po,
+          (SELECT COUNT(*) FROM proforma_orders WHERE status IN ('Approved', 'Finalized', 'Ready', 'Active', 'Locked', 'Completed') ${companyConds ? "AND " + companyConds.substring(6) : ""}) AS confirmed_po,
+          (SELECT COUNT(*) FROM proforma_orders WHERE qc_status IN ('Approved', 'Passed', 'Ready') ${companyConds ? "AND " + companyConds.substring(6) : ""}) AS ready_po
+      `;
+
+      const [companies, users, unifiedRes] = await Promise.all([
         req.db.globalQuery(companiesQuery, vals),
         req.db.query(usersQuery, vals),
-        req.db.query(`SELECT COUNT(*) as count FROM proforma_invoices ${companyConds}`, vals),
-        req.db.query(`SELECT SUM(COALESCE(CAST(total_amount AS DECIMAL), 0)) as total FROM proforma_invoices ${companyConds}`, vals),
-        req.db.query(`SELECT COUNT(*) as count FROM proforma_orders WHERE status NOT IN ('Completed', 'Locked', 'Deleted') ${companyConds ? "AND " + companyConds.substring(6) : ""}`, vals),
-        req.db.query(`SELECT COUNT(*) as count FROM qc_records WHERE qc_status != 'Passed' ${companyConds ? "AND " + companyConds.substring(6) : ""}`, vals),
-        req.db.query(`SELECT COUNT(*) as count FROM export_invoices WHERE status IN ('In Transit', 'Shipped', 'Active') ${companyConds ? "AND " + companyConds.substring(6) : ""}`, vals),
-        req.db.query(`SELECT COUNT(*) as count FROM account_entries WHERE status IN ('Pending', 'Overdue') ${companyConds ? "AND " + companyConds.substring(6) : ""}`, vals),
-        req.db.query(`SELECT COUNT(*) as count FROM proforma_invoices WHERE status IN ('Draft', 'Pending') ${companyConds ? "AND " + companyConds.substring(6) : ""}`, vals),
-        req.db.query(`SELECT COUNT(*) as count FROM proforma_invoices WHERE status IN ('Approved', 'Finalized', 'Ready', 'Active', 'Locked', 'Completed') ${companyConds ? "AND " + companyConds.substring(6) : ""}`, vals),
-        req.db.query(`SELECT COUNT(*) as count FROM proforma_orders WHERE status IN ('Draft', 'Pending') ${companyConds ? "AND " + companyConds.substring(6) : ""}`, vals),
-        req.db.query(`SELECT COUNT(*) as count FROM proforma_orders WHERE status IN ('Approved', 'Finalized', 'Ready', 'Active', 'Locked', 'Completed') ${companyConds ? "AND " + companyConds.substring(6) : ""}`, vals),
-        req.db.query(`SELECT COUNT(*) as count FROM proforma_orders WHERE qc_status IN ('Approved', 'Passed', 'Ready') ${companyConds ? "AND " + companyConds.substring(6) : ""}`, vals)
+        req.db.query(unifiedQuery, vals)
       ]);
+
+      const row = unifiedRes.rows[0] || {};
 
       stats = {
         role: 'super_admin',
         totalCompanies: parseInt(companies.rows[0]?.count || 0),
         totalUsers: parseInt(users.rows[0]?.count || 0),
-        totalInvoices: parseInt(invoices.rows[0]?.count || 0),
-        totalRevenue: parseFloat(revenue.rows[0]?.total || 0),
-        openOrders: parseInt(openOrders.rows[0]?.count || 0),
-        pendingQC: parseInt(pendingQC.rows[0]?.count || 0),
-        shipmentsInProgress: parseInt(shipmentsInProgress.rows[0]?.count || 0),
-        outstandingPayments: parseInt(outstandingPayments.rows[0]?.count || 0),
-        overdueInvoices: parseInt(outstandingPayments.rows[0]?.count || 0), // Standardized key for UI alerts
-        pendingProformaInvoices: parseInt(pendingPI?.rows[0]?.count || 0),
-        confirmedProformaInvoices: parseInt(confirmedPI?.rows[0]?.count || 0),
-        pendingProformaOrders: parseInt(pendingPO?.rows[0]?.count || 0),
-        confirmedProformaOrders: parseInt(confirmedPO?.rows[0]?.count || 0),
-        readyProformaOrders: parseInt(readyPO?.rows[0]?.count || 0),
+        totalInvoices: parseInt(row.invoices || 0),
+        totalRevenue: parseFloat(row.revenue || 0),
+        openOrders: parseInt(row.open_orders || 0),
+        pendingQC: parseInt(row.pending_qc || 0),
+        shipmentsInProgress: parseInt(row.shipments || 0),
+        outstandingPayments: parseInt(row.outstanding_payments || 0),
+        overdueInvoices: parseInt(row.outstanding_payments || 0), // Standardized key for UI alerts
+        pendingProformaInvoices: parseInt(row.pending_pi || 0),
+        confirmedProformaInvoices: parseInt(row.confirmed_pi || 0),
+        pendingProformaOrders: parseInt(row.pending_po || 0),
+        confirmedProformaOrders: parseInt(row.confirmed_po || 0),
+        readyProformaOrders: parseInt(row.ready_po || 0),
         dataSource: Object.hasOwn(req, 'companyFilter') && req.companyFilter !== null ? 'Company data' : 'System-wide'
       };
 
     }
     // Sales Roles - Company-specific data
     else if (['sales_manager', 'sales_executive', 'company_admin', 'admin'].includes(userRole)) {
-      const [invoices, leads, clients, revenue, openOrders, pendingQC, shipmentsInProgress, outstandingPayments, users, pendingPI, confirmedPI, pendingPO, confirmedPO, readyPO, totalQC, monthlyRevenue] = await Promise.all([
-        req.db.query("SELECT COUNT(*) as count FROM proforma_invoices WHERE status NOT IN ('Revised') AND company_id = $1", [companyId]),
-        req.db.query('SELECT COUNT(*) as count FROM leads WHERE company_id = $1', [companyId]),
-        req.db.query('SELECT COUNT(*) as count FROM clients WHERE company_id = $1', [companyId]),
-        req.db.query("SELECT SUM(COALESCE(CAST(total_amount AS DECIMAL), 0)) as total FROM proforma_invoices WHERE status != 'Revised' AND company_id = $1", [companyId]),
-        req.db.query("SELECT COUNT(*) as count FROM proforma_orders WHERE status NOT IN ('Revised') AND company_id = $1", [companyId]),
-        req.db.query("SELECT COUNT(*) as count FROM qc_records WHERE company_id = $1", [companyId]),
-        req.db.query("SELECT COUNT(*) as count FROM export_invoices WHERE status IN ('In Transit', 'Shipped', 'Active') AND company_id = $1", [companyId]),
-        req.db.query("SELECT COUNT(*) as count FROM account_entries WHERE status IN ('Pending', 'Overdue') AND company_id = $1", [companyId]),
-        // Users live in global DB — must use globalQuery
+      const unifiedQuery = `
+        SELECT
+          (SELECT COUNT(*) FROM proforma_invoices WHERE status != 'Revised' AND company_id = $1) AS invoices,
+          (SELECT COUNT(*) FROM leads WHERE company_id = $1) AS leads,
+          (SELECT COUNT(*) FROM clients WHERE company_id = $1) AS clients,
+          (SELECT SUM(COALESCE(CAST(total_amount AS DECIMAL), 0)) FROM proforma_invoices WHERE status != 'Revised' AND company_id = $1) AS revenue,
+          (SELECT COUNT(*) FROM proforma_orders WHERE status != 'Revised' AND company_id = $1) AS open_orders,
+          (SELECT COUNT(*) FROM qc_records WHERE company_id = $1) AS pending_qc,
+          (SELECT COUNT(*) FROM export_invoices WHERE status IN ('In Transit', 'Shipped', 'Active') AND company_id = $1) AS shipments,
+          (SELECT COUNT(*) FROM account_entries WHERE status IN ('Pending', 'Overdue') AND company_id = $1) AS outstanding_payments,
+          (SELECT COUNT(*) FROM proforma_invoices WHERE status IN ('Draft', 'Pending') AND company_id = $1) AS pending_pi,
+          (SELECT COUNT(*) FROM proforma_invoices WHERE status IN ('Approved', 'Finalized', 'Ready', 'Active', 'Locked', 'Completed') AND company_id = $1) AS confirmed_pi,
+          (SELECT COUNT(*) FROM proforma_orders WHERE status IN ('Draft', 'Pending') AND company_id = $1) AS pending_po,
+          (SELECT COUNT(*) FROM proforma_orders WHERE status IN ('Approved', 'Finalized', 'Ready', 'Active', 'Locked', 'Completed') AND company_id = $1) AS confirmed_po,
+          (SELECT COUNT(*) FROM proforma_orders WHERE qc_status IN ('Approved', 'Passed', 'Ready') AND company_id = $1) AS ready_po,
+          (SELECT COUNT(*) FROM qc_records WHERE company_id = $1) AS total_qc,
+          (SELECT COALESCE(SUM(CAST(total_amount AS DECIMAL)), 0) FROM proforma_invoices WHERE status != 'Revised' AND company_id = $1 AND date_trunc('month', created_at) = date_trunc('month', CURRENT_TIMESTAMP)) AS monthly_revenue
+      `;
+
+      const [users, unifiedRes] = await Promise.all([
         req.db.globalQuery("SELECT COUNT(*) as count FROM users WHERE company_id = $1 AND status = 'Active'", [companyId]),
-        // Pending PI = Pending invoices
-        req.db.query("SELECT COUNT(*) as count FROM proforma_invoices WHERE status IN ('Draft', 'Pending') AND company_id = $1", [companyId]),
-        // Confirmed PI = Approved, Locked, etc. invoices
-        req.db.query("SELECT COUNT(*) as count FROM proforma_invoices WHERE status IN ('Approved', 'Finalized', 'Ready', 'Active', 'Locked', 'Completed') AND company_id = $1", [companyId]),
-        // Pending PO = Pending orders
-        req.db.query("SELECT COUNT(*) as count FROM proforma_orders WHERE status IN ('Draft', 'Pending') AND company_id = $1", [companyId]),
-        // Confirmed PO = Approved, Locked, etc. orders
-        req.db.query("SELECT COUNT(*) as count FROM proforma_orders WHERE status IN ('Approved', 'Finalized', 'Ready', 'Active', 'Locked', 'Completed') AND company_id = $1", [companyId]),
-        // Ready PO = qc_status is Approved/Passed/Ready
-        req.db.query("SELECT COUNT(*) as count FROM proforma_orders WHERE qc_status IN ('Approved', 'Passed', 'Ready') AND company_id = $1", [companyId]),
-        // Total QC records
-        req.db.query("SELECT COUNT(*) as count FROM qc_records WHERE company_id = $1", [companyId]),
-        // Monthly revenue = current month PI total
-        req.db.query("SELECT COALESCE(SUM(CAST(total_amount AS DECIMAL)), 0) as total FROM proforma_invoices WHERE status != 'Revised' AND company_id = $1 AND date_trunc('month', created_at) = date_trunc('month', CURRENT_TIMESTAMP)", [companyId])
+        req.db.query(unifiedQuery, [companyId])
       ]);
+
+      const row = unifiedRes.rows[0] || {};
 
       stats = {
         role: userRole,
         companyId,
-        invoices: parseInt(invoices.rows[0]?.count || 0),
-        totalInvoices: parseInt(invoices.rows[0]?.count || 0),
-        leads: parseInt(leads.rows[0]?.count || 0),
-        activeLeads: parseInt(leads.rows[0]?.count || 0),
-        clients: parseInt(clients.rows[0]?.count || 0),
-        totalClients: parseInt(clients.rows[0]?.count || 0),
-        revenue: parseFloat(revenue.rows[0]?.total || 0),
-        totalRevenue: parseFloat(monthlyRevenue.rows[0]?.total || 0),
-        openOrders: parseInt(openOrders.rows[0]?.count || 0),
-        pendingQC: parseInt(totalQC.rows[0]?.count || 0),
-        shipmentsInProgress: parseInt(shipmentsInProgress.rows[0]?.count || 0),
-        outstandingPayments: parseInt(outstandingPayments.rows[0]?.count || 0),
-        overdueInvoices: parseInt(outstandingPayments.rows[0]?.count || 0),
+        invoices: parseInt(row.invoices || 0),
+        totalInvoices: parseInt(row.invoices || 0),
+        leads: parseInt(row.leads || 0),
+        activeLeads: parseInt(row.leads || 0),
+        clients: parseInt(row.clients || 0),
+        totalClients: parseInt(row.clients || 0),
+        revenue: parseFloat(row.revenue || 0),
+        totalRevenue: parseFloat(row.monthly_revenue || 0),
+        openOrders: parseInt(row.open_orders || 0),
+        pendingQC: parseInt(row.total_qc || 0),
+        shipmentsInProgress: parseInt(row.shipments || 0),
+        outstandingPayments: parseInt(row.outstanding_payments || 0),
+        overdueInvoices: parseInt(row.outstanding_payments || 0),
         totalUsers: parseInt(users.rows[0]?.count || 0),
         userActivity: parseInt(users.rows[0]?.count || 0),
-        pendingProformaInvoices: parseInt(pendingPI?.rows[0]?.count || 0),
-        confirmedProformaInvoices: parseInt(confirmedPI?.rows[0]?.count || 0),
-        pendingProformaOrders: parseInt(pendingPO?.rows[0]?.count || 0),
-        confirmedProformaOrders: parseInt(confirmedPO?.rows[0]?.count || 0),
-        readyProformaOrders: parseInt(readyPO?.rows[0]?.count || 0),
+        pendingProformaInvoices: parseInt(row.pending_pi || 0),
+        confirmedProformaInvoices: parseInt(row.confirmed_pi || 0),
+        pendingProformaOrders: parseInt(row.pending_po || 0),
+        confirmedProformaOrders: parseInt(row.confirmed_po || 0),
+        readyProformaOrders: parseInt(row.ready_po || 0),
         dataSource: 'Company data'
       };
 

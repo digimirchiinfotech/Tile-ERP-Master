@@ -141,6 +141,7 @@ export const getById = async (req, res, next) => {
 };
 
 export const create = async (req, res, next) => {
+  const client = await req.db.getClient();
   try {
     const {
       date, 
@@ -170,7 +171,10 @@ export const create = async (req, res, next) => {
     const documentNumber = await generateDocumentNumber('ACC', companyId, req.db);
     const entryNo = documentNumber.baseNumber;
 
-    const result = await req.db.query(
+    await client.query('BEGIN');
+
+    // 1. Insert Legacy Account Entry (Backwards Compatibility)
+    const result = await client.query(
       `INSERT INTO account_entries 
        (company_id, entry_no, date, entry_type, party_name, amount, payment_method,
         invoice_ref, po_ref, status, due_date, notes, created_by, created_at, updated_at)
@@ -183,14 +187,59 @@ export const create = async (req, res, next) => {
       ]
     );
 
+    // 2. Phase 8: Double-Entry Bookkeeping (Journal & Ledger)
+    const journalRes = await client.query(
+      `INSERT INTO journal_entries (company_id, entry_no, date, reference, source_type, notes, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+      [companyId, `JRN-${entryNo}`, date, resolvedInvoiceRef || resolvedPoRef, 'account_entry', resolvedNotes, req.user.id]
+    );
+    const journalId = journalRes.rows[0].id;
+
+    // Determine Accounts (Basic rules mapping entry_type to ledger accounts)
+    let debitAccount = 'miscellaneous';
+    let creditAccount = 'miscellaneous';
+
+    if (resolvedEntryType === 'Receivable') {
+      debitAccount = 'accounts_receivable';
+      creditAccount = 'sales_revenue';
+    } else if (resolvedEntryType === 'Payable') {
+      debitAccount = 'expenses';
+      creditAccount = 'accounts_payable';
+    } else if (resolvedEntryType === 'Payment In') {
+      debitAccount = 'cash_bank';
+      creditAccount = 'accounts_receivable';
+    } else if (resolvedEntryType === 'Payment Out') {
+      debitAccount = 'accounts_payable';
+      creditAccount = 'cash_bank';
+    }
+
+    // Insert Debit Line
+    await client.query(
+      `INSERT INTO ledger_entries (company_id, journal_entry_id, account_code, account_name, debit, credit)
+       VALUES ($1, $2, $3, $4, $5, 0)`,
+      [companyId, journalId, debitAccount, debitAccount.replace('_', ' ').toUpperCase(), amount]
+    );
+
+    // Insert Credit Line
+    await client.query(
+      `INSERT INTO ledger_entries (company_id, journal_entry_id, account_code, account_name, debit, credit)
+       VALUES ($1, $2, $3, $4, 0, $5)`,
+      [companyId, journalId, creditAccount, creditAccount.replace('_', ' ').toUpperCase(), amount]
+    );
+
+    await client.query('COMMIT');
+
     return successResponse(
       res,
       result.rows[0],
-      'Account entry created successfully',
+      'Account entry created successfully with Double-Entry Journals',
       201
     );
   } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
     next(error);
+  } finally {
+    client.release();
   }
 };
 

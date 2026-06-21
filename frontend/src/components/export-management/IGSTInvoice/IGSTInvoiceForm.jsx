@@ -831,13 +831,8 @@ function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, current
                       <td className="text-start ps-3 fw-semibold text-dark">
                         {l.material_description || l.product_name || ''}
                       </td>
-                      <td>
-                        <Form.Control
-                          value={l.hsn_code || l.hsnCode || l.hsCode || l.hs_code || formData.tariff_code || ''}
-                          onChange={e => handleLineFieldChange(i, 'hsn_code', e.target.value)}
-                          className="table-input-style fw-bold text-center border-primary border-opacity-25"
-                          size="sm"
-                        />
+                      <td className="font-monospace text-dark fw-medium">
+                        {l.hsn_code || l.hsnCode || l.hsCode || l.hs_code || formData.tariff_code || ''}
                       </td>
                       <td className="font-monospace text-dark fw-medium">
                         {(l.box_quantity || 0).toLocaleString('en-IN')}

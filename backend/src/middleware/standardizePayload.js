@@ -21,12 +21,13 @@ export const standardizePayload = (req, res, next) => {
     // Don't transform FormData (handled by multer) to avoid breaking file uploads
     const contentType = req.headers['content-type'] || '';
     const isMultipart = contentType.includes('multipart/form-data');
+    const isValidateImport = req.originalUrl && req.originalUrl.includes('validate-import');
 
-    if (req.body && !isMultipart && typeof req.body === 'object') {
+    if (req.body && !isMultipart && typeof req.body === 'object' && !isValidateImport) {
       req.body = convertToSnakeCase(req.body);
     }
 
-    if (req.query && typeof req.query === 'object') {
+    if (req.query && typeof req.query === 'object' && !isValidateImport) {
       req.query = convertToSnakeCase(req.query);
     }
 

@@ -223,8 +223,8 @@ function UserForm({ user, onSave, onCancel }) {
                       </Form.Group>
                     </Col>
 
-                    {/* Email ID - Full Width */}
-                    <Col xs={12}>
+                    {/* Email ID & Contact Number - Same Row */}
+                    <Col xs={12} md={6}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>Email ID is mandatory.</Tooltip>}>
                           <Form.Label className="fw-bold text-danger" style={{cursor: 'help'}}>
@@ -245,8 +245,7 @@ function UserForm({ user, onSave, onCancel }) {
                       </Form.Group>
                     </Col>
 
-                    {/* Contact Number - Full Width */}
-                    <Col xs={12}>
+                    <Col xs={12} md={6}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>Contact Number is mandatory.</Tooltip>}>
                           <Form.Label className="fw-bold text-danger" style={{cursor: 'help'}}>

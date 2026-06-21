@@ -25,7 +25,7 @@ import {
 } from 'react-bootstrap';
 import { User, Mail, Phone, Lock, Bell, Shield, Save, Eye, EyeOff, Camera, Building, MapPin, Globe, FileText, CreditCard, ShieldCheck, Upload, RefreshCcw, Image as ImageIcon, Database, Check } from 'lucide-react';
 import { resolveImageUrl } from '../../utils/urlHelper';
-import { showSuccess, showError } from '../shared/NotificationManager';
+import { showSuccess, showError, showWarning, showInfo } from '../shared/NotificationManager';
 import api from '../../services/api';
 import { useProfile } from '../../hooks/useProfile';
 import { useUserContext } from '../../contexts/UserContext.jsx';
@@ -392,10 +392,16 @@ function ProfileSettings({ currentUser: propCurrentUser, onUpdateProfile, initia
   };
 
   const showAlertMessage = (message, type = 'info') => {
-    setAlertMessage(message);
-    setAlertType(type);
-    setShowAlert(true);
-    setTimeout(() => setShowAlert(false), 3000);
+    const cleanType = type === 'danger' ? 'error' : type;
+    if (cleanType === 'error') {
+      showError(message);
+    } else if (cleanType === 'success') {
+      showSuccess(message);
+    } else if (cleanType === 'warning') {
+      showWarning(message);
+    } else {
+      showInfo(message);
+    }
   };
 
   const handlePhotoUpload = async (event) => {
@@ -470,17 +476,6 @@ function ProfileSettings({ currentUser: propCurrentUser, onUpdateProfile, initia
             </Row>
           </Card.Body>
         </Card>
-
-        {showAlert && (
-          <Alert
-            variant={alertType}
-            dismissible
-            onClose={() => setShowAlert(false)}
-            className="mb-4"
-          >
-            {alertMessage}
-          </Alert>
-        )}
         <Card className="border-0 shadow-sm overflow-hidden" style={{ borderRadius: '16px' }}>
           <Card.Body>
             <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k)} className="mb-4">

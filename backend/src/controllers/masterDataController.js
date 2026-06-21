@@ -18,7 +18,7 @@ const TABLE_MAPPING = {
   catalogueNames: { table: 'catalogues', column: 'name', global: false },
   palletTypes: { table: 'pallet_types', column: 'type', global: false },
   palletCategories: { table: 'pallet_categories', column: 'category', global: false },
-  warehouseLocations: { table: 'warehouse_locations', column: 'location', global: false },
+  warehouseLocations: { table: 'warehouse_locations', column: 'name', global: false },
   tilesBack: { table: 'tiles_back', column: 'type', global: false },
   boxesMarking: { table: 'boxes_marking', column: 'marking', global: false },
   boxTypes: { table: 'box_types', column: 'type', global: false },

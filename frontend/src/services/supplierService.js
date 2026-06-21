@@ -28,8 +28,8 @@ export const supplierService = {
     return await api.put(`/suppliers/${id}`, data);
   },
 
-  delete: async (id) => {
-    return await api.delete(`/suppliers/${id}`);
+  delete: async (id, force = false) => {
+    return await api.delete(`/suppliers/${id}`, { params: force ? { force: 'true' } : {} });
   },
 
   hardDelete: async (id) => {

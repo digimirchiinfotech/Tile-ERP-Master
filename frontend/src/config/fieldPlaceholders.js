@@ -54,7 +54,7 @@ export const FIELD_PLACEHOLDERS = {
 
   // 5. Client Name
   clientName: {
-    placeholder: 'Enter client name',
+    placeholder: 'Enter Client Firm Name',
     label: 'Client Name',
     validation: 'Required',
     pattern: '',

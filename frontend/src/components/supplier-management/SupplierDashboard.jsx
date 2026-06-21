@@ -254,20 +254,34 @@ function SupplierDashboard({ currentUser, navigationData }) {
     }, 800);
   };
 
-  const handleDeleteSupplier = (supplierId) => {
+  const handleDeleteSupplier = (supplierId, force = false) => {
     setConfirmConfig({
-      title: 'Confirm Delete',
-      message: 'Are you sure you want to delete this supplier? This action cannot be undone.',
+      title: force ? 'Confirm Force Delete' : 'Confirm Delete',
+      message: force 
+        ? 'Are you sure you want to force delete this supplier? This will bypass references (e.g. in Proforma Orders).'
+        : 'Are you sure you want to delete this supplier? This action cannot be undone.',
       variant: 'danger',
       onConfirm: async () => {
         try {
-          await deleteSupplier(supplierId);
+          await deleteSupplier(supplierId, force);
           showSuccess('Supplier deleted successfully');
         } catch (error) {
-          console.error('âŒ Delete error:', error);
-          showError('Failed to delete supplier. Please try again.');
+          console.error('❌ Delete error:', error);
+          if (error.response?.status === 409) {
+            setConfirmConfig({
+              title: 'Reference Conflict',
+              message: error.response.data.message + ' Would you like to force delete?',
+              variant: 'warning',
+              onConfirm: () => handleDeleteSupplier(supplierId, true)
+            });
+            setShowConfirmModal(true);
+            return;
+          }
+          showError(error.response?.data?.message || 'Failed to delete supplier. Please try again.');
         } finally {
-          setShowConfirmModal(false);
+          if (!force || error.response?.status !== 409) {
+            setShowConfirmModal(false);
+          }
         }
       }
     });

@@ -341,7 +341,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                 <Card.Header><h6 className="mb-0 text-primary">Basic Information</h6></Card.Header>
                 <Card.Body>
                   <Row className="g-3">
-                    <Col xs={12}>
+                    <Col md={6} xs={12}>
                       <Form.Group>
                           <OverlayTrigger placement="top" overlay={<Tooltip>Official registered business name</Tooltip>}>
                             <Form.Label className="text-danger" style={{cursor: 'help'}}>
@@ -352,7 +352,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                         <Form.Control.Feedback type="invalid">{errors.name}</Form.Control.Feedback>
                       </Form.Group>
                     </Col>
-                    <Col xs={12}>
+                    <Col md={6} xs={12}>
                       <Form.Group>
                           <OverlayTrigger placement="top" overlay={<Tooltip>Contact Person Name is mandatory.</Tooltip>}>
                             <Form.Label className="text-danger" style={{cursor: 'help'}}>
@@ -363,7 +363,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                         <Form.Control.Feedback type="invalid">{errors.contactPersonName}</Form.Control.Feedback>
                       </Form.Group>
                     </Col>
-                    <Col xs={12}>
+                    <Col md={6} xs={12}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>Country is mandatory.</Tooltip>}>
                           <Form.Label className="text-danger" style={{cursor: 'help'}}>
@@ -384,7 +384,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                         />
                       </Form.Group>
                     </Col>
-                    <Col xs={12}>
+                    <Col md={6} xs={12}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>City is mandatory.</Tooltip>}>
                           <Form.Label className="text-danger" style={{cursor: 'help'}}>
@@ -409,7 +409,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                         />
                       </Form.Group>
                     </Col>
-                    <Col xs={12}>
+                    <Col md={6} xs={12}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>Email ID is mandatory.</Tooltip>}>
                           <Form.Label className="text-danger" style={{cursor: 'help'}}>
@@ -420,7 +420,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                         <Form.Control.Feedback type="invalid">{errors.emailId}</Form.Control.Feedback>
                       </Form.Group>
                     </Col>
-                    <Col xs={12}>
+                    <Col md={6} xs={12}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>Contact Number is mandatory.</Tooltip>}>
                           <Form.Label className="text-danger" style={{cursor: 'help'}}>
@@ -431,7 +431,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                         <Form.Control.Feedback type="invalid">{errors.contactNumber}</Form.Control.Feedback>
                       </Form.Group>
                     </Col>
-                    <Col xs={12}>
+                    <Col md={6} xs={12}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>Business Type is mandatory.</Tooltip>}>
                           <Form.Label className="text-danger" style={{cursor: 'help'}}>
@@ -445,7 +445,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                         <Form.Control.Feedback type="invalid">{errors.businessType}</Form.Control.Feedback>
                       </Form.Group>
                     </Col>
-                    <Col xs={12}>
+                    <Col md={6} xs={12}>
                       <Form.Group>
                         <Form.Label>Assigned Salesperson</Form.Label>
                         <Form.Select

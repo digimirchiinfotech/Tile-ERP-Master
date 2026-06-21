@@ -835,7 +835,7 @@ function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, current
                         <Form.Control
                           value={l.hsn_code || l.hsnCode || l.hsCode || l.hs_code || formData.tariff_code || ''}
                           onChange={e => handleLineFieldChange(i, 'hsn_code', e.target.value)}
-                          className="fw-bold text-center border-primary border-opacity-25"
+                          className="table-input-style fw-bold text-center border-primary border-opacity-25"
                           size="sm"
                         />
                       </td>
@@ -865,7 +865,7 @@ function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, current
                             if (val > 100) val = 100;
                             handleLineFieldChange(i, 'igst_percentage', val);
                           }}
-                          className="fw-bold text-center border-info border-opacity-25"
+                          className="table-input-style fw-bold text-center border-info border-opacity-25"
                           size="sm"
                         />
                       </td>
@@ -1180,6 +1180,20 @@ function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, current
         .read-only-inherited {
           background-color: #f9fafb !important;
           color: #4b5563 !important;
+        }
+        .table-input-style {
+          border-radius: 6px !important;
+          padding: 4px 8px !important;
+          font-size: 0.85rem !important;
+          height: 32px !important;
+          background-color: #ffffff !important;
+          border: 1px solid #d1d5db !important;
+          transition: all 0.2s ease;
+        }
+        .table-input-style:focus {
+          border-color: #3b82f6 !important;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+          outline: none;
         }
       `}</style>
     </Container>

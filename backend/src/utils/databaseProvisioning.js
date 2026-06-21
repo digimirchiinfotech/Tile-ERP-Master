@@ -458,12 +458,17 @@ export const provisionCompanyDatabase = async (company) => {
 
       CREATE TABLE IF NOT EXISTS warehouse_locations (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        company_id UUID,
-        location VARCHAR(255) NOT NULL,
+        company_id UUID NOT NULL,
+        name VARCHAR(100) NOT NULL,
+        type VARCHAR(50) DEFAULT 'Warehouse',
+        address TEXT,
+        is_active BOOLEAN DEFAULT true,
         status VARCHAR(20) DEFAULT 'Active',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        created_by UUID
+        created_by UUID,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        deleted_at TIMESTAMP,
+        UNIQUE(company_id, name)
       );
 
       CREATE TABLE IF NOT EXISTS final_destinations (
@@ -2208,6 +2213,7 @@ export const syncCompanyDatabase = async (companyId, db) => {
           type VARCHAR(50) DEFAULT 'Warehouse',
           address TEXT,
           is_active BOOLEAN DEFAULT true,
+          status VARCHAR(20) DEFAULT 'Active',
           created_by UUID,
           created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -2242,7 +2248,7 @@ export const syncCompanyDatabase = async (companyId, db) => {
         ALTER TABLE products ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
         ALTER TABLE client_orders ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
         ALTER TABLE master_order_sheets ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
-        ALTER TABLE order_sheets ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+        ALTER TABLE IF EXISTS order_sheets ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
 
         -- Phase 6: Foreign Key Integrity
         DO $$

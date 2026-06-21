@@ -103,9 +103,9 @@ export const useSuppliers = () => {
     }
   };
 
-  const deleteSupplier = async (id) => {
+  const deleteSupplier = async (id, force = false) => {
     try {
-      await supplierService.delete(id);
+      await supplierService.delete(id, force);
       await fetchSuppliers();
       dataSyncManager.notifyChange('suppliers');
     } catch (err) {

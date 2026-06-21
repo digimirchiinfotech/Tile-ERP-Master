@@ -5,7 +5,7 @@ ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
 ALTER TABLE products ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
 ALTER TABLE client_orders ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
 ALTER TABLE master_order_sheets ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
-ALTER TABLE order_sheets ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+ALTER TABLE IF EXISTS order_sheets ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
 
 -- Phase 6: Foreign Key Integrity (Safe application)
 DO $$

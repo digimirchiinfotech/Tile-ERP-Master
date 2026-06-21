@@ -27,7 +27,16 @@ const ValidationErrorModal = ({ show, errors, onClose, onHide, title = 'Validati
       if (typeof errors === 'string') {
         setDisplayErrors([{ field: 'General', message: errors }]);
       } else if (Array.isArray(errors)) {
-        setDisplayErrors(errors);
+        // Map express-validator objects { path/param, msg } to standard { field, message }
+        const mappedErrors = errors.map((err, idx) => ({
+          field: String(err.field || err.path || err.param || `Field ${idx + 1}`)
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, l => l.toUpperCase()),
+          message: typeof (err.message || err.msg) === 'string'
+            ? (err.message || err.msg)
+            : String(err.message || err.msg || 'Invalid value')
+        }));
+        setDisplayErrors(mappedErrors);
       } else if (typeof errors === 'object') {
         // Handle object format: { fieldName: 'error message' }
         const errorArray = Object.entries(errors)

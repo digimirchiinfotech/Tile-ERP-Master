@@ -131,7 +131,7 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
         address: safeLead.address || '',
         source: safeLead.source || '',
         priority: safeLead.priority || 'Medium',
-        salesPerson: safeLead.salesPerson || safeLead.assignedTo || '',
+        salesPerson: safeLead.assignedTo || safeLead.salesPerson || '',
         status: safeLead.status || 'New',
         expectedCloseDate: safeLead.expectedCloseDate || '',
         leadValue: parseFloat(safeLead.leadValue) || 0,

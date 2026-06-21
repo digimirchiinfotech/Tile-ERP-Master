@@ -138,8 +138,23 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
         productInterests: normalizedProductInterests,
         notes: safeLead.notes || '',
       });
+
+      // Bind the select client dropdown to lead.client_id or clientName fallback match
+      if (safeLead.client_id) {
+        setSelectedClient(safeLead.client_id);
+      } else if (clients && clients.length > 0) {
+        const matchingClient = clients.find(c => 
+          c.clientName && safeLead.companyName &&
+          c.clientName.trim().toLowerCase() === safeLead.companyName.trim().toLowerCase()
+        );
+        if (matchingClient) {
+          setSelectedClient(matchingClient.id);
+        } else {
+          setSelectedClient('');
+        }
+      }
     }
-  }, [lead]);
+  }, [lead, clients]);
 
   useEffect(() => {
     const fetchCountries = async () => {
@@ -370,6 +385,7 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
         expected_value: formData.leadValue || 0,
         timeline: formData.expectedCloseDate || null,
         notes: formData.notes || '',
+        client_id: selectedClient || null,
       };
       onSave(leadData);
     }
@@ -401,7 +417,7 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                             style={{ color: '#000' }}
                           >
                             <option value="" style={{ color: '#000' }}>-- Select a client to auto-fill details, or enter manually below --</option>
-                            {clients.filter(c => c.status !== 'Inactive' || c.id === formData.companyName).map((client) => (
+                            {clients.filter(c => c.status !== 'Inactive' || c.id === selectedClient).map((client) => (
                               <option key={client.id} value={client.id}>
                                 {client.clientName}
                               </option>

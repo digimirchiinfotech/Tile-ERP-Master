@@ -299,6 +299,13 @@ export const runGlobalSchemaMigration = async () => {
             ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS deleted_by UUID;
             ALTER TABLE leads ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
             ALTER TABLE leads ADD COLUMN IF NOT EXISTS deleted_by UUID;
+            -- ── 2026-06-21: Add client_id column to leads
+            IF NOT EXISTS (
+              SELECT 1 FROM information_schema.columns
+              WHERE table_name = 'leads' AND column_name = 'client_id'
+            ) THEN
+              ALTER TABLE leads ADD COLUMN client_id UUID REFERENCES clients(id) ON DELETE SET NULL;
+            END IF;
             ALTER TABLE account_entries ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
             ALTER TABLE account_entries ADD COLUMN IF NOT EXISTS deleted_by UUID;
             ALTER TABLE shipping_instructions ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;

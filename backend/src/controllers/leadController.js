@@ -156,7 +156,7 @@ export const create = async (req, res, next) => {
     const {
       company_name, contact_person_name, email_id, contact_number, address, city, country,
       source, priority = 'Medium', status = 'New', product_interest,
-      expected_value, timeline, assigned_to, notes
+      expected_value, timeline, assigned_to, notes, client_id
     } = req.body;
 
     // Use req.companyFilter which is already validated by auth middleware
@@ -172,14 +172,15 @@ export const create = async (req, res, next) => {
       `INSERT INTO leads 
        (company_id, lead_id, name, company_name, contact_person_name, email_id, contact_number, address, 
         city, country, source, priority, status, product_interest, expected_value,
-        timeline, assigned_to, notes, created_by, created_at, updated_at)
-       VALUES ($1, $2, $3, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        timeline, assigned_to, notes, created_by, client_id, created_at, updated_at)
+       VALUES ($1, $2, $3, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
        RETURNING id`,
       [
         companyId, leadId, normalizeEmptyToNull(company_name), normalizeEmptyToNull(contact_person_name), normalizeEmptyToNull(email_id),
         normalizeEmptyToNull(contact_number), normalizeEmptyToNull(address), normalizeEmptyToNull(city), normalizeEmptyToNull(country), normalizeEmptyToNull(source),
         priority || 'Medium', status || 'New', normalizeEmptyToNull(product_interest), normalizeEmptyToNull(expected_value),
-        normalizeEmptyToNull(timeline), normalizeEmptyToNull(assigned_to), normalizeEmptyToNull(notes), req.user.id
+        normalizeEmptyToNull(timeline), normalizeEmptyToNull(assigned_to), normalizeEmptyToNull(notes), req.user.id,
+        normalizeEmptyToNull(client_id)
       ]
     );
 
@@ -220,7 +221,7 @@ export const update = async (req, res, next) => {
     const {
       company_name, contact_person_name, email_id, contact_number, address, city, country,
       source, priority, status, product_interest, expected_value,
-      timeline, assigned_to, notes
+      timeline, assigned_to, notes, client_id
     } = req.body;
 
     let whereConditions = 'WHERE id = $1';
@@ -336,6 +337,12 @@ export const update = async (req, res, next) => {
     if (notes !== undefined) {
       updates.push(`notes = $${paramCount}`);
       values.push(normalizeEmptyToNull(notes));
+      paramCount++;
+    }
+
+    if (client_id !== undefined) {
+      updates.push(`client_id = $${paramCount}`);
+      values.push(normalizeEmptyToNull(client_id));
       paramCount++;
     }
 

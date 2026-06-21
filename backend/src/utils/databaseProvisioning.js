@@ -352,6 +352,7 @@ export const provisionCompanyDatabase = async (company) => {
         proforma_order_id UUID,
         assigned_to UUID,
         created_by UUID,
+        client_id UUID REFERENCES clients(id) ON DELETE SET NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );      -- ID Counters table

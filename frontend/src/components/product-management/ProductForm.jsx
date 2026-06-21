@@ -609,7 +609,7 @@ function ProductForm({
                       </Form.Group>
                     </Col>
 
-                    <Col xs={12}>
+                    <Col xs={12} md={6}>
                       <Form.Group>
                         <Form.Label>Product Code</Form.Label>
                         <Form.Control
@@ -627,7 +627,7 @@ function ProductForm({
                       </Form.Group>
                     </Col>
 
-                    <Col xs={12}>
+                    <Col xs={12} md={6}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>Catalogue mapping for this product</Tooltip>}>
                           <Form.Label className="text-primary" style={{cursor: 'help'}}>
@@ -664,7 +664,7 @@ function ProductForm({
                 </Card.Header>
                 <Card.Body>
                   <Row className="g-3">
-                    <Col xs={12}>
+                    <Col xs={12} md={6}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>Product category is mandatory (e.g. Porcelain, Ceramic).</Tooltip>}>
                           <Form.Label className="text-danger" style={{cursor: 'help'}}>
@@ -689,7 +689,7 @@ function ProductForm({
                       </Form.Group>
                     </Col>
 
-                    <Col xs={12}>
+                    <Col xs={12} md={6}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>Size is mandatory.</Tooltip>}>
                           <Form.Label className="text-danger" style={{cursor: 'help'}}>
@@ -714,7 +714,7 @@ function ProductForm({
                       </Form.Group>
                     </Col>
 
-                    <Col xs={12}>
+                    <Col xs={12} md={6}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>Surface is mandatory.</Tooltip>}>
                           <Form.Label className="text-danger" style={{cursor: 'help'}}>
@@ -739,7 +739,7 @@ function ProductForm({
                       </Form.Group>
                     </Col>
 
-                    <Col xs={12}>
+                    <Col xs={12} md={6}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>Thickness is mandatory.</Tooltip>}>
                           <Form.Label className="text-danger" style={{cursor: 'help'}}>
@@ -765,7 +765,7 @@ function ProductForm({
                       </Form.Group>
                     </Col>
 
-                    <Col xs={12}>
+                    <Col xs={12} md={6}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>Application is mandatory.</Tooltip>}>
                           <Form.Label className="text-danger" style={{cursor: 'help'}}>
@@ -790,7 +790,7 @@ function ProductForm({
                       </Form.Group>
                     </Col>
 
-                    <Col xs={12}>
+                    <Col xs={12} md={6}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>HSN Code is mandatory.</Tooltip>}>
                           <Form.Label className="text-danger" style={{cursor: 'help'}}>

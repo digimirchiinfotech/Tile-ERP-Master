@@ -428,9 +428,6 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                         <Form.Control.Feedback type="invalid">
                           {errors.companyName}
                         </Form.Control.Feedback>
-                        <Form.Text className="text-muted">
-                          {FIELD_PLACEHOLDERS.companyName.validation}
-                        </Form.Text>
                       </Form.Group>
                     </Col>
                     <Col xs={12} md={6}>
@@ -448,9 +445,6 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                         <Form.Control.Feedback type="invalid">
                           {errors.clientName}
                         </Form.Control.Feedback>
-                        <Form.Text className="text-muted">
-                          {FIELD_PLACEHOLDERS.contactPersonName.validation}
-                        </Form.Text>
                       </Form.Group>
                     </Col>
                     <Col xs={12} md={6}>
@@ -468,9 +462,6 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                         <Form.Control.Feedback type="invalid">
                           {errors.contactNumber}
                         </Form.Control.Feedback>
-                        <Form.Text className="text-muted">
-                          {FIELD_PLACEHOLDERS.contactNumber.validation}
-                        </Form.Text>
                       </Form.Group>
                     </Col>
                     <Col xs={12} md={6}>
@@ -488,9 +479,6 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                         <Form.Control.Feedback type="invalid">
                           {errors.emailId}
                         </Form.Control.Feedback>
-                        <Form.Text className="text-muted">
-                          {FIELD_PLACEHOLDERS.emailId.validation}
-                        </Form.Text>
                       </Form.Group>
                     </Col>
                     <Col xs={12} md={6}>
@@ -545,9 +533,6 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                         <Form.Control.Feedback type="invalid">
                           {errors.address}
                         </Form.Control.Feedback>
-                        <Form.Text className="text-muted">
-                          {FIELD_PLACEHOLDERS.address.validation}
-                        </Form.Text>
                       </Form.Group>
                     </Col>
                   </Row>

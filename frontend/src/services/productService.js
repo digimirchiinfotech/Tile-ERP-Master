@@ -57,6 +57,6 @@ export const productService = {
   },
 
   validateImport: async (products) => {
-    return await api.post('/products/validate-import', { products });
+    return await api.post('/products/validate-import', { products }, { skipTransform: true });
   },
 };

@@ -69,7 +69,7 @@ function LeadView({ lead, onClose, onEdit, onConvert, canEdit }) {
   };
 
   return (
-    <Modal show={true} onHide={onClose} size="xl" backdrop="static" dialogClassName="lead-details-modal">
+    <Modal contentClassName="glass-modal" show={true} onHide={onClose} size="xl" backdrop="static" dialogClassName="lead-details-modal">
       <Modal.Body className="p-4 bg-light position-relative" style={{ borderRadius: '16px', overflow: 'hidden' }}>
         
         {/* Absolute positioned close button */}

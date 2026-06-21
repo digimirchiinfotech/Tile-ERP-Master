@@ -74,7 +74,7 @@ function SalespersonView({ salesperson, onClose, onEdit, canEdit }) {
   const assignedCatalogues = getAssignedCatalogues();
 
   return (
-    <Modal show={true} onHide={onClose} size="xl" backdrop="static" dialogClassName="salesperson-details-modal">
+    <Modal contentClassName="glass-modal" show={true} onHide={onClose} size="xl" backdrop="static" dialogClassName="salesperson-details-modal">
       <Modal.Body className="p-4 bg-light position-relative" style={{ borderRadius: '16px', overflow: 'hidden' }}>
         
         {/* Absolute positioned close button */}

@@ -2560,3 +2560,97 @@ input[type="number"]::-webkit-outer-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+/* --- Added for UI/UX Overhaul --- */
+
+/* Glass Modal */
+.glass-modal .modal-content {
+  background: var(--app-glass-bg) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--app-glass-border) !important;
+  border-radius: var(--app-border-radius-lg);
+  box-shadow: var(--app-shadow-xl);
+}
+
+.glass-modal .modal-header {
+  background: transparent !important;
+  border-bottom: 1px solid var(--app-border-color);
+  border-radius: var(--app-border-radius-lg) var(--app-border-radius-lg) 0 0;
+}
+
+/* Premium Data Grid */
+.premium-data-grid {
+  border-radius: var(--app-border-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--app-shadow-premium);
+  background: #fff;
+  border: 1px solid #e2e8f0;
+}
+
+.premium-data-grid .table-container {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 65vh;
+}
+
+.premium-data-grid table {
+  margin-bottom: 0;
+  width: 100%;
+}
+
+.premium-data-grid thead th {
+  position: sticky;
+  top: 0;
+  background: #f8fafc !important;
+  z-index: 10;
+  border-bottom: 2px solid #e2e8f0;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.05);
+}
+
+.premium-data-grid tbody tr {
+  transition: all 0.2s ease;
+}
+
+.premium-data-grid tbody tr:hover {
+  background-color: #f1f5f9;
+  transform: scale(1.001);
+}
+
+.premium-data-grid tbody tr:nth-of-type(even) {
+  background-color: rgba(248, 250, 252, 0.5);
+}
+
+/* Premium Form Inputs */
+.premium-input {
+  border-radius: 12px !important;
+  border: 1px solid var(--app-border-color) !important;
+  padding: 0.75rem 1rem !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  background-color: #f8fafc !important;
+}
+
+.premium-input:focus {
+  background-color: #ffffff !important;
+  border-color: var(--app-primary) !important;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15) !important;
+  transform: translateY(-1px);
+}
+
+.premium-input.is-invalid {
+  border-color: var(--app-danger) !important;
+  background-color: #fef2f2 !important;
+}
+
+.premium-input.is-invalid:focus {
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15) !important;
+}
+
+.premium-form-label {
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #475569 !important;
+  margin-bottom: 0.5rem;
+}

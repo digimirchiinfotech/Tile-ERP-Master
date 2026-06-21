@@ -156,7 +156,7 @@ function QCView({ qcRecord, onClose, onEdit, onPrint, onDownload, canEdit }) {
   };
 
   return (
-    <Modal show={true} onHide={onClose} fullscreen backdrop="static">
+    <Modal contentClassName="glass-modal" show={true} onHide={onClose} fullscreen backdrop="static">
       <Modal.Header closeButton>
         <Modal.Title>QC Record Details - {qcRecord.qcId}</Modal.Title>
       </Modal.Header>

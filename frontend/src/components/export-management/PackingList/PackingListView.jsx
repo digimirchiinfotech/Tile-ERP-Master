@@ -41,7 +41,7 @@ function PackingListView({ packingList, onClose, onEdit, canEdit }) {
   };
 
   return (
-    <Modal show={true} onHide={onClose} size="xl" backdrop="static">
+    <Modal contentClassName="glass-modal" show={true} onHide={onClose} size="xl" backdrop="static">
       <Modal.Header closeButton>
         <Modal.Title>
           <Package size={20} className="me-2" />

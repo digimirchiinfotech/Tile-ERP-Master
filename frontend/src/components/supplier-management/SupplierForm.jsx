@@ -222,7 +222,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
         name={name}
         control={control}
         render={({ field }) => (
-          <Form.Control
+          <Form.Control className="premium-input"
             as={isTextarea ? 'textarea' : 'input'}
             rows={isTextarea ? 2 : undefined}
             type={isEmail ? 'email' : 'text'}
@@ -233,12 +233,12 @@ function SupplierForm({ supplier, onSave, onCancel }) {
           />
         )}
       />
-      {errors[name] && <Form.Control.Feedback type="invalid">{errors[name].message}</Form.Control.Feedback>}
+      {errors[name] && <Form.Control className="premium-input".Feedback type="invalid">{errors[name].message}</Form.Control.Feedback>}
     </Form.Group>
   );
 
   return (
-    <Modal show={true} onHide={onCancel} size="xl" backdrop="static">
+    <Modal contentClassName="glass-modal" show={true} onHide={onCancel} size="xl" backdrop="static">
       <Modal.Header closeButton>
         <Modal.Title>{supplier ? 'Edit Supplier' : 'Create Supplier'} <small className="text-muted ms-2" style={{fontSize: '0.6em'}}>(Press Ctrl+S to save)</small></Modal.Title>
       </Modal.Header>
@@ -316,7 +316,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
                       <Form.Group>
                         <Form.Label>Status</Form.Label>
                         <Controller name="status" control={control} render={({ field }) => (
-                          <Form.Select {...field}>
+                          <Form.Select className="premium-input" {...field}>
                             <option value="Active">Active</option>
                             <option value="Inactive">Inactive</option>
                             <option value="Blacklisted">Blacklisted</option>
@@ -328,7 +328,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
                       <Form.Group>
                         <Form.Label>Quality Rating</Form.Label>
                         <Controller name="qualityRating" control={control} render={({ field }) => (
-                          <Form.Select {...field} value={field.value || ''} onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}>
+                          <Form.Select className="premium-input" {...field} value={field.value || ''} onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}>
                             <option value="">Select Rating</option>
                             <option value="1">1 - Poor</option>
                             <option value="2">2 - Fair</option>
@@ -343,9 +343,9 @@ function SupplierForm({ supplier, onSave, onCancel }) {
                       <Form.Group>
                         <Form.Label>Website</Form.Label>
                         <Controller name="website" control={control} render={({ field }) => (
-                          <Form.Control type="url" {...field} placeholder="e.g., https://www.supplier.com" isInvalid={!!errors.website} />
+                          <Form.Control className="premium-input" type="url" {...field} placeholder="e.g., https://www.supplier.com" isInvalid={!!errors.website} />
                         )} />
-                        {errors.website && <Form.Control.Feedback type="invalid">{errors.website.message}</Form.Control.Feedback>}
+                        {errors.website && <Form.Control className="premium-input".Feedback type="invalid">{errors.website.message}</Form.Control.Feedback>}
                       </Form.Group>
                     </Col>
                   </Row>
@@ -403,7 +403,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
                       <Form.Group>
                         <Form.Label>Bank Name</Form.Label>
                         <Controller name="bankDetails.bankName" control={control} render={({ field }) => (
-                          <Form.Control type="text" {...field} onChange={(e) => handleControlledChange('bankName', e.target.value, field.onChange, true)} placeholder="e.g., HDFC Bank" />
+                          <Form.Control className="premium-input" type="text" {...field} onChange={(e) => handleControlledChange('bankName', e.target.value, field.onChange, true)} placeholder="e.g., HDFC Bank" />
                         )} />
                       </Form.Group>
                     </Col>
@@ -411,7 +411,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
                       <Form.Group>
                         <Form.Label>Branch</Form.Label>
                         <Controller name="bankDetails.branch" control={control} render={({ field }) => (
-                          <Form.Control type="text" {...field} onChange={(e) => handleControlledChange('branch', e.target.value, field.onChange, true)} placeholder="e.g., Morbi Branch" />
+                          <Form.Control className="premium-input" type="text" {...field} onChange={(e) => handleControlledChange('branch', e.target.value, field.onChange, true)} placeholder="e.g., Morbi Branch" />
                         )} />
                       </Form.Group>
                     </Col>
@@ -419,18 +419,18 @@ function SupplierForm({ supplier, onSave, onCancel }) {
                       <Form.Group>
                         <Form.Label>Account Number</Form.Label>
                         <Controller name="bankDetails.accountNumber" control={control} render={({ field }) => (
-                          <Form.Control type="text" {...field} onChange={(e) => handleControlledChange('accountNumber', e.target.value, field.onChange, true)} placeholder="Enter account number" maxLength={18} isInvalid={!!errors.bankDetails?.accountNumber} />
+                          <Form.Control className="premium-input" type="text" {...field} onChange={(e) => handleControlledChange('accountNumber', e.target.value, field.onChange, true)} placeholder="Enter account number" maxLength={18} isInvalid={!!errors.bankDetails?.accountNumber} />
                         )} />
-                        {errors.bankDetails?.accountNumber && <Form.Control.Feedback type="invalid">{errors.bankDetails.accountNumber.message}</Form.Control.Feedback>}
+                        {errors.bankDetails?.accountNumber && <Form.Control className="premium-input".Feedback type="invalid">{errors.bankDetails.accountNumber.message}</Form.Control.Feedback>}
                       </Form.Group>
                     </Col>
                     <Col md={6}>
                       <Form.Group>
                         <Form.Label>IFSC Code</Form.Label>
                         <Controller name="bankDetails.ifscCode" control={control} render={({ field }) => (
-                          <Form.Control type="text" {...field} onChange={(e) => handleControlledChange('ifscCode', e.target.value, field.onChange, true)} placeholder="e.g., HDFC0000123" maxLength={11} isInvalid={!!errors.bankDetails?.ifscCode} />
+                          <Form.Control className="premium-input" type="text" {...field} onChange={(e) => handleControlledChange('ifscCode', e.target.value, field.onChange, true)} placeholder="e.g., HDFC0000123" maxLength={11} isInvalid={!!errors.bankDetails?.ifscCode} />
                         )} />
-                        {errors.bankDetails?.ifscCode && <Form.Control.Feedback type="invalid">{errors.bankDetails.ifscCode.message}</Form.Control.Feedback>}
+                        {errors.bankDetails?.ifscCode && <Form.Control className="premium-input".Feedback type="invalid">{errors.bankDetails.ifscCode.message}</Form.Control.Feedback>}
                       </Form.Group>
                     </Col>
                   </Row>
@@ -457,7 +457,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
                 <Card.Header><h6 className="mb-0 text-primary">Additional Notes</h6></Card.Header>
                 <Card.Body>
                   <Controller name="notes" control={control} render={({ field }) => (
-                    <Form.Control as="textarea" rows={3} {...field} onChange={(e) => handleControlledChange('notes', e.target.value, field.onChange)} placeholder="Enter any additional notes... (optional)" />
+                    <Form.Control className="premium-input" as="textarea" rows={3} {...field} onChange={(e) => handleControlledChange('notes', e.target.value, field.onChange)} placeholder="Enter any additional notes... (optional)" />
                   )} />
                 </Card.Body>
               </Card>

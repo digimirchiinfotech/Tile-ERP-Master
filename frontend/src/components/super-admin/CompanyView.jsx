@@ -71,7 +71,7 @@ function CompanyView({ company, onClose, onEdit }) {
   };
 
   return (
-    <Modal show={true} onHide={onClose} size="xl" backdrop="static">
+    <Modal contentClassName="glass-modal" show={true} onHide={onClose} size="xl" backdrop="static">
       <Modal.Header closeButton>
         <Modal.Title>Company Details - {company.name}</Modal.Title>
       </Modal.Header>

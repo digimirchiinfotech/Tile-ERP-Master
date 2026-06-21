@@ -45,7 +45,7 @@ function SupplierView({ supplier, onClose, onEdit, canEdit }) {
   const getRatingStars = (rating) => renderStars(rating, { max: 5, size: 16, showNumber: true });
 
   return (
-    <Modal show={true} onHide={onClose} size="xl" backdrop="static" dialogClassName="supplier-details-modal">
+    <Modal contentClassName="glass-modal" show={true} onHide={onClose} size="xl" backdrop="static" dialogClassName="supplier-details-modal">
       <Modal.Body className="p-4 bg-light position-relative" style={{ borderRadius: '16px', overflow: 'hidden' }}>
         
         {/* Absolute positioned close button */}

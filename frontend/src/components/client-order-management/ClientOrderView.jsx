@@ -63,7 +63,7 @@ function ClientOrderView({ order, onClose, onEdit, canEdit }) {
   const totalValue = order.totalAmount || order.orderValue || order.amount || productLines.reduce((sum, p) => sum + (p.totalValue || p.amount || 0), 0);
 
   return (
-    <Modal show={true} onHide={onClose} size="xl" backdrop="static" dialogClassName="client-order-details-modal">
+    <Modal contentClassName="glass-modal" show={true} onHide={onClose} size="xl" backdrop="static" dialogClassName="client-order-details-modal">
       <Modal.Body className="p-4 bg-light position-relative" style={{ borderRadius: '16px', overflow: 'hidden' }}>
         
         {/* Absolute positioned close button */}

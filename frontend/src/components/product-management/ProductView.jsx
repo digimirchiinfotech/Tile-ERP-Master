@@ -47,7 +47,7 @@ function ProductView({ product, onClose, onEdit, canEdit }) {
 
   return (
     <>
-      <Modal show={true} onHide={onClose} size="xl" backdrop="static">
+      <Modal contentClassName="glass-modal" show={true} onHide={onClose} size="xl" backdrop="static">
         <Modal.Header closeButton>
           <Modal.Title>
             Product Details - {product.name}

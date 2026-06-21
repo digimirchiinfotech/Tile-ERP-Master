@@ -1319,7 +1319,7 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
             <Col md={3}>
               <Form.Group>
                 <Form.Label>Proforma Order No. *</Form.Label>
-                <Form.Control
+                <Form.Control className="premium-input"
                   type="text"
                   value={formData.orderNo}
                   readOnly
@@ -1330,7 +1330,7 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
             <Col md={3}>
               <Form.Group>
                 <Form.Label>Date *</Form.Label>
-                <Form.Control
+                <Form.Control className="premium-input"
                   type="date"
                   value={formData.date}
                   onChange={(e) => handleInputChange('date', e.target.value)}
@@ -1344,7 +1344,7 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
                     PI Reference * <Info size={12} className="ms-1" />
                   </Form.Label>
                 </OverlayTrigger>
-                <Form.Select
+                <Form.Select className="premium-input"
                   value={formData.piReference}
                   onChange={(e) => {
                     handlePIReferenceChange(e.target.value);
@@ -1373,7 +1373,7 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
                     Supplier * <Info size={12} className="ms-1" />
                   </Form.Label>
                 </OverlayTrigger>
-                  <Form.Select
+                  <Form.Select className="premium-input"
                     value={formData.supplier}
                     onChange={(e) => {
                       handleSupplierChange(e.target.value);
@@ -1463,7 +1463,7 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
             <Col md={12}>
               <Form.Group>
                 <Form.Label>Supplier Details</Form.Label>
-                <Form.Control
+                <Form.Control className="premium-input"
                   as="textarea"
                   rows={4}
                   placeholder={FIELD_PLACEHOLDERS.notes.placeholder}
@@ -1506,7 +1506,7 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
             <Col md={4}>
               <Form.Group>
                 <Form.Label>GST Rate (%)</Form.Label>
-                <Form.Control
+                <Form.Control className="premium-input"
                   type="number"
                   step="0.1"
                   min="0"
@@ -1521,7 +1521,7 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
             <Col md={4}>
               <Form.Group>
                 <Form.Label>GST Amount</Form.Label>
-                <Form.Control
+                <Form.Control className="premium-input"
                   type="text"
                   value={(formData.gstAmount || 0).toFixed ? (formData.gstAmount || 0).toFixed(2) : '0.00'}
                   readOnly
@@ -1532,7 +1532,7 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
             <Col md={4}>
               <Form.Group>
                 <Form.Label>PO Value</Form.Label>
-                <Form.Control
+                <Form.Control className="premium-input"
                   type="text"
                   value={(formData.poValue || 0).toFixed ? (formData.poValue || 0).toFixed(2) : '0.00'}
                   readOnly
@@ -1655,7 +1655,7 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
                     Fumigation * <Info size={12} className="ms-1" />
                   </Form.Label>
                 </OverlayTrigger>
-                <Form.Select
+                <Form.Select className="premium-input"
                   value={formData.fumigation}
                   onChange={(e) =>
                     handleInputChange('fumigation', e.target.value)
@@ -1674,7 +1674,7 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
                     Legalisation * <Info size={12} className="ms-1" />
                   </Form.Label>
                 </OverlayTrigger>
-                <Form.Select
+                <Form.Select className="premium-input"
                   value={formData.legalisation}
                   onChange={(e) =>
                     handleInputChange('legalisation', e.target.value)
@@ -1729,7 +1729,7 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
                 <Row className="g-3">
                   <Col md={4}>
                     <Form.Label className="form-label-enhanced text-muted small mb-1">LC Number</Form.Label>
-                    <Form.Control
+                    <Form.Control className="premium-input"
                       type="text"
                       placeholder="Enter LC Number"
                       value={formData.lcNumber}
@@ -1739,7 +1739,7 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
                   </Col>
                   <Col md={4}>
                     <Form.Label className="form-label-enhanced text-muted small mb-1">LC Date</Form.Label>
-                    <Form.Control
+                    <Form.Control className="premium-input"
                       type="date"
                       value={formData.lcDate}
                       onChange={(e) => handleInputChange('lcDate', e.target.value)}
@@ -1748,7 +1748,7 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
                   </Col>
                   <Col md={4}>
                     <Form.Label className="form-label-enhanced text-muted small mb-1">EPCG No.</Form.Label>
-                    <Form.Control
+                    <Form.Control className="premium-input"
                       type="text"
                       placeholder="Enter EPCG No."
                       value={formData.epcgNo}
@@ -1765,7 +1765,7 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
             <Col md={12}>
               <Form.Group>
                 <Form.Label>Other Instructions</Form.Label>
-                <Form.Control
+                <Form.Control className="premium-input"
                   as="textarea"
                   rows={3}
                   value={formData.otherInstructions}
@@ -1958,14 +1958,14 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
       )}
 
       {/* Revision Reason Prompt Modal */}
-      <Modal show={showRevisionModal} onHide={() => setShowRevisionModal(false)} centered>
+      <Modal contentClassName="glass-modal" show={showRevisionModal} onHide={() => setShowRevisionModal(false)} centered>
         <Modal.Header closeButton className="bg-primary text-white">
           <Modal.Title className="fw-bold text-white">Reason for Revision</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form.Group className="mb-3">
             <Form.Label className="fw-semibold">Please provide a reason for editing/revising this document:</Form.Label>
-            <Form.Control
+            <Form.Control className="premium-input"
               as="textarea"
               rows={3}
               value={revisionReason}

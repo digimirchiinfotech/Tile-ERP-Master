@@ -27,7 +27,7 @@ function ClientView({ client, onClose, onEdit, canEdit }) {
   };
 
   return (
-    <Modal show={true} onHide={onClose} size="xl" backdrop="static" dialogClassName="client-details-modal">
+    <Modal contentClassName="glass-modal" show={true} onHide={onClose} size="xl" backdrop="static" dialogClassName="client-details-modal">
       <Modal.Body className="p-4 bg-light position-relative" style={{ borderRadius: '16px', overflow: 'hidden' }}>
         
         {/* Absolute positioned close button */}

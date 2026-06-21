@@ -34,7 +34,7 @@ function CatalogueView({ catalogue, onClose, onEdit, canEdit, products = [] }) {
   };
 
   return (
-    <Modal show={true} onHide={onClose} size="xl" backdrop="static">
+    <Modal contentClassName="glass-modal" show={true} onHide={onClose} size="xl" backdrop="static">
       <Modal.Header closeButton>
         <Modal.Title>Catalogue Details - {catalogue.name}</Modal.Title>
       </Modal.Header>

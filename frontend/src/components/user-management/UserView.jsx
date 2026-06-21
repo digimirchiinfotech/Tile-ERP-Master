@@ -44,7 +44,7 @@ function UserView({ user, onClose, onEdit, canEdit, userRoles }) {
   };
 
   return (
-    <Modal show={true} onHide={onClose} size="lg" backdrop="static" dialogClassName="user-details-modal">
+    <Modal contentClassName="glass-modal" show={true} onHide={onClose} size="lg" backdrop="static" dialogClassName="user-details-modal">
       <Modal.Body className="p-4 bg-light position-relative" style={{ borderRadius: '16px', overflow: 'hidden' }}>
         
         {/* Absolute positioned close button */}

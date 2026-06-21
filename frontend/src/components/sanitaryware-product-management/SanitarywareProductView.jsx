@@ -27,7 +27,7 @@ function SanitarywareProductView({ product, onCancel }) {
   const utilWeight = pcsWeightLimit * wpp;
 
   return (
-    <Modal show={true} onHide={onCancel} size="xl" centered className="product-view-modal">
+    <Modal contentClassName="glass-modal" show={true} onHide={onCancel} size="xl" centered className="product-view-modal">
       <Modal.Header closeButton className="bg-primary text-white py-3">
         <Modal.Title className="fw-bold d-flex align-items-center">
           <Eye size={20} className="me-2" />
@@ -38,7 +38,7 @@ function SanitarywareProductView({ product, onCancel }) {
         <Row className="g-4">
           {/* Images/Specs */}
           <Col lg={4}>
-            <Card className="border-0 shadow-sm overflow-hidden mb-4" style={{ borderRadius: '16px' }}>
+            <PremiumCard className="mb-3">
               <div className="bg-light d-flex align-items-center justify-content-center" style={{ minHeight: '260px', position: 'relative' }}>
                 {product.images && product.images.length > 0 ? (
                   <img
@@ -61,7 +61,7 @@ function SanitarywareProductView({ product, onCancel }) {
                   {product.status || 'Active'}
                 </Badge>
               </div>
-              <Card.Body className="bg-white border-top">
+              <PremiumCard.Body className="bg-white border-top">
                 <div className="d-flex align-items-center justify-content-between mb-2">
                   <span className="text-muted small">Category</span>
                   <span className="badge bg-primary-light text-primary fw-bold px-2 py-1">{product.category}</span>
@@ -78,19 +78,19 @@ function SanitarywareProductView({ product, onCancel }) {
                   <span className="text-muted small">Ref ID</span>
                   <span className="text-muted font-monospace small">{product.item_ref || 'N/A'}</span>
                 </div>
-              </Card.Body>
-            </Card>
+              </PremiumCard.Body>
+            </PremiumCard>
 
 
           </Col>
 
           {/* Details & Capacity */}
           <Col lg={8}>
-            <Card className="border-0 shadow-sm mb-4" style={{ borderRadius: '16px' }}>
-              <Card.Header className="bg-white border-0 pt-4 pb-0 fw-bold text-dark">
+            <PremiumCard className="mb-3">
+              <PremiumCard.Header className="bg-white border-0 pt-4 pb-0 fw-bold text-dark">
                 📐 Technical Attributes
-              </Card.Header>
-              <Card.Body>
+              </PremiumCard.Header>
+              <PremiumCard.Body>
                 <Row className="g-3">
                   <Col md={6}>
                     <Table borderless size="sm" className="mb-0 text-dark small">
@@ -147,15 +147,15 @@ function SanitarywareProductView({ product, onCancel }) {
                     </Table>
                   </Col>
                 </Row>
-              </Card.Body>
-            </Card>
+              </PremiumCard.Body>
+            </PremiumCard>
 
             {/* Calculations & Packaging info */}
-            <Card className="border-0 shadow-sm mb-4" style={{ borderRadius: '16px' }}>
-              <Card.Header className="bg-white border-0 pt-4 pb-0 fw-bold text-dark">
+            <PremiumCard className="mb-3">
+              <PremiumCard.Header className="bg-white border-0 pt-4 pb-0 fw-bold text-dark">
                 📦 Packaging Logic
-              </Card.Header>
-              <Card.Body>
+              </PremiumCard.Header>
+              <PremiumCard.Body>
                 <Row className="g-3">
                   <Col md={6} className="border-end">
                     <div className="p-3 text-center">
@@ -170,15 +170,15 @@ function SanitarywareProductView({ product, onCancel }) {
                     </div>
                   </Col>
                 </Row>
-              </Card.Body>
-            </Card>
+              </PremiumCard.Body>
+            </PremiumCard>
 
             {/* Container Capacity Calculations */}
-            <Card className="border-0 shadow-sm" style={{ borderRadius: '16px', overflow: 'hidden' }}>
-              <Card.Header className="bg-primary text-white py-3 fw-bold">
+            <PremiumCard className="mb-3">
+              <PremiumCard.Header className="bg-primary text-white py-3 fw-bold">
                 🚢 Container Capacity Estimates (Weight Bound)
-              </Card.Header>
-              <Card.Body className="p-0">
+              </PremiumCard.Header>
+              <PremiumCard.Body className="p-0">
                 <Table hover className="mb-0 text-dark small align-middle">
                   <thead className="table-light">
                     <tr>
@@ -199,8 +199,8 @@ function SanitarywareProductView({ product, onCancel }) {
                     </tr>
                   </tbody>
                 </Table>
-              </Card.Body>
-            </Card>
+              </PremiumCard.Body>
+            </PremiumCard>
           </Col>
         </Row>
       </Modal.Body>

@@ -30,6 +30,8 @@ import { downloadPDF } from '../../utils/pdfGenerator.js';
 import FilterPanel from '../shared/FilterPanel.jsx';
 import StatusBadge from '../common/StatusBadge';
 import ActivityTimeline from '../shared/ActivityTimeline.jsx';
+import PremiumCard from '../shared/PremiumCard.jsx';
+import PremiumDataGrid from '../shared/PremiumDataGrid.jsx';
 
 
 function UserDashboard({ currentUser, onNavigate, navigationData }) {

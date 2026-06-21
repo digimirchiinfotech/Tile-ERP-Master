@@ -36,6 +36,8 @@ import { showSuccess, showError } from '../shared/NotificationManager.jsx';
 import { formatPrice } from '../../utils/formatters.js';
 import StatusBadge from '../common/StatusBadge';
 import ActivityTimeline from '../shared/ActivityTimeline.jsx';
+import PremiumCard from '../shared/PremiumCard.jsx';
+import PremiumDataGrid from '../shared/PremiumDataGrid.jsx';
 
 // Inline edit component for Status
 const InlineStatusEdit = ({ status, onChange, onBlur }) => {

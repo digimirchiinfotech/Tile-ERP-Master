@@ -186,7 +186,7 @@ function UserForm({ user, onSave, onCancel }) {
   };
 
   return (
-    <Modal show={true} onHide={onCancel} size="lg" backdrop="static">
+    <Modal contentClassName="glass-modal" show={true} onHide={onCancel} size="lg" backdrop="static">
       <Modal.Header closeButton>
         <Modal.Title>{user ? 'Edit User' : 'Create User'}</Modal.Title>
       </Modal.Header>
@@ -209,7 +209,7 @@ function UserForm({ user, onSave, onCancel }) {
                             Name * <Info size={12} className="ms-1" />
                           </Form.Label>
                         </OverlayTrigger>
-                        <Form.Control
+                        <Form.Control className="premium-input"
                           type="text"
                           value={formData.name}
                           onChange={(e) => handleInputChange('name', e.target.value)}
@@ -217,7 +217,7 @@ function UserForm({ user, onSave, onCancel }) {
                           placeholder={FIELD_PLACEHOLDERS.name.placeholder}
                           className="py-2"
                         />
-                        <Form.Control.Feedback type="invalid">
+                        <Form.Control className="premium-input".Feedback type="invalid">
                           {errors.name}
                         </Form.Control.Feedback>
                       </Form.Group>
@@ -231,7 +231,7 @@ function UserForm({ user, onSave, onCancel }) {
                             Email ID * <Info size={12} className="ms-1" />
                           </Form.Label>
                         </OverlayTrigger>
-                        <Form.Control
+                        <Form.Control className="premium-input"
                           type="email"
                           value={formData.emailId}
                           onChange={(e) => handleInputChange('emailId', e.target.value)}
@@ -239,7 +239,7 @@ function UserForm({ user, onSave, onCancel }) {
                           placeholder={FIELD_PLACEHOLDERS.emailId.placeholder}
                           className="py-2"
                         />
-                        <Form.Control.Feedback type="invalid">
+                        <Form.Control className="premium-input".Feedback type="invalid">
                           {errors.emailId}
                         </Form.Control.Feedback>
                       </Form.Group>
@@ -252,7 +252,7 @@ function UserForm({ user, onSave, onCancel }) {
                             Contact Number * <Info size={12} className="ms-1" />
                           </Form.Label>
                         </OverlayTrigger>
-                        <Form.Control
+                        <Form.Control className="premium-input"
                           type="text"
                           value={formData.contactNumber}
                           onChange={(e) =>
@@ -262,7 +262,7 @@ function UserForm({ user, onSave, onCancel }) {
                           placeholder={FIELD_PLACEHOLDERS.contactNumber.placeholder}
                           className="py-2"
                         />
-                        <Form.Control.Feedback type="invalid">
+                        <Form.Control className="premium-input".Feedback type="invalid">
                           {errors.contactNumber}
                         </Form.Control.Feedback>
                       </Form.Group>
@@ -283,7 +283,7 @@ function UserForm({ user, onSave, onCancel }) {
                     <Col xs={12} md={4}>
                       <Form.Group>
                         <Form.Label className="fw-bold">Employee ID</Form.Label>
-                        <Form.Control
+                        <Form.Control className="premium-input"
                           type="text"
                           value={formData.employeeId}
                           onChange={(e) => handleInputChange('employeeId', e.target.value)}
@@ -295,7 +295,7 @@ function UserForm({ user, onSave, onCancel }) {
                     <Col xs={12} md={4}>
                       <Form.Group>
                         <Form.Label className="fw-bold">Department</Form.Label>
-                        <Form.Control
+                        <Form.Control className="premium-input"
                           type="text"
                           value={formData.department}
                           onChange={(e) => handleInputChange('department', e.target.value)}
@@ -307,7 +307,7 @@ function UserForm({ user, onSave, onCancel }) {
                     <Col xs={12} md={4}>
                       <Form.Group>
                         <Form.Label className="fw-bold">Designation</Form.Label>
-                        <Form.Control
+                        <Form.Control className="premium-input"
                           type="text"
                           value={formData.designation}
                           onChange={(e) => handleInputChange('designation', e.target.value)}
@@ -337,7 +337,7 @@ function UserForm({ user, onSave, onCancel }) {
                             Role * <Info size={12} className="ms-1" />
                           </Form.Label>
                         </OverlayTrigger>
-                        <Form.Select
+                        <Form.Select className="premium-input"
                           value={formData.role}
                           onChange={(e) => handleInputChange('role', e.target.value)}
                           isInvalid={!!errors.role}
@@ -350,7 +350,7 @@ function UserForm({ user, onSave, onCancel }) {
                             </option>
                           ))}
                         </Form.Select>
-                        <Form.Control.Feedback type="invalid">
+                        <Form.Control className="premium-input".Feedback type="invalid">
                           {errors.role}
                         </Form.Control.Feedback>
                       </Form.Group>
@@ -360,7 +360,7 @@ function UserForm({ user, onSave, onCancel }) {
                     <Col xs={12} md={6}>
                       <Form.Group>
                         <Form.Label className="fw-bold">Status</Form.Label>
-                        <Form.Select
+                        <Form.Select className="premium-input"
                           value={formData.status}
                           onChange={(e) => handleInputChange('status', e.target.value)}
                           className="py-2"
@@ -395,7 +395,7 @@ function UserForm({ user, onSave, onCancel }) {
                           )}
                         </Form.Label>
                         <div className="position-relative">
-                          <Form.Control
+                          <Form.Control className="premium-input"
                             type={showPassword ? 'text' : 'password'}
                             value={formData.password}
                             onChange={(e) =>
@@ -414,7 +414,7 @@ function UserForm({ user, onSave, onCancel }) {
                             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                           </Button>
                         </div>
-                        <Form.Control.Feedback type="invalid">
+                        <Form.Control className="premium-input".Feedback type="invalid">
                           {errors.password}
                         </Form.Control.Feedback>
                       </Form.Group>
@@ -427,7 +427,7 @@ function UserForm({ user, onSave, onCancel }) {
                           Confirm Password {!user && '*'}
                         </Form.Label>
                         <div className="position-relative">
-                          <Form.Control
+                          <Form.Control className="premium-input"
                             type={showConfirmPassword ? 'text' : 'password'}
                             value={formData.confirmPassword}
                             onChange={(e) =>
@@ -450,7 +450,7 @@ function UserForm({ user, onSave, onCancel }) {
                             )}
                           </Button>
                         </div>
-                        <Form.Control.Feedback type="invalid">
+                        <Form.Control className="premium-input".Feedback type="invalid">
                           {errors.confirmPassword}
                         </Form.Control.Feedback>
                       </Form.Group>

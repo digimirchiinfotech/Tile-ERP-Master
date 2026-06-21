@@ -948,14 +948,14 @@ function ProfileSettings({ currentUser: propCurrentUser, onUpdateProfile, initia
                                 <MapPin size={18} /> General Information
                               </h6>
                               <Row className="g-3">
-                                <Col sm={6}>
+                                <Col md={6} xs={12}>
                                   <Form.Group>
                                     <Form.Label className="small fw-bold">Company Name</Form.Label>
                                     <Form.Control name="name" value={company.name || ''} onChange={handleCompanyChange} required isInvalid={!!companyErrors.name} />
                                     <Form.Control.Feedback type="invalid">{companyErrors.name}</Form.Control.Feedback>
                                   </Form.Group>
                                 </Col>
-                                <Col sm={6}>
+                                <Col md={6} xs={12}>
                                   <Form.Group>
                                     <Form.Label className="small fw-bold">Mobile Number</Form.Label>
                                     <Form.Control 
@@ -968,7 +968,7 @@ function ProfileSettings({ currentUser: propCurrentUser, onUpdateProfile, initia
                                     <Form.Control.Feedback type="invalid">{companyErrors.contactNumber}</Form.Control.Feedback>
                                   </Form.Group>
                                 </Col>
-                                <Col sm={12}>
+                                <Col xs={12}>
                                   <Form.Group>
                                     <Form.Label className="small fw-bold">Address</Form.Label>
                                     <Form.Control as="textarea" rows={2} name="address" value={company.address || ''} onChange={handleCompanyChange} />
@@ -980,19 +980,19 @@ function ProfileSettings({ currentUser: propCurrentUser, onUpdateProfile, initia
                                 <CreditCard size={18} /> Banking Details
                               </h6>
                               <Row className="g-3">
-                                <Col sm={6}>
+                                <Col md={6} xs={12}>
                                   <Form.Group>
                                     <Form.Label className="small fw-bold">Bank Name</Form.Label>
                                     <Form.Control name="bankName" value={company.bankName || ''} onChange={handleCompanyChange} />
                                   </Form.Group>
                                 </Col>
-                                <Col sm={6}>
+                                <Col md={6} xs={12}>
                                   <Form.Group>
                                     <Form.Label className="small fw-bold">Account Name</Form.Label>
                                     <Form.Control name="accountHolderName" value={company.accountHolderName || ''} onChange={handleCompanyChange} />
                                   </Form.Group>
                                 </Col>
-                                <Col sm={6}>
+                                <Col md={6} xs={12}>
                                   <Form.Group>
                                     <Form.Label className="small fw-bold">Account Number</Form.Label>
                                     <Form.Control 
@@ -1005,14 +1005,14 @@ function ProfileSettings({ currentUser: propCurrentUser, onUpdateProfile, initia
                                     <Form.Control.Feedback type="invalid">{companyErrors.accountNumber}</Form.Control.Feedback>
                                   </Form.Group>
                                 </Col>
-                                <Col sm={6}>
+                                <Col md={6} xs={12}>
                                   <Form.Group>
                                     <Form.Label className="small fw-bold">SWIFT Code</Form.Label>
                                     <Form.Control name="swiftCode" placeholder="SWIFT Code" value={company.swiftCode || ''} onChange={handleCompanyChange} isInvalid={!!companyErrors.swiftCode} />
                                     <Form.Control.Feedback type="invalid">{companyErrors.swiftCode}</Form.Control.Feedback>
                                   </Form.Group>
                                 </Col>
-                                <Col sm={12}>
+                                <Col xs={12}>
                                   <Form.Group>
                                     <Form.Label className="small fw-bold">Bank Address</Form.Label>
                                     <Form.Control as="textarea" rows={2} name="bankAddress" placeholder="Enter Bank Address" value={company.bankAddress || ''} onChange={handleCompanyChange} />

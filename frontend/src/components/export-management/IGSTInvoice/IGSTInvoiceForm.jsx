@@ -70,12 +70,18 @@ function amountToWords(amount) {
   return finalWords;
 }
 
-function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, currentUser }) {
+function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, currentUser, isNew }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [exportInvoices, setExportInvoices] = useState([]);
 
-  const initialInvoiceId = propExportInvoiceId || sessionStorage.getItem('igst_invoice_id') || '';
+  useEffect(() => {
+    if (isNew) {
+      sessionStorage.removeItem('igst_invoice_id');
+    }
+  }, [isNew]);
+
+  const initialInvoiceId = isNew ? '' : (propExportInvoiceId || sessionStorage.getItem('igst_invoice_id') || '');
   const initRanRef = useRef(false);
 
   const [formData, setFormData] = useState({

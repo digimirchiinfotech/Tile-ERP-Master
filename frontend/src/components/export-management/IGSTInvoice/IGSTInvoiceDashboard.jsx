@@ -186,6 +186,7 @@ function IGSTInvoiceDashboard({ currentUser, onNavigate }) {
   const handleCreateNew = () => {
     // Show a modal to select an existing Export Invoice that doesn't have an IGST Invoice
     // Or just navigate to igst-invoice-form if there is navigation data, or let form ask for exportInvoiceId
+    sessionStorage.removeItem('igst_invoice_id');
     onNavigate('igst-invoice-form', { isNew: true });
   };
 

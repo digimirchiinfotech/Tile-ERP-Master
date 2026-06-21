@@ -665,6 +665,7 @@ const AppRouter = ({
       return renderWithAccess('export_management',
         <IGSTInvoiceForm
           exportInvoiceId={navigationData.exportInvoiceId}
+          isNew={navigationData.isNew}
           currentUser={currentUser}
           onNavigate={handleNavigate}
           onBack={() => handleNavigate('igst-invoice')}

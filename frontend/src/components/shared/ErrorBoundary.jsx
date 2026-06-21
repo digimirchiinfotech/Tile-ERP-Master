@@ -91,7 +91,7 @@ class ErrorBoundary extends React.Component {
               </div>
 
               {/* Error Details (only in development) */}
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {import.meta.env.DEV && this.state.error && (
                 <Alert variant="warning" className="text-start">
                   <Alert.Heading>
                     🔧 Development Debug Information

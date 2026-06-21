@@ -1319,11 +1319,11 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
             <Col md={3}>
               <Form.Group>
                 <Form.Label>Proforma Order No. *</Form.Label>
-                <Form.Control className="premium-input"
+                <Form.Control className="premium-input bg-light"
                   type="text"
                   value={formData.orderNo}
                   readOnly
-                  className="bg-light"
+                  
                 />
               </Form.Group>
             </Col>
@@ -1521,22 +1521,22 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
             <Col md={4}>
               <Form.Group>
                 <Form.Label>GST Amount</Form.Label>
-                <Form.Control className="premium-input"
+                <Form.Control className="premium-input bg-light"
                   type="text"
                   value={(formData.gstAmount || 0).toFixed ? (formData.gstAmount || 0).toFixed(2) : '0.00'}
                   readOnly
-                  className="bg-light"
+                  
                 />
               </Form.Group>
             </Col>
             <Col md={4}>
               <Form.Group>
                 <Form.Label>PO Value</Form.Label>
-                <Form.Control className="premium-input"
+                <Form.Control className="premium-input bg-light"
                   type="text"
                   value={(formData.poValue || 0).toFixed ? (formData.poValue || 0).toFixed(2) : '0.00'}
                   readOnly
-                  className="bg-light"
+                  
                 />
               </Form.Group>
             </Col>

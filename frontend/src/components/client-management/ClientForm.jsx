@@ -349,7 +349,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                             </Form.Label>
                           </OverlayTrigger>
                         <Form.Control className="premium-input" type="text" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} isInvalid={!!errors.name} placeholder={FIELD_PLACEHOLDERS.clientName.placeholder} />
-                        <Form.Control className="premium-input".Feedback type="invalid">{errors.name}</Form.Control.Feedback>
+                        <Form.Control.Feedback type="invalid">{errors.name}</Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                     <Col md={6} xs={12}>
@@ -360,7 +360,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                             </Form.Label>
                           </OverlayTrigger>
                         <Form.Control className="premium-input" type="text" value={formData.contactPersonName} onChange={(e) => handleInputChange('contactPersonName', e.target.value)} isInvalid={!!errors.contactPersonName} placeholder={FIELD_PLACEHOLDERS.contactPersonName.placeholder} />
-                        <Form.Control className="premium-input".Feedback type="invalid">{errors.contactPersonName}</Form.Control.Feedback>
+                        <Form.Control.Feedback type="invalid">{errors.contactPersonName}</Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                     <Col md={6} xs={12}>
@@ -417,7 +417,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                           </Form.Label>
                         </OverlayTrigger>
                         <Form.Control className="premium-input" type="email" value={formData.emailId} onChange={(e) => handleInputChange('emailId', e.target.value)} isInvalid={!!errors.emailId} placeholder={FIELD_PLACEHOLDERS.emailId.placeholder} />
-                        <Form.Control className="premium-input".Feedback type="invalid">{errors.emailId}</Form.Control.Feedback>
+                        <Form.Control.Feedback type="invalid">{errors.emailId}</Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                     <Col md={6} xs={12}>
@@ -428,7 +428,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                           </Form.Label>
                         </OverlayTrigger>
                         <Form.Control className="premium-input" type="tel" value={formData.contactNumber} onChange={(e) => handleInputChange('contactNumber', e.target.value)} isInvalid={!!errors.contactNumber} placeholder={FIELD_PLACEHOLDERS.contactNumber.placeholder} />
-                        <Form.Control className="premium-input".Feedback type="invalid">{errors.contactNumber}</Form.Control.Feedback>
+                        <Form.Control.Feedback type="invalid">{errors.contactNumber}</Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                     <Col md={6} xs={12}>
@@ -442,7 +442,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                           <option value="">Select Business Type</option>
                           {businessTypes.map((type) => (<option key={type} value={type}>{type}</option>))}
                         </Form.Select>
-                        <Form.Control className="premium-input".Feedback type="invalid">{errors.businessType}</Form.Control.Feedback>
+                        <Form.Control.Feedback type="invalid">{errors.businessType}</Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                     <Col md={6} xs={12}>
@@ -467,7 +467,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                           </Form.Label>
                         </OverlayTrigger>
                         <Form.Control className="premium-input" as="textarea" rows={3} value={formData.address} onChange={(e) => handleInputChange('address', e.target.value)} isInvalid={!!errors.address} placeholder={FIELD_PLACEHOLDERS.address.placeholder} />
-                        <Form.Control className="premium-input".Feedback type="invalid">{errors.address}</Form.Control.Feedback>
+                        <Form.Control.Feedback type="invalid">{errors.address}</Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                     <Col md={6}><Form.Group><Form.Label>Consignee Details</Form.Label><Form.Control className="premium-input" as="textarea" rows={3} value={formData.consigneeDetails} onChange={(e) => handleInputChange('consigneeDetails', e.target.value)} placeholder="e.g., Shipping address" /></Form.Group></Col>

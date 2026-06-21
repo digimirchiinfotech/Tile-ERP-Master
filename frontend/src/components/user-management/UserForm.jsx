@@ -217,7 +217,7 @@ function UserForm({ user, onSave, onCancel }) {
                           placeholder={FIELD_PLACEHOLDERS.name.placeholder}
                           className="py-2"
                         />
-                        <Form.Control className="premium-input".Feedback type="invalid">
+                        <Form.Control.Feedback type="invalid">
                           {errors.name}
                         </Form.Control.Feedback>
                       </Form.Group>
@@ -239,7 +239,7 @@ function UserForm({ user, onSave, onCancel }) {
                           placeholder={FIELD_PLACEHOLDERS.emailId.placeholder}
                           className="py-2"
                         />
-                        <Form.Control className="premium-input".Feedback type="invalid">
+                        <Form.Control.Feedback type="invalid">
                           {errors.emailId}
                         </Form.Control.Feedback>
                       </Form.Group>
@@ -262,7 +262,7 @@ function UserForm({ user, onSave, onCancel }) {
                           placeholder={FIELD_PLACEHOLDERS.contactNumber.placeholder}
                           className="py-2"
                         />
-                        <Form.Control className="premium-input".Feedback type="invalid">
+                        <Form.Control.Feedback type="invalid">
                           {errors.contactNumber}
                         </Form.Control.Feedback>
                       </Form.Group>
@@ -350,7 +350,7 @@ function UserForm({ user, onSave, onCancel }) {
                             </option>
                           ))}
                         </Form.Select>
-                        <Form.Control className="premium-input".Feedback type="invalid">
+                        <Form.Control.Feedback type="invalid">
                           {errors.role}
                         </Form.Control.Feedback>
                       </Form.Group>
@@ -414,7 +414,7 @@ function UserForm({ user, onSave, onCancel }) {
                             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                           </Button>
                         </div>
-                        <Form.Control className="premium-input".Feedback type="invalid">
+                        <Form.Control.Feedback type="invalid">
                           {errors.password}
                         </Form.Control.Feedback>
                       </Form.Group>
@@ -450,7 +450,7 @@ function UserForm({ user, onSave, onCancel }) {
                             )}
                           </Button>
                         </div>
-                        <Form.Control className="premium-input".Feedback type="invalid">
+                        <Form.Control.Feedback type="invalid">
                           {errors.confirmPassword}
                         </Form.Control.Feedback>
                       </Form.Group>

@@ -233,7 +233,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
           />
         )}
       />
-      {errors[name] && <Form.Control className="premium-input".Feedback type="invalid">{errors[name].message}</Form.Control.Feedback>}
+      {errors[name] && <Form.Control.Feedback type="invalid">{errors[name].message}</Form.Control.Feedback>}
     </Form.Group>
   );
 
@@ -345,7 +345,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
                         <Controller name="website" control={control} render={({ field }) => (
                           <Form.Control className="premium-input" type="url" {...field} placeholder="e.g., https://www.supplier.com" isInvalid={!!errors.website} />
                         )} />
-                        {errors.website && <Form.Control className="premium-input".Feedback type="invalid">{errors.website.message}</Form.Control.Feedback>}
+                        {errors.website && <Form.Control.Feedback type="invalid">{errors.website.message}</Form.Control.Feedback>}
                       </Form.Group>
                     </Col>
                   </Row>
@@ -421,7 +421,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
                         <Controller name="bankDetails.accountNumber" control={control} render={({ field }) => (
                           <Form.Control className="premium-input" type="text" {...field} onChange={(e) => handleControlledChange('accountNumber', e.target.value, field.onChange, true)} placeholder="Enter account number" maxLength={18} isInvalid={!!errors.bankDetails?.accountNumber} />
                         )} />
-                        {errors.bankDetails?.accountNumber && <Form.Control className="premium-input".Feedback type="invalid">{errors.bankDetails.accountNumber.message}</Form.Control.Feedback>}
+                        {errors.bankDetails?.accountNumber && <Form.Control.Feedback type="invalid">{errors.bankDetails.accountNumber.message}</Form.Control.Feedback>}
                       </Form.Group>
                     </Col>
                     <Col md={6}>
@@ -430,7 +430,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
                         <Controller name="bankDetails.ifscCode" control={control} render={({ field }) => (
                           <Form.Control className="premium-input" type="text" {...field} onChange={(e) => handleControlledChange('ifscCode', e.target.value, field.onChange, true)} placeholder="e.g., HDFC0000123" maxLength={11} isInvalid={!!errors.bankDetails?.ifscCode} />
                         )} />
-                        {errors.bankDetails?.ifscCode && <Form.Control className="premium-input".Feedback type="invalid">{errors.bankDetails.ifscCode.message}</Form.Control.Feedback>}
+                        {errors.bankDetails?.ifscCode && <Form.Control.Feedback type="invalid">{errors.bankDetails.ifscCode.message}</Form.Control.Feedback>}
                       </Form.Group>
                     </Col>
                   </Row>

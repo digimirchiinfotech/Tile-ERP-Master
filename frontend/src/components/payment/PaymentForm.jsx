@@ -133,7 +133,7 @@ const PaymentForm = ({ invoiceId, invoiceNo, amount, clientEmail }) => {
       if (response.data.success) {
         // In production, open Razorpay checkout modal
         const options = {
-          key: process.env.REACT_APP_RAZORPAY_KEY,
+          key: import.meta.env.VITE_RAZORPAY_KEY,
           order_id: response.data.data.orderId,
           amount: amount,
           currency: 'INR',

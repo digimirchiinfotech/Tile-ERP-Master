@@ -114,6 +114,11 @@ api.interceptors.response.use(
     }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // Ignore 401s from login or refresh endpoints to prevent false session expirations
+      if (originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/refresh-token')) {
+        return Promise.reject(error);
+      }
+
       // If already retrying, queue the request
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

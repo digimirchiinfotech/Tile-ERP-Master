@@ -444,10 +444,56 @@ export const syncUpdatesAcrossStages = async (documentId, stage, changedFields, 
 
     const syncMapping = {
       export_invoice: {
-        exportToPackingList: ['gross_weight', 'net_weight', 'shipping_marks', 'client_name', 'country', 'total_sqm', 'total_boxes', 'pallets'],
-        exportToVGM: ['gross_weight', 'net_weight', 'total_sqm', 'total_boxes', 'pallets'],
-        exportToShipping: ['port_of_loading', 'port_of_discharge', 'country', 'consignee_details', 'total_sqm', 'total_boxes', 'pallets'],
-        exportToAnnexure: ['shipping_bill_no', 'shipping_bill_date', 'lut_bond_ref', 'total_sqm', 'total_boxes']
+        exportToPackingList: [
+          'gross_weight', 'net_weight', 'shipping_marks', 'client_name', 'country', 'total_sqm',
+          'total_boxes', 'pallets', 'consignee_details', 'buyer_details', 'buyers_order_no',
+          'buyers_order_date', 'tariff_code', 'bl_no', 'bl_date', 'shipping_bill_no',
+          'shipping_bill_date', 'final_destination', 'payment_terms', 'delivery_terms',
+          'pre_carriage_by', 'place_of_receipt', 'vessel_flight_no', 'port_of_loading',
+          'port_of_discharge', 'pallet_type', 'tiles_back', 'boxes_marking', 'box_type',
+          'fumigation', 'legalisation', 'other_instructions', 'product_lines',
+          'container_details', 'country_of_origin'
+        ],
+        exportToIGST: [
+          'country', 'consignee_details', 'buyer_details', 'payment_terms', 'delivery_terms',
+          'port_of_loading', 'port_of_discharge', 'final_destination', 'tariff_code',
+          'product_lines', 'pallets', 'total_sqm', 'net_weight', 'gross_weight',
+          'pallet_type', 'tiles_back', 'boxes_marking', 'box_type', 'fumigation',
+          'legalisation', 'other_instructions', 'shipping_bill_no', 'shipping_bill_date',
+          'pre_carriage_by', 'vessel_flight_no', 'place_of_receipt', 'buyers_order_no',
+          'buyers_order_date', 'lut_bond_ref', 'lut_date', 'country_of_origin',
+          'supply_declaration', 'ftp_incentive_declaration'
+        ],
+        exportToAnnexure: [
+          'shipping_bill_no', 'shipping_bill_date', 'lut_bond_ref', 'total_sqm', 'total_boxes',
+          'lut_date', 'invoice_no', 'invoice_date', 'client_name', 'consignee_details',
+          'buyer_details', 'vessel_flight_no', 'port_of_loading', 'port_of_discharge',
+          'final_destination', 'country', 'country_of_origin', 'tariff_code', 'pallet_type',
+          'tiles_back', 'box_type', 'fumigation', 'legalisation', 'other_instructions',
+          'pallets', 'net_weight', 'gross_weight', 'container_details', 'product_lines',
+          'boxes_marking'
+        ],
+        exportToBackside: [
+          'invoice_no', 'invoice_date', 'client_name', 'consignee_details', 'buyer_details',
+          'vessel_flight_no', 'port_of_loading', 'port_of_discharge', 'final_destination',
+          'country', 'country_of_origin', 'tariff_code', 'total_pallets', 'total_boxes',
+          'total_sqm', 'net_weight', 'gross_weight', 'pallet_type', 'tiles_back',
+          'box_type', 'fumigation', 'legalisation', 'other_instructions', 'container_details',
+          'shipping_bill_no', 'shipping_bill_date', 'lut_bond_ref', 'lut_date', 'booking_no'
+        ],
+        exportToVGM: [
+          'invoice_no', 'invoice_date', 'booking_no', 'net_weight', 'gross_weight',
+          'total_sqm', 'total_boxes', 'pallets', 'vessel_flight_no', 'port_of_loading',
+          'port_of_discharge', 'shipping_bill_no', 'shipping_bill_date', 'client_name',
+          'country'
+        ],
+        exportToShipping: [
+          'consignee_details', 'vessel_flight_no', 'port_of_loading', 'port_of_discharge',
+          'final_destination', 'place_of_receipt', 'booking_no', 'container_details',
+          'tariff_code', 'pallets', 'total_boxes', 'total_sqm', 'net_weight',
+          'gross_weight', 'shipping_bill_no', 'shipping_bill_date', 'client_name',
+          'invoice_no', 'country_of_origin'
+        ]
       },
       packing_list: {
         packingToVGM: ['gross_weight', 'net_weight', 'container_type', 'total_pallets', 'total_boxes', 'total_sqm'],
@@ -476,9 +522,13 @@ export const syncUpdatesAcrossStages = async (documentId, stage, changedFields, 
     if (!mapping) return { status: 200, syncLog };
 
     let sourceData = {};
+    const sourceTableName = getTableName(stage);
+    const sourceWhere = sourceTableName === 'export_invoices'
+      ? `WHERE id = $1 AND company_id = $2`
+      : `WHERE (id = $1 OR export_invoice_id = $1) AND company_id = $2`;
     const sourceResult = await query(
-      `SELECT * FROM ${getTableName(stage)} 
-       WHERE (id = $1 OR export_invoice_id = $1) AND company_id = $2 
+      `SELECT * FROM ${sourceTableName} 
+       ${sourceWhere} 
        ORDER BY created_at DESC LIMIT 1`,
       [documentId, companyId]
     );
@@ -511,23 +561,65 @@ export const syncUpdatesAcrossStages = async (documentId, stage, changedFields, 
       // Value mapping adjustments
       const updateClause = updateFields.map((f, i) => {
         let dbCol = camelToSnake(f);
-        if (targetStage === 'vgm' || targetStage === 'vgm_documents') {
-           if (f === 'pallets' || f === 'total_pallets') dbCol = 'total_pallets';
-           if (f === 'gross_weight') dbCol = 'total_vgm_weight';
-           if (f === 'net_weight') dbCol = 'total_cargo_weight';
-           if (f === 'container_details') dbCol = 'container_sheet';
+        const idx = i + 1;
+        if (targetStage === 'vgm') {
+          if (f === 'pallets' || f === 'total_pallets') return `total_pallets = $${idx}`;
+          if (f === 'gross_weight') return `gross_weight = $${idx}, total_vgm_weight = $${idx}`;
+          if (f === 'net_weight') return `net_weight = $${idx}, total_cargo_weight = $${idx}`;
+          if (f === 'container_details') return `container_sheet = $${idx}`;
+          if (f === 'vessel_flight_no') return `vessel_name = $${idx}`;
+          if (f === 'invoice_no') return `export_invoice_no = $${idx}`;
+          if (f === 'booking_no') return `booking_number = $${idx}`;
         }
-        if (targetStage === 'shipping' || targetStage === 'shipping_instructions') {
-           if (f === 'pallets' || f === 'total_pallets') dbCol = 'total_pallets';
-           if (f === 'consignee_details') dbCol = 'consignee_name';
-           if (f === 'product_description') dbCol = 'description_of_goods';
-           if (f === 'container_sheet') dbCol = 'container_details';
+        if (targetStage === 'shipping') {
+          if (f === 'pallets' || f === 'total_pallets') return `total_pallets = $${idx}`;
+          if (f === 'consignee_details') return `consignee_details = $${idx}, consignee_name = $${idx}`;
+          if (f === 'product_description') return `description_of_goods = $${idx}`;
+          if (f === 'container_sheet') return `container_details = $${idx}`;
+          if (f === 'invoice_no') return `export_invoice_no = $${idx}`;
+          if (f === 'vessel_flight_no') return `vessel_name = $${idx}`;
+          if (f === 'place_of_receipt') return `place_of_delivery = $${idx}`;
+          if (f === 'tariff_code') return `hs_code = $${idx}`;
+          if (f === 'total_boxes') return `total_boxes = $${idx}, total_packages = $${idx}`;
+          if (f === 'net_weight') return `net_weight = $${idx}, total_net_weight = $${idx}`;
+          if (f === 'gross_weight') return `gross_weight = $${idx}, total_gross_weight = $${idx}`;
         }
-        if (targetStage === 'backside' || targetStage === 'invoice_backside') {
-           if (f === 'total_boxes') dbCol = 'total_packages';
-           if (f === 'product_description') dbCol = 'goods_description';
+        if (targetStage === 'backside') {
+          if (f === 'total_boxes') return `total_boxes = $${idx}, total_packages = $${idx}`;
+          if (f === 'product_description') return `goods_description = $${idx}`;
+          if (f === 'invoice_no') return `invoice_no = $${idx}, export_invoice_no = $${idx}`;
+          if (f === 'invoice_date') return `invoice_date = $${idx}, export_invoice_date = $${idx}`;
+          if (f === 'vessel_flight_no') return `vessel_name = $${idx}`;
+          if (f === 'tariff_code') return `hs_code = $${idx}`;
+          if (f === 'pallet_type') return `pallets_type = $${idx}`;
+          if (f === 'box_type') return `boxes_type = $${idx}`;
+          if (f === 'pallets' || f === 'total_pallets') return `total_pallets = $${idx}`;
+          if (f === 'lut_bond_ref') return `lut_arn_no = $${idx}`;
         }
-        return `${dbCol} = $${i + 1}`;
+        if (targetStage === 'packinglist') {
+          if (f === 'country') return `country_of_origin = $${idx}`;
+          if (f === 'consignee_details') return `consignee = $${idx}`;
+          if (f === 'buyer_details') return `buyer = $${idx}`;
+          if (f === 'shipping_bill_no') return `sb_no = $${idx}`;
+          if (f === 'shipping_bill_date') return `sb_date = $${idx}`;
+          if (f === 'pallets' || f === 'total_pallets') return `total_pallets = $${idx}`;
+          if (f === 'gross_weight') return `gross_weight = $${idx}, total_weight = $${idx}`;
+        }
+        if (targetStage === 'annexure') {
+          if (f === 'invoice_no') return `invoice_no = $${idx}, export_invoice_no = $${idx}`;
+          if (f === 'vessel_flight_no') return `vessel_name = $${idx}`;
+          if (f === 'tariff_code') return `hs_code = $${idx}`;
+          if (f === 'pallet_type') return `pallet_type = $${idx}, pallets_type = $${idx}`;
+          if (f === 'box_type') return `boxes_type = $${idx}`;
+          if (f === 'pallets' || f === 'total_pallets') return `total_pallets = $${idx}`;
+          if (f === 'lut_bond_ref') return `lut_arn_no = $${idx}`;
+          if (f === 'total_boxes') return `total_boxes = $${idx}, total_packages = $${idx}`;
+        }
+        if (targetStage === 'igst') {
+          if (f === 'pallets' || f === 'total_pallets') return `total_pallets = $${idx}`;
+          if (f === 'total_sqm') return `total_quantity = $${idx}`;
+        }
+        return `${dbCol} = $${idx}`;
       }).join(', ');
 
       const updateValues = updateFields.map(f => {
@@ -606,7 +698,11 @@ function getTableName(stage) {
     'backside': 'invoice_backside',
     'invoice_backside': 'invoice_backside',
     'invoicebackside': 'invoice_backside',
-    'billoflading': 'bill_of_lading'
+    'billoflading': 'bill_of_lading',
+    'igst': 'igst_invoices',
+    'igst_invoice': 'igst_invoices',
+    'igstinvoice': 'igst_invoices',
+    'igst_invoices': 'igst_invoices'
   };
   return tableMap[s] || s;
 }

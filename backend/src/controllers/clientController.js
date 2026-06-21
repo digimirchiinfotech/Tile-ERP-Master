@@ -163,7 +163,14 @@ export const getById = async (req, res, next) => {
     }
 
     const result = await req.db.query(
-      `SELECT * FROM clients ${whereConditions}`,
+      `SELECT 
+        c.*,
+        (SELECT COUNT(*) FROM proforma_invoices WHERE client_id = c.id AND status NOT IN ('Deleted', 'Revised')) as total_orders,
+        (SELECT COALESCE(SUM(total_amount * COALESCE(exchange_rate, 1.0)), 0) FROM proforma_invoices WHERE client_id = c.id AND status NOT IN ('Deleted', 'Revised')) as total_order_value,
+        (SELECT COUNT(*) FROM proforma_invoices WHERE client_id = c.id AND status NOT IN ('Deleted', 'Revised', 'Completed')) as active_invoices,
+        (SELECT COUNT(*) FROM account_entries WHERE LOWER(TRIM(party_name)) = LOWER(TRIM(c.client_name)) AND status IN ('Pending', 'Overdue') AND company_id = c.company_id) as pending_payments
+       FROM clients c 
+       ${whereConditions.replace('id =', 'c.id =').replace('company_id =', 'c.company_id =')}`,
       queryParams
     );
 
@@ -171,9 +178,15 @@ export const getById = async (req, res, next) => {
       return next(new AppError('Client not found', 404));
     }
 
+    const clientData = result.rows[0];
+    clientData.total_orders = parseInt(clientData.total_orders || 0);
+    clientData.total_order_value = parseFloat(clientData.total_order_value || 0);
+    clientData.active_invoices = parseInt(clientData.active_invoices || 0);
+    clientData.pending_payments = parseInt(clientData.pending_payments || 0);
+
     return successResponse(
       res,
-      result.rows[0],
+      clientData,
       'Client retrieved successfully'
     );
   } catch (error) {

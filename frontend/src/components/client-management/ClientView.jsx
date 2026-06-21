@@ -362,7 +362,7 @@ function ClientView({ client, onClose, onEdit, canEdit }) {
                     <div className="d-flex flex-column align-items-center justify-content-center p-3 rounded-3 text-center" 
                          style={{ backgroundColor: '#f0fdf4', border: '1px solid #dcfce7', minHeight: '120px' }}>
                       <DollarSign size={24} className="text-success mb-2" />
-                      <h3 className="fw-bold mb-0 text-success">${client.totalValue || 0}</h3>
+                      <h3 className="fw-bold mb-0 text-success">${client.totalValue || client.totalOrderValue || 0}</h3>
                       <span className="text-muted small fw-medium mt-1">Total Value</span>
                     </div>
                   </Col>

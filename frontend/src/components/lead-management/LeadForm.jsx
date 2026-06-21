@@ -413,7 +413,7 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                         </Form.Group>
                       </div>
                     </Col>
-                    <Col xs={12}>
+                    <Col xs={12} md={6}>
                       <Form.Group>
                         <Form.Label>Company Name *</Form.Label>
                         <Form.Control
@@ -433,7 +433,7 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                         </Form.Text>
                       </Form.Group>
                     </Col>
-                    <Col xs={12}>
+                    <Col xs={12} md={6}>
                       <Form.Group>
                         <Form.Label>Contact Person Name *</Form.Label>
                         <Form.Control
@@ -453,7 +453,7 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                         </Form.Text>
                       </Form.Group>
                     </Col>
-                    <Col xs={12}>
+                    <Col xs={12} md={6}>
                       <Form.Group>
                         <Form.Label>Contact Number *</Form.Label>
                         <Form.Control
@@ -473,7 +473,7 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                         </Form.Text>
                       </Form.Group>
                     </Col>
-                    <Col xs={12}>
+                    <Col xs={12} md={6}>
                       <Form.Group>
                         <Form.Label>Email ID *</Form.Label>
                         <Form.Control
@@ -493,7 +493,7 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                         </Form.Text>
                       </Form.Group>
                     </Col>
-                    <Col xs={12}>
+                    <Col xs={12} md={6}>
                       <Form.Group>
                         <Form.Label>Country *</Form.Label>
                         <AddableDropdown
@@ -510,7 +510,7 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                         />
                       </Form.Group>
                     </Col>
-                    <Col xs={12}>
+                    <Col xs={12} md={6}>
                       <Form.Group>
                         <Form.Label>City *</Form.Label>
                         <AddableDropdown
@@ -563,7 +563,7 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                 </Card.Header>
                 <Card.Body>
                   <Row className="g-3">
-                    <Col xs={12}>
+                    <Col xs={12} md={6}>
                       <Form.Group>
                         <Form.Label>Lead Source *</Form.Label>
                         <Form.Select
@@ -585,7 +585,7 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                         </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
-                    <Col xs={12}>
+                    <Col xs={12} md={6}>
                       <Form.Group>
                         <Form.Label>Assigned Salesperson *</Form.Label>
                         <Form.Select
@@ -607,7 +607,7 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                         </Form.Control.Feedback>
                       </Form.Group>
                     </Col>
-                    <Col xs={12}>
+                    <Col xs={12} md={6}>
                       <Form.Group>
                         <Form.Label>Priority</Form.Label>
                         <Form.Select
@@ -624,7 +624,7 @@ function LeadForm({ lead, onSave, onCancel, salespersons = [], clients: propsCli
                         </Form.Select>
                       </Form.Group>
                     </Col>
-                    <Col xs={12}>
+                    <Col xs={12} md={6}>
                       <Form.Group>
                         <Form.Label>Lead Status</Form.Label>
                         <Form.Select

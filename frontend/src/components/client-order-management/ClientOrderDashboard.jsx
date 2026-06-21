@@ -15,6 +15,7 @@ import Button from '../shared/Button.jsx';
 import { Plus, Search, Edit, Trash2, Eye, Download, RotateCcw, Upload, Printer, XCircle, CheckCircle, Clock, Package } from 'lucide-react';
 import ClientOrderForm from './ClientOrderForm.jsx';
 import ClientOrderPrintView from './ClientOrderPrintView.jsx';
+import ClientOrderView from './ClientOrderView.jsx';
 import FilterPanel from '../shared/FilterPanel.jsx';
 import ImportModal from '../shared/ImportModal.jsx';
 import { useClientOrders } from '../../hooks/useClientOrders.js';
@@ -660,21 +661,16 @@ function ClientOrderDashboard({ currentUser, navigationData }) {
 
       {/* View Modal */}
       {showPrintView && viewingOrder && (
-        <Modal show={showPrintView} onHide={() => setShowPrintView(false)} size="xl">
-          <Modal.Header closeButton>
-            <Modal.Title>Order Preview - {viewingOrder.orderId || viewingOrder.orderNo}</Modal.Title>
-          </Modal.Header>
-          <Modal.Body className="p-0 bg-light d-flex flex-column flex-md-row">
-            <div className="flex-grow-1 overflow-auto bg-light">
-              
-            <ClientOrderPrintView orderData={viewingOrder} />
-          
-            </div>
-            <div className="no-print bg-white border-start p-3 shadow-sm" style={{ width: '100%', maxWidth: '350px', overflowY: 'auto' }}>
-              <ActivityTimeline resourceType="document" resourceId={viewingOrder?.id} />
-            </div>
-          </Modal.Body>
-        </Modal>
+        <ClientOrderView
+          order={viewingOrder}
+          onClose={() => setShowPrintView(false)}
+          onEdit={() => {
+            const orderToEdit = viewingOrder;
+            setShowPrintView(false);
+            handleEditOrder(orderToEdit);
+          }}
+          canEdit={canEdit}
+        />
       )}
 
       {/* Print Modal */}

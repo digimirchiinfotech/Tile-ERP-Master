@@ -9,11 +9,10 @@
  * or reverse engineering of this file, via any medium, is strictly prohibited.
  */
 
-import { Modal, Row, Col, Badge, Card, Table } from 'react-bootstrap';
+import { Modal, Row, Col, Badge, Table } from 'react-bootstrap';
 import Button from '../shared/Button.jsx';
 import {
   Edit,
-  X,
   User,
   Mail,
   Phone,
@@ -21,11 +20,24 @@ import {
   Building,
   Calendar,
   DollarSign,
-  UserCheck} from 'lucide-react';
+  UserCheck,
+  Printer,
+  X,
+  FileText,
+  Tag,
+  Package,
+  TrendingUp,
+  Clock
+} from 'lucide-react';
 import { formatPrice, formatDisplayDate } from '../../utils/formatters.js';
+import LeadPrintView from './LeadPrintView.jsx';
 
 function LeadView({ lead, onClose, onEdit, onConvert, canEdit }) {
   if (!lead) return null;
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   const getStatusBadge = (status) => {
     const variants = {
@@ -36,7 +48,11 @@ function LeadView({ lead, onClose, onEdit, onConvert, canEdit }) {
       Lost: 'danger',
       'On Hold': 'secondary',
     };
-    return <Badge bg={variants[status] || 'secondary'}>{status}</Badge>;
+    return (
+      <Badge bg={variants[status] || 'secondary'} className="rounded-pill px-3 py-1.5" style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>
+        {(status || 'NEW').toUpperCase()}
+      </Badge>
+    );
   };
 
   const getPriorityBadge = (priority) => {
@@ -45,280 +61,400 @@ function LeadView({ lead, onClose, onEdit, onConvert, canEdit }) {
       Medium: 'warning',
       Low: 'success',
     };
-    return <Badge bg={variants[priority] || 'secondary'}>{priority}</Badge>;
+    return (
+      <Badge bg={variants[priority] || 'secondary'} className="rounded-pill px-3 py-1.5" style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>
+        {(priority || 'LOW').toUpperCase()}
+      </Badge>
+    );
   };
 
   return (
-    <Modal show={true} onHide={onClose} size="xl" backdrop="static">
-      <Modal.Header closeButton>
-        <Modal.Title>Lead Details - {lead.companyName}</Modal.Title>
-      </Modal.Header>
-      <Modal.Body className="p-4">
+    <Modal show={true} onHide={onClose} size="xl" backdrop="static" dialogClassName="lead-details-modal">
+      <Modal.Body className="p-4 bg-light position-relative" style={{ borderRadius: '16px', overflow: 'hidden' }}>
+        
+        {/* Absolute positioned close button */}
+        <button 
+          type="button" 
+          className="btn-close position-absolute top-0 end-0 m-4 shadow-none" 
+          aria-label="Close" 
+          onClick={onClose}
+          style={{ zIndex: 1050 }}
+        />
+
+        {/* ── Breadcrumb ── */}
+        <div className="breadcrumb mb-2 text-muted" style={{ fontSize: '0.82rem', letterSpacing: '0.5px' }}>
+          Leads &gt; Lead Details
+        </div>
+
+        {/* ── Header ── */}
+        <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+          <div className="d-flex align-items-center gap-3">
+            <div className="bg-primary text-white d-flex align-items-center justify-content-center rounded-3 shadow-sm" style={{ width: '48px', height: '48px' }}>
+              <TrendingUp size={24} />
+            </div>
+            <div>
+              <h4 className="mb-0 fw-bold text-dark" style={{ letterSpacing: '-0.3px' }}>Lead Details</h4>
+              <span className="text-muted small">View complete customer inquiry details and progress state</span>
+            </div>
+          </div>
+          <div className="d-flex gap-2">
+            {onConvert && lead.status !== 'Won' && (
+              <Button variant="success" onClick={onConvert} className="fw-bold d-flex align-items-center text-white">
+                <UserCheck size={16} className="me-2" /> Convert to Client
+              </Button>
+            )}
+            <Button variant="outline-secondary" onClick={handlePrint} className="bg-white border-secondary-subtle text-dark fw-bold d-flex align-items-center">
+              <Printer size={16} className="me-2 text-secondary" /> Print
+            </Button>
+            {canEdit && (
+              <Button variant="primary" onClick={onEdit} className="fw-bold d-flex align-items-center">
+                <Edit size={16} className="me-2" /> Edit Lead
+              </Button>
+            )}
+          </div>
+        </div>
+
         <Row className="g-4">
-          {/* Customer Information */}
+          {/* Card 1: Customer Information */}
           <Col xs={12}>
-            <Card>
-              <Card.Header>
-                <h6 className="mb-0 text-primary">
-                  <Building size={18} className="me-2" />
-                  Customer Information
-                </h6>
-              </Card.Header>
-              <Card.Body>
-                <Row className="g-3">
-                  <Col md={6}>
-                    <div className="info-item">
-                      <label className="fw-bold text-muted">
-                        Company Name:
-                      </label>
-                      <p className="mb-0">{lead.companyName}</p>
+            <div className="lead-card shadow-sm border rounded-3 overflow-hidden bg-white">
+              <div className="lead-card-header d-flex align-items-center gap-2 text-white px-3 py-2.5 fw-bold" style={{ backgroundColor: '#2563eb' }}>
+                <Building size={18} />
+                <span>Customer Information</span>
+              </div>
+              <div className="info-grid p-4">
+                {/* Company Name */}
+                <div className="info-cell d-flex align-items-center gap-3">
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                    <Building size={18} />
+                  </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">Company Name</span>
+                    <span className="info-val fw-semibold text-dark">{lead.companyName || '-'}</span>
+                  </div>
+                </div>
+
+                {/* Client Firm Name */}
+                <div className="info-cell d-flex align-items-center gap-3">
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                    <Building size={18} />
+                  </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">Client Firm Name</span>
+                    <span className="info-val fw-semibold text-dark">{lead.clientName || '-'}</span>
+                  </div>
+                </div>
+
+                {/* Contact Number */}
+                <div className="info-cell d-flex align-items-center gap-3">
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                    <Phone size={18} />
+                  </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">Contact Number</span>
+                    <span className="info-val fw-semibold text-dark">{lead.contactNumber || '-'}</span>
+                  </div>
+                </div>
+
+                {/* Email ID */}
+                <div className="info-cell d-flex align-items-center gap-3">
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                    <Mail size={18} />
+                  </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">Email ID</span>
+                    <span className="info-val fw-semibold text-dark">{lead.emailId || '-'}</span>
+                  </div>
+                </div>
+
+                {/* Country */}
+                <div className="info-cell d-flex align-items-center gap-3">
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                    <MapPin size={18} />
+                  </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">Country</span>
+                    <span className="info-val fw-semibold text-dark">{lead.country || '-'}</span>
+                  </div>
+                </div>
+
+                {/* City */}
+                <div className="info-cell d-flex align-items-center gap-3">
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                    <MapPin size={18} />
+                  </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">City</span>
+                    <span className="info-val fw-semibold text-dark">{lead.city || 'Not specified'}</span>
+                  </div>
+                </div>
+
+                {/* Address */}
+                {lead.address && (
+                  <div className="info-cell d-flex align-items-center gap-3" style={{ gridColumn: 'span 2' }}>
+                    <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                      <MapPin size={18} />
                     </div>
-                  </Col>
-                  <Col md={6}>
-                    <div className="info-item">
-                      <label className="fw-bold text-muted">Client Firm Name:</label>
-                      <p className="mb-0">{lead.clientName}</p>
+                    <div className="info-text-wrapper">
+                      <span className="info-label text-muted small d-block text-uppercase">Address</span>
+                      <span className="info-val fw-semibold text-dark">{lead.address || '-'}</span>
                     </div>
-                  </Col>
-                  <Col md={6}>
-                    <div className="info-item">
-                      <label className="fw-bold text-muted">
-                        <Phone size={16} className="me-1" />
-                        Contact Number:
-                      </label>
-                      <p className="mb-0">{lead.contactNumber}</p>
-                    </div>
-                  </Col>
-                  <Col md={6}>
-                    <div className="info-item">
-                      <label className="fw-bold text-muted">
-                        <Mail size={16} className="me-1" />
-                        Email ID:
-                      </label>
-                      <p className="mb-0">{lead.emailId}</p>
-                    </div>
-                  </Col>
-                  <Col md={6}>
-                    <div className="info-item">
-                      <label className="fw-bold text-muted">
-                        <MapPin size={16} className="me-1" />
-                        Country:
-                      </label>
-                      <p className="mb-0">{lead.country}</p>
-                    </div>
-                  </Col>
-                  <Col md={6}>
-                    <div className="info-item">
-                      <label className="fw-bold text-muted">City:</label>
-                      <p className="mb-0">{lead.city || 'Not specified'}</p>
-                    </div>
-                  </Col>
-                  {lead.address && (
-                    <Col md={12}>
-                      <div className="info-item">
-                        <label className="fw-bold text-muted">Address:</label>
-                        <p className="mb-0">{lead.address}</p>
-                      </div>
-                    </Col>
-                  )}
-                </Row>
-              </Card.Body>
-            </Card>
+                  </div>
+                )}
+              </div>
+            </div>
           </Col>
 
-          {/* Lead Management Information */}
+          {/* Card 2: Lead Management Details */}
           <Col xs={12}>
-            <Card>
-              <Card.Header>
-                <h6 className="mb-0 text-primary">
-                  <User size={18} className="me-2" />
-                  Lead Management
-                </h6>
-              </Card.Header>
-              <Card.Body>
-                <Row className="g-3">
-                  <Col md={6}>
-                    <div className="info-item">
-                      <label className="fw-bold text-muted">Lead ID:</label>
-                      <p className="mb-0 fw-medium">{lead.leadId}</p>
+            <div className="lead-card shadow-sm border rounded-3 overflow-hidden bg-white">
+              <div className="lead-card-header d-flex align-items-center gap-2 text-white px-3 py-2.5 fw-bold" style={{ backgroundColor: '#2563eb' }}>
+                <User size={18} />
+                <span>Lead Management</span>
+              </div>
+              <div className="info-grid p-4">
+                {/* Lead ID */}
+                <div className="info-cell d-flex align-items-center gap-3">
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                    <Tag size={18} />
+                  </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">Lead ID</span>
+                    <span className="info-val fw-semibold text-dark">{lead.leadId || '-'}</span>
+                  </div>
+                </div>
+
+                {/* Lead Source */}
+                <div className="info-cell d-flex align-items-center gap-3">
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                    <FileText size={18} />
+                  </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">Lead Source</span>
+                    <span className="info-val fw-semibold text-dark">{lead.source || '-'}</span>
+                  </div>
+                </div>
+
+                {/* Priority */}
+                <div className="info-cell d-flex align-items-center gap-3">
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                    <TrendingUp size={18} />
+                  </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">Priority</span>
+                    <div className="mt-1">{getPriorityBadge(lead.priority)}</div>
+                  </div>
+                </div>
+
+                {/* Status */}
+                <div className="info-cell d-flex align-items-center gap-3">
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                    <Clock size={18} />
+                  </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">Status</span>
+                    <div className="mt-1">{getStatusBadge(lead.status)}</div>
+                  </div>
+                </div>
+
+                {/* Assigned Salesperson */}
+                <div className="info-cell d-flex align-items-center gap-3">
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                    <User size={18} />
+                  </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">Assigned Salesperson</span>
+                    <span className="info-val fw-semibold text-dark">{lead.salesPersonResolvedName || lead.salesPersonName || lead.salesPerson || '-'}</span>
+                  </div>
+                </div>
+
+                {/* Created Date */}
+                <div className="info-cell d-flex align-items-center gap-3">
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                    <Calendar size={18} />
+                  </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">Created Date</span>
+                    <span className="info-val fw-semibold text-dark">
+                      {formatDisplayDate(lead.createdDate) !== '-' ? formatDisplayDate(lead.createdDate) : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Expected Close Date */}
+                {lead.expectedCloseDate && (
+                  <div className="info-cell d-flex align-items-center gap-3">
+                    <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                      <Calendar size={18} />
                     </div>
-                  </Col>
-                  <Col md={6}>
-                    <div className="info-item">
-                      <label className="fw-bold text-muted">Lead Source:</label>
-                      <p className="mb-0">{lead.source}</p>
+                    <div className="info-text-wrapper">
+                      <span className="info-label text-muted small d-block text-uppercase">Expected Close Date</span>
+                      <span className="info-val fw-semibold text-dark">{lead.expectedCloseDate}</span>
                     </div>
-                  </Col>
-                  <Col md={6}>
-                    <div className="info-item">
-                      <label className="fw-bold text-muted">Priority:</label>
-                      <div>{getPriorityBadge(lead.priority)}</div>
-                    </div>
-                  </Col>
-                  <Col md={6}>
-                    <div className="info-item">
-                      <label className="fw-bold text-muted">Status:</label>
-                      <div>{getStatusBadge(lead.status)}</div>
-                    </div>
-                  </Col>
-                  <Col md={6}>
-                    <div className="info-item">
-                      <label className="fw-bold text-muted">
-                        Assigned Salesperson:
-                      </label>
-                      <p className="mb-0">{lead.salesPersonResolvedName || lead.salesPersonName || lead.salesPerson || '-'}</p>
-                    </div>
-                  </Col>
-                  <Col md={6}>
-                    <div className="info-item">
-                      <label className="fw-bold text-muted">
-                        Created Date:
-                      </label>
-                      <p className="mb-0">{formatDisplayDate(lead.createdDate) !== '-' ? formatDisplayDate(lead.createdDate) : 'N/A'}</p>
-                    </div>
-                  </Col>
-                  {lead.expectedCloseDate && (
-                    <Col md={6}>
-                      <div className="info-item">
-                        <label className="fw-bold text-muted">
-                          <Calendar size={16} className="me-1" />
-                          Expected Close Date:
-                        </label>
-                        <p className="mb-0">{lead.expectedCloseDate}</p>
-                      </div>
-                    </Col>
-                  )}
-                  <Col md={6}>
-                    <div className="info-item">
-                      <label className="fw-bold text-muted">
-                        <DollarSign size={16} className="me-1" />
-                        Lead Value:
-                      </label>
-                      <p className="mb-0 fw-bold text-success">
-                        ₹{parseFloat(lead.leadValue || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </p>
-                    </div>
-                  </Col>
-                </Row>
-              </Card.Body>
-            </Card>
+                  </div>
+                )}
+
+                {/* Lead Value */}
+                <div className="info-cell d-flex align-items-center gap-3">
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#e8f5e9', color: '#2e7d32', flexShrink: 0 }}>
+                    <DollarSign size={18} />
+                  </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">Lead Value</span>
+                    <span className="info-val fw-bold text-success" style={{ fontSize: '1.1rem' }}>
+                      ₹{parseFloat(lead.leadValue || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </Col>
 
-          {/* Product Interests */}
+          {/* Card 3: Product Interests */}
           {Array.isArray(lead.productInterests) && lead.productInterests.length > 0 && (
             <Col xs={12}>
-              <Card>
-                <Card.Header>
-                  <h6 className="mb-0 text-primary">Product Interests</h6>
-                </Card.Header>
-                <Card.Body>
-                  <div className="table-responsive">
-                    <Table striped bordered hover size="sm">
+              <div className="lead-card shadow-sm border rounded-3 overflow-hidden bg-white">
+                <div className="lead-card-header d-flex align-items-center gap-2 text-white px-3 py-2.5 fw-bold" style={{ backgroundColor: '#2563eb' }}>
+                  <Package size={18} />
+                  <span>Product Interests</span>
+                </div>
+                <div className="p-4">
+                  <div className="table-responsive border rounded-3">
+                    <Table striped hover className="align-middle mb-0" style={{ borderCollapse: 'collapse' }}>
                       <thead>
-                        <tr>
-                          <th>Product Name</th>
-                          <th>Size</th>
-                          <th>Surface</th>
-                          <th className="text-end">Quantity (Boxes)</th>
-                          <th className="text-end">Unit Price</th>
-                          <th className="text-end">Total Value</th>
+                        <tr className="bg-light text-secondary" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          <th className="p-3 border-0">Product Name</th>
+                          <th className="p-3 border-0">Size</th>
+                          <th className="p-3 border-0">Surface</th>
+                          <th className="p-3 border-0 text-center">Quantity (Boxes)</th>
+                          <th className="p-3 border-0 text-end">Unit Price</th>
+                          <th className="p-3 border-0 text-end">Total Value</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody style={{ fontSize: '0.92rem' }}>
                         {lead.productInterests.map((product, index) => (
-                          <tr key={index}>
-                            <td>{product.productName}</td>
-                            <td>{product.size}</td>
-                            <td>{product.surface}</td>
-                            <td className="text-end">{product.quantity}</td>
-                            <td className="text-end">₹{parseFloat(product.unitPrice || 0).toFixed(2)}</td>
-                            <td className="text-end">₹{parseFloat(product.totalValue || 0).toFixed(2)}</td>
+                          <tr key={index} className="border-top border-light-subtle">
+                            <td className="p-3 fw-semibold text-dark">{product.productName}</td>
+                            <td className="p-3 text-muted">{product.size}</td>
+                            <td className="p-3 text-muted">{product.surface}</td>
+                            <td className="p-3 text-center fw-medium text-dark">{product.quantity}</td>
+                            <td className="p-3 text-end fw-semibold text-dark">₹{parseFloat(product.unitPrice || 0).toFixed(2)}</td>
+                            <td className="p-3 text-end fw-bold text-dark">₹{parseFloat(product.totalValue || 0).toFixed(2)}</td>
                           </tr>
                         ))}
-                        <tr className="table-info">
-                          <td colSpan="5" className="fw-bold">
+                        <tr className="table-info border-top border-2 border-info">
+                          <td colSpan="5" className="p-3 fw-bold text-dark">
                             Total Lead Value:
                           </td>
-                          <td className="fw-bold text-end">
+                          <td className="p-3 text-end fw-bold text-primary" style={{ fontSize: '1.05rem' }}>
                             ₹{parseFloat(lead.leadValue || 0).toFixed(2)}
                           </td>
                         </tr>
                       </tbody>
                     </Table>
                   </div>
-                </Card.Body>
-              </Card>
+                </div>
+              </div>
             </Col>
           )}
 
-          {/* Additional Information */}
+          {/* Card 4: Additional Information */}
           {(lead.notes || lead.followUpDate) && (
             <Col xs={12}>
-              <Card>
-                <Card.Header>
-                  <h6 className="mb-0 text-primary">Additional Information</h6>
-                </Card.Header>
-                <Card.Body>
-                  <Row className="g-3">
-                    {lead.followUpDate && (
-                      <Col md={6}>
-                        <div className="info-item">
-                          <label className="fw-bold text-muted">
-                            Follow-up Date:
-                          </label>
-                          <p className="mb-0">{lead.followUpDate}</p>
-                        </div>
-                      </Col>
-                    )}
-                    {lead.notes && (
-                      <Col md={12}>
-                        <div className="info-item">
-                          <label className="fw-bold text-muted">Notes:</label>
-                          <p className="mb-0">{lead.notes}</p>
-                        </div>
-                      </Col>
-                    )}
-                  </Row>
-                </Card.Body>
-              </Card>
+              <div className="lead-card shadow-sm border rounded-3 overflow-hidden bg-white">
+                <div className="lead-card-header d-flex align-items-center gap-2 text-white px-3 py-2.5 fw-bold" style={{ backgroundColor: '#2563eb' }}>
+                  <FileText size={18} />
+                  <span>Additional Information</span>
+                </div>
+                <div className="info-grid p-4">
+                  {lead.followUpDate && (
+                    <div className="info-cell d-flex align-items-center gap-3">
+                      <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                        <Calendar size={18} />
+                      </div>
+                      <div className="info-text-wrapper">
+                        <span className="info-label text-muted small d-block text-uppercase">Follow-up Date</span>
+                        <span className="info-val fw-semibold text-dark">{lead.followUpDate}</span>
+                      </div>
+                    </div>
+                  )}
+                  {lead.notes && (
+                    <div className="info-cell d-flex align-items-start gap-3" style={{ gridColumn: 'span 2' }}>
+                      <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0, marginTop: '2px' }}>
+                        <FileText size={18} />
+                      </div>
+                      <div className="info-text-wrapper w-100">
+                        <span className="info-label text-muted small d-block text-uppercase">Notes</span>
+                        <pre className="mb-0 bg-light p-3 rounded-3 border border-light-subtle text-dark" style={{ fontSize: '0.875rem', whiteSpace: 'pre-wrap', fontFamily: 'inherit', fontWeight: 500 }}>
+                          {lead.notes}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </Col>
           )}
         </Row>
-      </Modal.Body>
-      <Modal.Footer>
-        {canEdit && (
-          <Button variant="primary" onClick={onEdit} className="me-auto">
-            <Edit size={16} className="me-1" />
-            Edit Lead
+
+        {/* ── Footer ── */}
+        <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top bg-white px-3 py-2" style={{ margin: '0 -24px -24px -24px' }}>
+          <Button variant="outline-secondary" onClick={onClose} className="border-secondary-subtle fw-semibold px-4">
+            Close
           </Button>
-        )}
-        <Button variant="secondary" onClick={onClose}>
-          Close
-        </Button>
-      </Modal.Footer>
+          {canEdit && (
+            <Button variant="primary" onClick={onEdit} className="fw-bold px-4">
+              <Edit size={16} className="me-2" /> Edit Lead
+            </Button>
+          )}
+        </div>
 
-      <style>{`
-        .info-item {
-          margin-bottom: 1rem;
-        }
+        {/* Invisible Print View Container */}
+        <div className="d-none d-print-block">
+          <LeadPrintView leadData={lead} />
+        </div>
 
-        .info-item label {
-          font-size: 0.875rem;
-          margin-bottom: 0.25rem;
-          display: block;
-        }
+        <style>{`
+          .lead-details-modal .modal-content {
+            border-radius: 16px !important;
+            border: none !important;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.15) !important;
+            background-color: #f8fafc !important;
+          }
+          
+          .lead-card {
+            border: 1px solid #e2e8f0 !important;
+            background: #ffffff !important;
+          }
 
-        .info-item p {
-          font-size: 1rem;
-          color: #333;
-        }
-      `}</style>
+          .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px 30px;
+          }
+
+          @media (max-width: 768px) {
+            .info-grid {
+              grid-template-columns: 1fr;
+              gap: 16px;
+            }
+            .info-cell[style*="grid-column: span 2"] {
+              grid-column: span 1 !important;
+            }
+          }
+
+          .info-icon-wrapper {
+            transition: all 0.2s ease;
+          }
+
+          .info-cell:hover .info-icon-wrapper {
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.1);
+          }
+        `}</style>
+      </Modal.Body>
     </Modal>
   );
 }
 
 export default LeadView;
-
-
-
-

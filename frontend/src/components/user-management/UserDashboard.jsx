@@ -25,6 +25,7 @@ import { exportData, createColumnDef } from '../../utils/exportUtils.js';
 import { showSuccess } from '../shared/NotificationManager.jsx';
 import PaginationControls from '../common/PaginationControls.jsx';
 import UserPrintView from './UserPrintView.jsx';
+import UserView from './UserView.jsx';
 import { downloadPDF } from '../../utils/pdfGenerator.js';
 import FilterPanel from '../shared/FilterPanel.jsx';
 import StatusBadge from '../common/StatusBadge';
@@ -658,56 +659,17 @@ function UserDashboard({ currentUser, onNavigate, navigationData }) {
 
       {/* User View Modal */}
       {viewingUser && (
-        <Modal show={true} onHide={() => setViewingUser(null)} size="lg" backdrop="static">
-          <Modal.Header closeButton>
-            <Modal.Title>User Details - {viewingUser.name}</Modal.Title>
-          </Modal.Header>
-          <Modal.Body className="p-4">
-            <Row className="g-3">
-              <Col md={6}>
-                <div className="info-item">
-                  <label className="fw-bold text-muted">Name:</label>
-                  <p className="mb-0">{viewingUser.name}</p>
-                </div>
-              </Col>
-              <Col md={6}>
-                <div className="info-item">
-                  <label className="fw-bold text-muted">Email:</label>
-                  <p className="mb-0">{viewingUser.emailId}</p>
-                </div>
-              </Col>
-              <Col md={6}>
-                <div className="info-item">
-                  <label className="fw-bold text-muted">Role:</label>
-                  <p className="mb-0">{userRoles[viewingUser.role] || viewingUser.role}</p>
-                </div>
-              </Col>
-              <Col md={6}>
-                <div className="info-item">
-                  <label className="fw-bold text-muted">Status:</label>
-                  <div className="mb-0">
-                    <StatusBadge status={viewingUser.status} />
-                  </div>
-                </div>
-              </Col>
-              <Col md={6}>
-                <div className="info-item">
-                  <label className="fw-bold text-muted">Contact Number:</label>
-                  <p className="mb-0">{viewingUser.contactNumber || 'N/A'}</p>
-                </div>
-              </Col>
-
-            </Row>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="primary" onClick={() => { setViewingUser(null); handlePrintUser(viewingUser); }}>
-              <Printer size={14} className="me-1" />Print
-            </Button>
-            <Button variant="secondary" onClick={() => setViewingUser(null)}>
-              Close
-            </Button>
-          </Modal.Footer>
-        </Modal>
+        <UserView
+          user={viewingUser}
+          onClose={() => setViewingUser(null)}
+          onEdit={() => {
+            const userToEdit = viewingUser;
+            setViewingUser(null);
+            handleEditUser(userToEdit);
+          }}
+          canEdit={canEdit}
+          userRoles={userRoles}
+        />
       )}
 
       {/* User Print Modal */}

@@ -20,6 +20,7 @@ import {
   Trash2,
   Eye,
   Download,
+  Upload,
   AlertCircle,
   Package,
   CheckCircle,
@@ -37,6 +38,7 @@ import { exportData, createColumnDef } from '../../utils/exportUtils.js';
 import sanitarywareProductService from '../../services/sanitarywareProductService.js';
 import { downloadPDF } from '../../utils/pdfGenerator.js';
 import { tokenManager } from '../../utils/tokenManager.js';
+import ImportModal from '../shared/ImportModal.jsx';
 
 function SanitarywareProductDashboard({ currentUser }) {
   const [products, setProducts] = useState([]);
@@ -44,6 +46,7 @@ function SanitarywareProductDashboard({ currentUser }) {
   const [error, setError] = useState(null);
 
   const [showProductForm, setShowProductForm] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [showProductView, setShowProductView] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmConfig, setConfirmConfig] = useState({
@@ -188,6 +191,64 @@ function SanitarywareProductDashboard({ currentUser }) {
     ];
     exportData(filteredProducts, columns, 'xlsx', 'sanitaryware_products', typeof currentUser !== 'undefined' ? currentUser?.role === 'super_admin' : false);
     showSuccess('Exported successfully');
+  };
+
+  const handleImportData = async (importData) => {
+    try {
+      setLoading(true);
+      
+      const mappedProducts = importData.map(prod => ({
+        factory_name: prod.factoryName || prod['Factory Name'] || null,
+        factory_product_name: prod.factoryProductName || prod['Factory Product Name'] || null,
+        factory_product_code: prod.factoryProductCode || prod['Factory Product Code'] || null,
+        name: prod.name || prod['Product Name'] || 'Imported Product',
+        product_code: prod.productCode || prod['Product Code'] || null,
+        item_ref: prod.itemRef || prod['Item Reference'] || prod.item_ref || prod['Product Code'] || null,
+        category: prod.category || prod['Category'] || 'Other',
+        brand: prod.brand || prod['Brand'] || null,
+        collection: prod.collection || prod['Collection'] || null,
+        color: prod.color || prod['Color'] || null,
+        material_type: prod.materialType || prod['Material Type'] || null,
+        shape: prod.shape || prod['Shape'] || null,
+        flush_type: prod.flushType || prod['Flush Type'] || null,
+        trap_type: prod.trapType || prod['Trap Type'] || null,
+        mount_type: prod.mountType || prod['Mount Type'] || null,
+        seat_cover_type: prod.seatCoverType || prod['Seat Cover Type'] || null,
+        finish_type: prod.finishType || prod['Finish Type'] || null,
+        dimension_standard: prod.dimensionStandard || prod['Dimension Standard'] || null,
+        dimensions_l: prod.dimensionsL !== undefined && prod.dimensionsL !== '' ? parseFloat(prod.dimensionsL) : (prod['Dimensions L'] !== undefined && prod['Dimensions L'] !== '' ? parseFloat(prod['Dimensions L']) : null),
+        dimensions_w: prod.dimensionsW !== undefined && prod.dimensionsW !== '' ? parseFloat(prod.dimensionsW) : (prod['Dimensions W'] !== undefined && prod['Dimensions W'] !== '' ? parseFloat(prod['Dimensions W']) : null),
+        dimensions_h: prod.dimensionsH !== undefined && prod.dimensionsH !== '' ? parseFloat(prod.dimensionsH) : (prod['Dimensions H'] !== undefined && prod['Dimensions H'] !== '' ? parseFloat(prod['Dimensions H']) : null),
+        weight_per_piece: prod.weightPerPiece !== undefined && prod.weightPerPiece !== '' ? parseFloat(prod.weightPerPiece) : (prod['Weight Per Piece'] !== undefined && prod['Weight Per Piece'] !== '' ? parseFloat(prod['Weight Per Piece']) : 0),
+        pcs_per_box: prod.pcsPerBox !== undefined && prod.pcsPerBox !== '' ? parseInt(prod.pcsPerBox) : (prod['PCS Per Box'] !== undefined && prod['PCS Per Box'] !== '' ? parseInt(prod['PCS Per Box']) : 1),
+        box_pcs: prod.boxPcs !== undefined && prod.boxPcs !== '' ? parseInt(prod.boxPcs) : (prod['Box PCS'] !== undefined && prod['Box PCS'] !== '' ? parseInt(prod['Box PCS']) : 1),
+        box_weight: prod.boxWeight !== undefined && prod.boxWeight !== '' ? parseFloat(prod.boxWeight) : (prod['Box Weight'] !== undefined && prod['Box Weight'] !== '' ? parseFloat(prod['Box Weight']) : 0),
+        factory_price: prod.factoryPrice !== undefined && prod.factoryPrice !== '' ? parseFloat(prod.factoryPrice) : (prod['Factory Price'] !== undefined && prod['Factory Price'] !== '' ? parseFloat(prod['Factory Price']) : 0),
+        selling_price: prod.sellingPrice !== undefined && prod.sellingPrice !== '' ? parseFloat(prod.sellingPrice) : (prod['Selling Price'] !== undefined && prod['Selling Price'] !== '' ? parseFloat(prod['Selling Price']) : 0),
+        base_price: prod.basePrice !== undefined && prod.basePrice !== '' ? parseFloat(prod.basePrice) : (prod['Base Price'] !== undefined && prod['Base Price'] !== '' ? parseFloat(prod['Base Price']) : 0),
+        margin: prod.margin !== undefined && prod.margin !== '' ? parseFloat(prod.margin) : (prod['Margin'] !== undefined && prod['Margin'] !== '' ? parseFloat(prod['Margin']) : 0),
+        hsn_code: prod.hsnCode || prod['HSN Code'] || null,
+        catalogue_name: prod.catalogueName || prod['Catalogue Name'] || null,
+        status: 'Active',
+        description: prod.description || prod['Description'] || null,
+        images: prod.images || (prod['Image URL'] ? [{ url: prod['Image URL'] }] : []),
+        pdfs: prod.pdfs || []
+      }));
+
+      const result = await sanitarywareProductService.bulkCreate(mappedProducts);
+      
+      const responseData = result?.data?.data || result?.data || result || {};
+      const insertedCount = responseData?.insertedCount || 0;
+      const updatedCount = responseData?.updatedCount || 0;
+
+      showSuccess(`✅ Successfully processed ${mappedProducts.length} sanitaryware products! (${insertedCount} inserted, ${updatedCount} updated)`);
+      fetchProducts();
+      setShowImportModal(false);
+    } catch (err) {
+      showError('Failed to import sanitaryware products: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDownloadPDF = async (product) => {
@@ -381,6 +442,15 @@ function SanitarywareProductDashboard({ currentUser }) {
               Export CSV
             </Button>
             <Button
+              variant="outline-light"
+              size="sm"
+              onClick={() => setShowImportModal(true)}
+              style={{ borderRadius: '8px', height: '32px' }}
+            >
+              <Upload size={14} className="me-1" />
+              Import
+            </Button>
+            <Button
               variant="light"
               size="sm"
               onClick={handleCreateProduct}
@@ -540,6 +610,14 @@ function SanitarywareProductDashboard({ currentUser }) {
         onConfirm={confirmConfig.onConfirm}
         onCancel={() => setShowConfirmModal(false)}
         variant={confirmConfig.variant}
+      />
+
+      {/* Import Modal */}
+      <ImportModal
+        show={showImportModal}
+        onHide={() => setShowImportModal(false)}
+        onImport={handleImportData}
+        moduleType="sanitaryware-products"
       />
 
       {/* Product Print Modal */}

@@ -19,7 +19,9 @@ import {
   remove,
   hardDelete,
   toggleStatus,
-  uploadImage
+  uploadImage,
+  bulkUpsert,
+  validateImport
 } from '../controllers/sanitarywareProductController.js';
 import { authenticate, filterByCompany } from '../middleware/auth.js';
 import { requirePermission, requireAdminRole } from '../middleware/rbac.js';
@@ -51,6 +53,25 @@ router.post(
   filterByCompany,
   requireAdminRole,
   create
+);
+
+// ADMIN ONLY - Super Admin & Company Admin can bulk upsert
+router.post(
+  '/bulk',
+  authenticate,
+  filterByCompany,
+  requireAdminRole,
+  createAuditMiddleware('sanitaryware_product', 'BULK_UPSERT'),
+  bulkUpsert
+);
+
+// ADMIN ONLY - Validate import data
+router.post(
+  '/validate-import',
+  authenticate,
+  filterByCompany,
+  requireAdminRole,
+  validateImport
 );
 
 // ADMIN ONLY - Super Admin & Company Admin can update

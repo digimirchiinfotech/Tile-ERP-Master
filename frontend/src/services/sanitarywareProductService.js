@@ -42,11 +42,21 @@ export const toggleProductStatus = async (id) => {
   return response.data.data;
 };
 
+export const validateImport = async (products) => {
+  return await api.post('/sanitaryware-products/validate-import', { products }, { skipTransform: true });
+};
+
+export const bulkCreate = async (products) => {
+  return await api.post('/sanitaryware-products/bulk', { products });
+};
+
 export default {
   getProducts,
   getProductById,
   createProduct,
   updateProduct,
   deleteProduct,
-  toggleProductStatus
+  toggleProductStatus,
+  validateImport,
+  bulkCreate
 };

@@ -381,9 +381,10 @@ export const processImportWithProgress = async (file, moduleType, onProgress) =>
     let validationResult;
     let transformedData;
 
-    if (moduleType === 'products') {
-      const { productService } = await import('../services/productService.js');
-      const response = await productService.validateImport(parseResult.data);
+    if (moduleType === 'products' || moduleType === 'sanitaryware-products') {
+      const response = moduleType === 'products'
+        ? await (await import('../services/productService.js')).productService.validateImport(parseResult.data)
+        : await (await import('../services/sanitarywareProductService.js')).validateImport(parseResult.data);
       validationResult = response.data.data;
       
       // Map valid and invalid list for compatible UI fallback
@@ -403,8 +404,8 @@ export const processImportWithProgress = async (file, moduleType, onProgress) =>
       validation: validationResult,
       summary: {
         totalRows: parseResult.totalRows,
-        validRows: moduleType === 'products' ? validationResult.summary.validCount : validationResult.summary.validCount,
-        invalidRows: moduleType === 'products' ? (validationResult.summary.duplicateCount + validationResult.summary.errorCount) : validationResult.summary.invalidCount,
+        validRows: (moduleType === 'products' || moduleType === 'sanitaryware-products') ? validationResult.summary.validCount : validationResult.summary.validCount,
+        invalidRows: (moduleType === 'products' || moduleType === 'sanitaryware-products') ? (validationResult.summary.duplicateCount + validationResult.summary.errorCount) : validationResult.summary.invalidCount,
         importedRows: transformedData.length,
       },
     };
@@ -566,6 +567,42 @@ export const getImportTemplate = (moduleType) => {
         { name: 'status', label: 'Status', required: false, example: 'Paid' },
         { name: 'paymentMode', label: 'Payment Mode', required: false, example: 'Bank Transfer' },
         { name: 'invoiceNo', label: 'Invoice No', required: false, example: 'INV/2025/001' },
+      ],
+    },
+    'sanitaryware-products': {
+      name: 'Sanitaryware Products',
+      fields: [
+        { name: 'Factory Name', label: 'Factory Name', required: false, example: 'Cera Sanitations' },
+        { name: 'Factory Product Name', label: 'Factory Product Name', required: false, example: 'Premium Closet' },
+        { name: 'Factory Product Code', label: 'Factory Product Code', required: false, example: 'FAC-SW-01' },
+        { name: 'Product Name', label: 'Product Name', required: true, example: 'Wall Hung Closet' },
+        { name: 'Description', label: 'Description', required: false, example: 'Soft-close seat cover, dual flush' },
+        { name: 'Product Code', label: 'Product Code', required: true, example: 'SW-101' },
+        { name: 'Category', label: 'Category', required: true, example: 'Wall Hung WC' },
+        { name: 'Brand', label: 'Brand', required: false, example: 'Cera' },
+        { name: 'Collection', label: 'Collection', required: false, example: 'Italica' },
+        { name: 'Color', label: 'Color', required: false, example: 'White' },
+        { name: 'Material Type', label: 'Material Type', required: false, example: 'Ceramic' },
+        { name: 'Shape', label: 'Shape', required: false, example: 'Oval' },
+        { name: 'Flush Type', label: 'Flush Type', required: false, example: 'Dual Flush' },
+        { name: 'Trap Type', label: 'Trap Type', required: false, example: 'P-Trap' },
+        { name: 'Mount Type', label: 'Mount Type', required: false, example: 'Wall Mounted' },
+        { name: 'Seat Cover Type', label: 'Seat Cover Type', required: false, example: 'Soft Close' },
+        { name: 'Finish Type', label: 'Finish Type', required: false, example: 'Glossy' },
+        { name: 'Dimension Standard', label: 'Dimension Standard', required: false, example: 'EU Std' },
+        { name: 'Dimensions L', label: 'Dimensions L', required: false, example: '550' },
+        { name: 'Dimensions W', label: 'Dimensions W', required: false, example: '360' },
+        { name: 'Dimensions H', label: 'Dimensions H', required: false, example: '400' },
+        { name: 'Weight Per Piece', label: 'Weight Per Piece', required: false, example: '28.5' },
+        { name: 'PCS Per Box', label: 'PCS Per Box', required: false, example: '1' },
+        { name: 'Box PCS', label: 'Box PCS', required: false, example: '1' },
+        { name: 'Box Weight', label: 'Box Weight', required: false, example: '28.5' },
+        { name: 'Factory Price', label: 'Factory Price', required: false, example: '45.00' },
+        { name: 'Selling Price', label: 'Selling Price', required: false, example: '75.00' },
+        { name: 'Base Price', label: 'Base Price', required: false, example: '45.00' },
+        { name: 'Margin', label: 'Margin', required: false, example: '40.00' },
+        { name: 'HSN Code', label: 'HSN Code', required: true, example: '69109000' },
+        { name: 'Catalogue Name', label: 'Catalogue Name', required: false, example: 'Cera 2026' },
       ],
     },
   };

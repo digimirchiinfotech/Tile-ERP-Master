@@ -261,6 +261,49 @@ export const runGlobalSchemaMigration = async () => {
         CREATE INDEX IF NOT EXISTS idx_export_document_lock_exp_no ON public.export_document_lock(exp_no);
         CREATE INDEX IF NOT EXISTS idx_export_document_lock_document_id ON public.export_document_lock(document_id);
 
+        -- QC Schema Hardening for public schema
+        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'qc_records') THEN
+          ALTER TABLE public.qc_records ADD COLUMN IF NOT EXISTS box_type VARCHAR(255);
+          ALTER TABLE public.qc_records ADD COLUMN IF NOT EXISTS order_sheet_id UUID;
+          ALTER TABLE public.qc_records DROP CONSTRAINT IF EXISTS qc_records_order_id_fkey;
+          ALTER TABLE public.qc_records ADD COLUMN IF NOT EXISTS batch_number VARCHAR(100);
+          ALTER TABLE public.qc_records ADD COLUMN IF NOT EXISTS lot_number VARCHAR(100);
+          ALTER TABLE public.qc_records ADD COLUMN IF NOT EXISTS manufacturing_date DATE;
+        END IF;
+
+        -- Soft-Delete Columns for public schema
+        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'export_invoices') THEN
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS deleted_by UUID;
+        END IF;
+
+        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'leads') THEN
+          ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+          ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS deleted_by UUID;
+          
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_schema = 'public' AND table_name = 'leads' AND column_name = 'client_id'
+          ) THEN
+            ALTER TABLE public.leads ADD COLUMN client_id UUID REFERENCES public.clients(id) ON DELETE SET NULL;
+          END IF;
+        END IF;
+
+        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'account_entries') THEN
+          ALTER TABLE public.account_entries ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+          ALTER TABLE public.account_entries ADD COLUMN IF NOT EXISTS deleted_by UUID;
+        END IF;
+
+        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'shipping_instructions') THEN
+          ALTER TABLE public.shipping_instructions ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+          ALTER TABLE public.shipping_instructions ADD COLUMN IF NOT EXISTS deleted_by UUID;
+        END IF;
+
+        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'vgm_documents') THEN
+          ALTER TABLE public.vgm_documents ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+          ALTER TABLE public.vgm_documents ADD COLUMN IF NOT EXISTS deleted_by UUID;
+        END IF;
+
       END $$;
     `);
 

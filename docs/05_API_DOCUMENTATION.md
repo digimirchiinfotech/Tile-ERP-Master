@@ -372,6 +372,96 @@ PUT    /api/products/:id
 DELETE /api/products/:id
 ```
 
+### Validate Import Products
+
+```
+POST /api/products/validate-import
+Authorization: Required
+Role: super_admin, company_admin, administration
+Content-Type: application/json
+```
+
+Request:
+
+```json
+{
+  "products": [
+    {
+      "Product Name": "White Ceramic Floor Tile 600x600",
+      "Category": "Floor Tiles",
+      "Product Code": "TILE-W60-001",
+      "Factory Name": "Morbi Factory",
+      "Factory Product Name": "Ceramica 60x60"
+    }
+  ]
+}
+```
+
+Response (200):
+
+```json
+{
+  "success": true,
+  "data": {
+    "summary": {
+      "total": 1,
+      "validCount": 1,
+      "duplicateCount": 0,
+      "errorCount": 0
+    },
+    "results": [
+      {
+        "rowIndex": 1,
+        "status": "VALID",
+        "reason": "-",
+        "productName": "White Ceramic Floor Tile 600x600",
+        "category": "Floor Tiles",
+        "productCode": "TILE-W60-001",
+        "factoryName": "Morbi Factory",
+        "factoryProductName": "Ceramica 60x60"
+      }
+    ]
+  }
+}
+```
+
+### Bulk Import Products (Upsert)
+
+```
+POST /api/products/bulk
+Authorization: Required
+Role: super_admin, company_admin
+Content-Type: application/json
+```
+
+Request:
+
+```json
+{
+  "products": [
+    {
+      "productCode": "TILE-W60-001",
+      "name": "White Ceramic Floor Tile 600x600",
+      "category": "Floor Tiles",
+      "factoryName": "Morbi Factory",
+      "factoryProductName": "Ceramica 60x60"
+    }
+  ]
+}
+```
+
+Response (200):
+
+```json
+{
+  "success": true,
+  "data": {
+    "insertedCount": 1,
+    "updatedCount": 0
+  }
+}
+```
+
 ---
 
 ## Sanitaryware Products
@@ -444,6 +534,92 @@ PUT    /api/sanitaryware-products/:id
 DELETE /api/sanitaryware-products/:id
 Authorization: Required
 Role: super_admin, company_admin, administration
+```
+
+### Validate Import Sanitaryware Products
+
+```
+POST /api/sanitaryware-products/validate-import
+Authorization: Required
+Role: super_admin, company_admin, administration
+Content-Type: application/json
+```
+
+Request:
+
+```json
+{
+  "products": [
+    {
+      "Product Name": "Wall Hung WC Pan",
+      "Category": "Wall Hung WC",
+      "Product Code": "SW-101",
+      "HSN Code": "69109000"
+    }
+  ]
+}
+```
+
+Response (200):
+
+```json
+{
+  "success": true,
+  "data": {
+    "summary": {
+      "total": 1,
+      "validCount": 1,
+      "duplicateCount": 0,
+      "errorCount": 0
+    },
+    "results": [
+      {
+        "rowIndex": 1,
+        "status": "VALID",
+        "reason": "-",
+        "productName": "Wall Hung WC Pan",
+        "category": "Wall Hung WC",
+        "productCode": "SW-101"
+      }
+    ]
+  }
+}
+```
+
+### Bulk Import Sanitaryware Products (Upsert)
+
+```
+POST /api/sanitaryware-products/bulk
+Authorization: Required
+Role: super_admin, company_admin
+Content-Type: application/json
+```
+
+Request:
+
+```json
+{
+  "products": [
+    {
+      "productCode": "SW-101",
+      "name": "Wall Hung WC Pan",
+      "category": "Wall Hung WC",
+      "hsnCode": "69109000"
+    }
+  ]
+}
+```
+
+Response (200):
+
+```json
+{
+  "success": true,
+  "data": {
+    "insertedCount": 1,
+    "updatedCount": 0
+  }
+}
 ```
 
 ---

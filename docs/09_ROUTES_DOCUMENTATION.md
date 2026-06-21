@@ -27,6 +27,7 @@ All other routes require a valid JWT access token in the `Authorization: Bearer 
 /api/clients
 /api/client-orders
 /api/products
+/api/sanitaryware-products
 /api/catalogues
 /api/leads
 /api/invoices                     (alias for /api/proforma-invoices)
@@ -213,11 +214,27 @@ DELETE /api/client-orders/:id      # Soft-delete order
 ## Products
 
 ```
-GET    /api/products               # List products
-GET    /api/products/:id           # Get product details
-POST   /api/products               # Create product
-PUT    /api/products/:id           # Update product
-DELETE /api/products/:id           # Soft-delete product
+GET    /api/products                 # List products
+GET    /api/products/:id             # Get product details
+POST   /api/products                 # Create product
+PUT    /api/products/:id             # Update product
+DELETE /api/products/:id             # Soft-delete product
+POST   /api/products/bulk            # Bulk import/upsert products (skipTransform payload)
+POST   /api/products/validate-import   # Validate raw Excel/CSV rows before import
+```
+
+---
+
+## Sanitaryware Products
+
+```
+GET    /api/sanitaryware-products           # List sanitaryware products
+GET    /api/sanitaryware-products/:id       # Get sanitaryware product details
+POST   /api/sanitaryware-products           # Create sanitaryware product
+PUT    /api/sanitaryware-products/:id       # Update sanitaryware product
+DELETE /api/sanitaryware-products/:id       # Soft-delete sanitaryware product
+POST   /api/sanitaryware-products/bulk      # Bulk import/upsert sanitaryware products
+POST   /api/sanitaryware-products/validate-import # Validate raw Excel/CSV rows before import
 ```
 
 ---

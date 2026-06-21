@@ -162,6 +162,25 @@ Open a product → click **Edit** → update price fields → click **Save**.
 3. Enter the new price or percentage change
 4. Confirm
 
+### Bulk Import Products & Sanitaryware via Excel/CSV
+
+To upload multiple products at once:
+
+1. Navigate to **Catalog → Products** (for Tile products) or **Catalog → Sanitaryware Products** (for Sanitaryware products).
+2. Click **Import** in the action toolbar.
+3. In the Import Modal, click **Download Template** to get the correct Excel spreadsheet layout.
+4. Fill in the columns:
+   - **Product Name** (Required)
+   - **Product Code** (Required)
+   - **Category** (Required)
+   - Fill other product characteristics (Size, Surface, Dimensions, Weights, Prices, HSN Code).
+5. Drag and drop the Excel file or click to select the file.
+6. The system will parse and validate the rows:
+   - **Green rows**: Valid records ready to import.
+   - **Yellow/Orange rows**: Duplicate records (identified by Product Code or Factory/Product Name combo). These can be updated/upserted in the database.
+   - **Red rows**: Validation errors (e.g. missing required fields or malformed numbers).
+7. Review the row stats summary and click **Import Valid Records** to commit the changes.
+
 ### Product Catalogue
 
 Catalogues are versioned product lists shared with clients:

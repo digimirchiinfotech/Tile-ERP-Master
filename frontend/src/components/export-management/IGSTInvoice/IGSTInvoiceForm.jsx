@@ -104,6 +104,8 @@ function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, current
     payment_terms: '',
     delivery_terms: '',
     other_instructions: '',
+    supply_declaration: 'SUPPLY MEANT FOR EXPORT WITHOUT PAYMENT OF INTEGRATED TAX UNDER LUT BOND',
+    ftp_incentive_declaration: '"I/WE SHALL CLAIM UNDER CHAPTER 3 INCENTIVE OF FTP AS ADMISSIBLE AT TIME POLICY IN FORCE I.E. RODTEP"',
 
     // Parties
     exporter_name: '',
@@ -259,7 +261,9 @@ function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, current
             grand_total: parseFloat(rawDoc.grandTotal || rawDoc.grand_total || 0),
             total_amount_after_tax: parseFloat(rawDoc.totalAmountAfterTax || rawDoc.total_amount_after_tax || 0),
             amount_in_words: rawDoc.amountInWords || rawDoc.amount_in_words || '',
-            remarks: rawDoc.remarks || ''
+            remarks: rawDoc.remarks || '',
+            supply_declaration: rawDoc.supply_declaration || rawDoc.supplyDeclaration || 'SUPPLY MEANT FOR EXPORT WITHOUT PAYMENT OF INTEGRATED TAX UNDER LUT BOND',
+            ftp_incentive_declaration: rawDoc.ftp_incentive_declaration || rawDoc.ftpIncentiveDeclaration || '"I/WE SHALL CLAIM UNDER CHAPTER 3 INCENTIVE OF FTP AS ADMISSIBLE AT TIME POLICY IN FORCE I.E. RODTEP"'
           });
         }
       }

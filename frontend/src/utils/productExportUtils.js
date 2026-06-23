@@ -1874,8 +1874,8 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       containers.forEach((c, idx) => {
         const sq = parseFloat(c.sqm || c.total_sqm || c.totalSqm || 0);
         const bx = parseInt(c.boxes || c.total_boxes || c.box || c.boxQuantity || 0, 10);
-        const nt = parseFloat(c.net_weight || c.netWeight || 0);
-        const gr = parseFloat(c.gross_weight || c.grossWeight || 0);
+        const nt = parseFloat(c.net_weight || c.netWeight || c.netWt || c.net_wt || c.cargo_weight || c.cargo_wt || c.cargoWeight || 0);
+        const gr = parseFloat(c.gross_weight || c.grossWeight || c.grossWt || c.gross_wt || c.vgm_weight || c.vgmWeight || 0);
         
         cSqm += sq; cBox += bx; cNet += nt; cGr += gr;
 

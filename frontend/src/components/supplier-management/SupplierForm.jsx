@@ -468,10 +468,11 @@ function SupplierForm({ supplier, onSave, onCancel }) {
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={onCancel} className="flex-fill flex-sm-grow-0" disabled={isSubmitting}><X size={16} className="me-1" />Cancel</Button>
-        <Button variant="primary" onClick={handleSubmit(onSubmit, onError)} className="flex-fill flex-sm-grow-0" disabled={!isValid || isSubmitting} loading={isSubmitting} loadingText="Saving..." title={!isValid ? "Please fill all required fields (*) to enable" : "Save changes"}><Save size={16} className="me-1" />{supplier ? 'Update Supplier' : 'Create Supplier'}</Button>
+        <Button variant="primary" onClick={handleSubmit(onSubmit, onError)} className="flex-fill flex-sm-grow-0" disabled={isSubmitting} loading={isSubmitting} loadingText="Saving..." title="Save changes"><Save size={16} className="me-1" />{supplier ? 'Update Supplier' : 'Create Supplier'}</Button>
       </Modal.Footer>
     </Modal>
   );
 }
 
 export default SupplierForm;
+

@@ -30,7 +30,7 @@ export const notificationAPI = {
     
     const response = await fetch(
       `${API_BASE}/notifications${queryParams ? '?' + queryParams : ''}`,
-      { headers }
+      { headers, credentials: 'include' }
     );
     
     if (!response.ok) throw new Error('Failed to fetch notifications');
@@ -53,7 +53,8 @@ export const notificationAPI = {
       `${API_BASE}/notifications/${notificationId}/read`,
       {
         method: 'PUT',
-        headers
+        headers,
+        credentials: 'include'
       }
     );
     
@@ -77,7 +78,8 @@ export const notificationAPI = {
       `${API_BASE}/notifications/mark-all-read`,
       {
         method: 'PUT',
-        headers
+        headers,
+        credentials: 'include'
       }
     );
     
@@ -105,6 +107,7 @@ export const notificationAPI = {
       {
         method: 'POST',
         headers,
+        credentials: 'include',
         body: JSON.stringify(data)
       }
     );
@@ -127,7 +130,7 @@ export const notificationAPI = {
     
     const response = await fetch(
       `${API_BASE}/notifications/count/unread`,
-      { headers }
+      { headers, credentials: 'include' }
     );
     
     if (!response.ok) throw new Error('Failed to fetch unread count');
@@ -150,7 +153,8 @@ export const notificationAPI = {
       `${API_BASE}/notifications/${notificationId}`,
       {
         method: 'DELETE',
-        headers
+        headers,
+        credentials: 'include'
       }
     );
     

@@ -273,7 +273,18 @@ export const updateNotificationSettings = async (req, res) => {
 export const updateSecuritySettings = async (req, res) => {
   try {
     await ensureSettingsTable(req.db);
-    const { sessionTimeout, passwordMinLength, requireTwoFactor, allowPasswordReset, maxLoginAttempts, lockoutDuration } = req.body;
+    const { 
+      sessionTimeout, 
+      passwordMinLength, 
+      requireTwoFactor, 
+      allowPasswordReset, 
+      maxLoginAttempts, 
+      lockoutDuration,
+      otpLogin,
+      passwordExpiry,
+      deviceTracking,
+      sessionManagement
+    } = req.body;
 
     const settingValue = {
       sessionTimeout: sessionTimeout || 30,
@@ -281,7 +292,11 @@ export const updateSecuritySettings = async (req, res) => {
       requireTwoFactor: requireTwoFactor !== undefined ? requireTwoFactor : false,
       allowPasswordReset: allowPasswordReset !== undefined ? allowPasswordReset : true,
       maxLoginAttempts: maxLoginAttempts || 5,
-      lockoutDuration: lockoutDuration || 15
+      lockoutDuration: lockoutDuration || 15,
+      otpLogin: otpLogin !== undefined ? otpLogin : false,
+      passwordExpiry: passwordExpiry || 90,
+      deviceTracking: deviceTracking !== undefined ? deviceTracking : true,
+      sessionManagement: sessionManagement !== undefined ? sessionManagement : true
     };
 
     const result = await req.db.query(

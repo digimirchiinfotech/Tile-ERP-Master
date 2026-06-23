@@ -548,201 +548,234 @@ function SubscriptionManagement({ currentUser }) {
       )}
 
       {viewingPlan && (
-        <Modal contentClassName="glass-modal border-0 shadow-lg" show onHide={() => setViewingPlan(null)} size="lg" backdrop="static" centered>
-          <div className="position-relative">
-            <div className="modal-header-bg bg-primary opacity-10" style={{ height: '120px', borderRadius: '16px 16px 0 0', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 0 }}></div>
+        <Modal contentClassName="glass-modal" show onHide={() => setViewingPlan(null)} size="lg" backdrop="static" dialogClassName="plan-details-modal">
+          <Modal.Body className="p-4 bg-light position-relative" style={{ borderRadius: '16px', overflow: 'hidden' }}>
             
-            <Modal.Header className="border-0 pt-4 pb-0 px-4 position-relative" style={{ zIndex: 1 }}>
-              <div className="w-100">
-                <div className="d-flex justify-content-between align-items-center mb-2">
-                  <div className="d-flex align-items-center gap-2 text-muted small fw-medium text-uppercase tracking-wider">
-                    <Layers size={14} />
-                    <span>Plans</span>
-                    <span>/</span>
-                    <span className="text-primary">{viewingPlan.name}</span>
-                  </div>
-                  <button onClick={() => setViewingPlan(null)} className="btn-close-custom" aria-label="Close">
-                    <X size={20} />
-                  </button>
+            <button 
+              type="button" 
+              className="btn-close position-absolute top-0 end-0 m-4 shadow-none" 
+              aria-label="Close" 
+              onClick={() => setViewingPlan(null)}
+              style={{ zIndex: 1050 }}
+            />
+
+            <div className="breadcrumb mb-2 text-muted" style={{ fontSize: '0.82rem', letterSpacing: '0.5px' }}>
+              Plans &gt; Plan Details
+            </div>
+
+            <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+              <div className="d-flex align-items-center gap-3">
+                <div className="bg-primary text-white d-flex align-items-center justify-content-center rounded-3 shadow-sm" style={{ width: '48px', height: '48px' }}>
+                  <Layers size={24} />
                 </div>
-                
-                <div className="d-flex align-items-end justify-content-between mt-3">
-                  <div className="d-flex align-items-center gap-3">
-                    <div className="icon-box bg-white text-primary shadow-sm rounded-4 d-flex align-items-center justify-content-center" style={{ width: '64px', height: '64px' }}>
-                      <Layers size={32} strokeWidth={1.5} />
-                    </div>
-                    <div>
-                      <h3 className="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
-                        {viewingPlan.name}
-                        <Badge bg={viewingPlan.status === 'Active' ? 'success' : 'danger'} className="px-3 py-2 rounded-pill fw-medium fs-6">
-                          {viewingPlan.status}
-                        </Badge>
-                      </h3>
-                    </div>
-                  </div>
+                <div>
+                  <h4 className="mb-0 fw-bold text-dark d-flex align-items-center gap-2" style={{ letterSpacing: '-0.3px' }}>
+                    {viewingPlan.name}
+                    <Badge bg={viewingPlan.status === 'Active' ? 'success' : 'danger'} className="px-2 py-1 rounded-pill fw-medium fs-6" style={{ fontSize: '0.75rem' }}>
+                      {viewingPlan.status}
+                    </Badge>
+                  </h4>
+                  <span className="text-muted small">Subscription Plan Info</span>
                 </div>
               </div>
-            </Modal.Header>
+            </div>
 
-            <Modal.Body className="p-4 position-relative" style={{ zIndex: 1 }}>
-              <div className="user-card bg-white p-4 h-100 shadow-sm border-0">
-                <div className="d-flex align-items-center gap-2 mb-4 border-bottom pb-3">
-                  <div className="bg-primary-subtle text-primary p-2 rounded-3">
-                    <Layers size={20} />
-                  </div>
-                  <h5 className="fw-bold mb-0 text-dark">Plan Details</h5>
+            <div className="user-card bg-white p-4 h-100 shadow-sm border-0">
+              <div className="d-flex align-items-center gap-2 mb-4 border-bottom pb-3">
+                <div className="bg-primary-subtle text-primary p-2 rounded-3">
+                  <Layers size={20} />
                 </div>
-                
-                <div className="info-grid">
-                  <div className="info-cell">
-                    <div className="icon-wrapper bg-light text-secondary"><IndianRupee size={18} /></div>
-                    <div className="content">
-                      <label>Price</label>
-                      <span className="fw-bold text-success">{viewingPlan.price === 0 ? 'Free' : `₹${viewingPlan.price}`}</span>
-                    </div>
+                <h5 className="fw-bold mb-0 text-dark">Plan Details</h5>
+              </div>
+              
+              <div className="info-grid">
+                <div className="info-cell d-flex align-items-center gap-3">
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                    <IndianRupee size={18} />
                   </div>
-                  <div className="info-cell">
-                    <div className="icon-wrapper bg-light text-secondary"><Calendar size={18} /></div>
-                    <div className="content">
-                      <label>Duration</label>
-                      <span>{viewingPlan.duration} {viewingPlan.durationType}</span>
-                    </div>
-                  </div>
-                  <div className="info-cell">
-                    <div className="icon-wrapper bg-light text-secondary"><Users size={18} /></div>
-                    <div className="content">
-                      <label>Max Users</label>
-                      <span>{viewingPlan.maxUsers === -1 ? 'Unlimited' : viewingPlan.maxUsers}</span>
-                    </div>
-                  </div>
-                  <div className="info-cell">
-                    <div className="icon-wrapper bg-light text-secondary"><Box size={18} /></div>
-                    <div className="content">
-                      <label>Max Companies</label>
-                      <span>{viewingPlan.maxCompanies}</span>
-                    </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">Price</span>
+                    <span className="info-val fw-bold text-success">{viewingPlan.price === 0 ? 'Free' : `₹${viewingPlan.price}`}</span>
                   </div>
                 </div>
 
-                <div className="mt-4 pt-3 border-top">
-                  <label className="text-muted small text-uppercase fw-bold mb-3 d-block">Features</label>
-                  <div className="d-flex flex-wrap gap-2">
-                    {(() => {
-                      let features = [];
-                      try {
-                        const parsed = Array.isArray(viewingPlan.features) ? viewingPlan.features : JSON.parse(viewingPlan.features || '[]');
-                        features = Array.isArray(parsed) ? parsed : [];
-                      } catch (e) { features = []; }
-                      return features.map((f, i) => (
-                        <Badge key={i} bg="primary-subtle" text="primary" className="fw-medium px-3 py-2 border border-primary-subtle rounded-pill">
-                          <Check size={14} className="me-1"/> {f}
-                        </Badge>
-                      ));
-                    })()}
+                <div className="info-cell d-flex align-items-center gap-3">
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                    <Calendar size={18} />
+                  </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">Duration</span>
+                    <span className="info-val fw-semibold text-dark">{viewingPlan.duration} {viewingPlan.durationType}</span>
+                  </div>
+                </div>
+
+                <div className="info-cell d-flex align-items-center gap-3">
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                    <Users size={18} />
+                  </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">Max Users</span>
+                    <span className="info-val fw-semibold text-dark">{viewingPlan.maxUsers === -1 ? 'Unlimited' : viewingPlan.maxUsers}</span>
+                  </div>
+                </div>
+
+                <div className="info-cell d-flex align-items-center gap-3">
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                    <Box size={18} />
+                  </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">Max Companies</span>
+                    <span className="info-val fw-semibold text-dark">{viewingPlan.maxCompanies}</span>
                   </div>
                 </div>
               </div>
-            </Modal.Body>
-          </div>
+
+              <div className="mt-4 pt-3 border-top">
+                <span className="text-muted small text-uppercase fw-bold mb-3 d-block">Features</span>
+                <div className="d-flex flex-wrap gap-2">
+                  {(() => {
+                    let features = [];
+                    try {
+                      const parsed = Array.isArray(viewingPlan.features) ? viewingPlan.features : JSON.parse(viewingPlan.features || '[]');
+                      features = Array.isArray(parsed) ? parsed : [];
+                    } catch (e) { features = []; }
+                    return features.map((f, i) => (
+                      <Badge key={i} bg="primary-subtle" text="primary" className="fw-medium px-3 py-2 border border-primary-subtle rounded-pill">
+                        <Check size={14} className="me-1"/> {f}
+                      </Badge>
+                    ));
+                  })()}
+                </div>
+              </div>
+            </div>
+
+            {/* ── Footer ── */}
+            <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top bg-white px-3 py-2" style={{ margin: '0 -24px -24px -24px' }}>
+              <Button variant="outline-secondary" onClick={() => setViewingPlan(null)} className="border-secondary-subtle fw-semibold px-4">
+                Close
+              </Button>
+            </div>
+            
+          </Modal.Body>
         </Modal>
       )}
 
       {viewingSubscription && (
-        <Modal contentClassName="glass-modal border-0 shadow-lg" show onHide={() => setViewingSubscription(null)} size="lg" backdrop="static" centered>
-          <div className="position-relative">
-            <div className="modal-header-bg bg-success opacity-10" style={{ height: '120px', borderRadius: '16px 16px 0 0', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 0 }}></div>
+        <Modal contentClassName="glass-modal" show onHide={() => setViewingSubscription(null)} size="lg" backdrop="static" dialogClassName="subscription-details-modal">
+          <Modal.Body className="p-4 bg-light position-relative" style={{ borderRadius: '16px', overflow: 'hidden' }}>
             
-            <Modal.Header className="border-0 pt-4 pb-0 px-4 position-relative" style={{ zIndex: 1 }}>
-              <div className="w-100">
-                <div className="d-flex justify-content-between align-items-center mb-2">
-                  <div className="d-flex align-items-center gap-2 text-muted small fw-medium text-uppercase tracking-wider">
-                    <Activity size={14} />
-                    <span>Subscriptions</span>
-                    <span>/</span>
-                    <span className="text-primary">{viewingSubscription.company_name || viewingSubscription.companyName}</span>
-                  </div>
-                  <button onClick={() => setViewingSubscription(null)} className="btn-close-custom" aria-label="Close">
-                    <X size={20} />
-                  </button>
-                </div>
-                
-                <div className="d-flex align-items-end justify-content-between mt-3">
-                  <div className="d-flex align-items-center gap-3">
-                    <div className="icon-box bg-white text-success shadow-sm rounded-4 d-flex align-items-center justify-content-center" style={{ width: '64px', height: '64px' }}>
-                      <Activity size={32} strokeWidth={1.5} />
-                    </div>
-                    <div>
-                      <h3 className="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
-                        {viewingSubscription.company_name || viewingSubscription.companyName}
-                        {statusBadge(viewingSubscription.status)}
-                      </h3>
-                      <p className="text-muted mb-0 d-flex align-items-center gap-2">
-                         {viewingSubscription.plan_name || viewingSubscription.planName}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Modal.Header>
+            <button 
+              type="button" 
+              className="btn-close position-absolute top-0 end-0 m-4 shadow-none" 
+              aria-label="Close" 
+              onClick={() => setViewingSubscription(null)}
+              style={{ zIndex: 1050 }}
+            />
 
-            <Modal.Body className="p-4 position-relative" style={{ zIndex: 1 }}>
-              <div className="user-card bg-white p-4 h-100 shadow-sm border-0">
-                <div className="d-flex align-items-center gap-2 mb-4 border-bottom pb-3">
-                  <div className="bg-success-subtle text-success p-2 rounded-3">
-                    <Activity size={20} />
-                  </div>
-                  <h5 className="fw-bold mb-0 text-dark">Subscription Overview</h5>
+            <div className="breadcrumb mb-2 text-muted" style={{ fontSize: '0.82rem', letterSpacing: '0.5px' }}>
+              Subscriptions &gt; Company Subscription
+            </div>
+
+            <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+              <div className="d-flex align-items-center gap-3">
+                <div className="bg-success text-white d-flex align-items-center justify-content-center rounded-3 shadow-sm" style={{ width: '48px', height: '48px' }}>
+                  <Activity size={24} />
                 </div>
-                
-                <div className="info-grid">
-                  <div className="info-cell">
-                    <div className="icon-wrapper bg-light text-secondary"><Layers size={18} /></div>
-                    <div className="content">
-                      <label>Plan</label>
-                      <span className="fw-bold text-dark">{viewingSubscription.plan_name || viewingSubscription.planName}</span>
-                    </div>
-                  </div>
-                  <div className="info-cell">
-                    <div className="icon-wrapper bg-light text-secondary"><IndianRupee size={18} /></div>
-                    <div className="content">
-                      <label>Amount</label>
-                      <span className="fw-bold text-success">₹{viewingSubscription.amount}</span>
-                    </div>
-                  </div>
-                  <div className="info-cell">
-                    <div className="icon-wrapper bg-light text-secondary"><Calendar size={18} /></div>
-                    <div className="content">
-                      <label>Start Date</label>
-                      <span>{fmtDate(viewingSubscription.start_date || viewingSubscription.startDate)}</span>
-                    </div>
-                  </div>
-                  <div className="info-cell">
-                    <div className="icon-wrapper bg-light text-secondary"><Calendar size={18} /></div>
-                    <div className="content">
-                      <label>End Date</label>
-                      <span>{fmtDate(viewingSubscription.end_date || viewingSubscription.endDate)}</span>
-                    </div>
-                  </div>
-                  <div className="info-cell" style={{ gridColumn: '1 / -1' }}>
-                    <div className="icon-wrapper bg-light text-secondary"><RefreshCw size={18} /></div>
-                    <div className="content">
-                      <label>Auto Renewal</label>
-                      <span><Badge bg={(viewingSubscription.auto_renewal || viewingSubscription.autoRenewal) ? 'success' : 'secondary'}>{(viewingSubscription.auto_renewal || viewingSubscription.autoRenewal) ? 'Enabled' : 'Disabled'}</Badge></span>
-                    </div>
-                  </div>
-                  {viewingSubscription.notes && (
-                    <div className="info-cell" style={{ gridColumn: '1 / -1' }}>
-                      <div className="icon-wrapper bg-light text-secondary"><FileText size={18} /></div>
-                      <div className="content">
-                        <label>Notes</label>
-                        <span>{viewingSubscription.notes}</span>
-                      </div>
-                    </div>
-                  )}
+                <div>
+                  <h4 className="mb-0 fw-bold text-dark d-flex align-items-center gap-2" style={{ letterSpacing: '-0.3px' }}>
+                    {viewingSubscription.company_name || viewingSubscription.companyName}
+                    {statusBadge(viewingSubscription.status)}
+                  </h4>
+                  <span className="text-muted small">{viewingSubscription.plan_name || viewingSubscription.planName}</span>
                 </div>
               </div>
-            </Modal.Body>
-          </div>
+            </div>
+
+            <div className="user-card bg-white p-4 h-100 shadow-sm border-0">
+              <div className="d-flex align-items-center gap-2 mb-4 border-bottom pb-3">
+                <div className="bg-success-subtle text-success p-2 rounded-3">
+                  <Activity size={20} />
+                </div>
+                <h5 className="fw-bold mb-0 text-dark">Subscription Overview</h5>
+              </div>
+              
+              <div className="info-grid">
+                <div className="info-cell d-flex align-items-center gap-3">
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                    <Layers size={18} />
+                  </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">Plan</span>
+                    <span className="info-val fw-bold text-dark">{viewingSubscription.plan_name || viewingSubscription.planName}</span>
+                  </div>
+                </div>
+
+                <div className="info-cell d-flex align-items-center gap-3">
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#dcfce7', color: '#16a34a', flexShrink: 0 }}>
+                    <IndianRupee size={18} />
+                  </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">Amount</span>
+                    <span className="info-val fw-bold text-success">₹{viewingSubscription.amount}</span>
+                  </div>
+                </div>
+
+                <div className="info-cell d-flex align-items-center gap-3">
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                    <Calendar size={18} />
+                  </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">Start Date</span>
+                    <span className="info-val fw-semibold text-dark">{fmtDate(viewingSubscription.start_date || viewingSubscription.startDate)}</span>
+                  </div>
+                </div>
+
+                <div className="info-cell d-flex align-items-center gap-3">
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                    <Calendar size={18} />
+                  </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">End Date</span>
+                    <span className="info-val fw-semibold text-dark">{fmtDate(viewingSubscription.end_date || viewingSubscription.endDate)}</span>
+                  </div>
+                </div>
+
+                <div className="info-cell d-flex align-items-center gap-3" style={{ gridColumn: '1 / -1' }}>
+                  <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                    <RefreshCw size={18} />
+                  </div>
+                  <div className="info-text-wrapper">
+                    <span className="info-label text-muted small d-block text-uppercase">Auto Renewal</span>
+                    <span className="info-val">
+                      <Badge bg={(viewingSubscription.auto_renewal || viewingSubscription.autoRenewal) ? 'success' : 'secondary'} className="rounded-pill px-2 py-1">
+                        {(viewingSubscription.auto_renewal || viewingSubscription.autoRenewal) ? 'Enabled' : 'Disabled'}
+                      </Badge>
+                    </span>
+                  </div>
+                </div>
+
+                {viewingSubscription.notes && (
+                  <div className="info-cell d-flex align-items-center gap-3" style={{ gridColumn: '1 / -1' }}>
+                    <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+                      <FileText size={18} />
+                    </div>
+                    <div className="info-text-wrapper">
+                      <span className="info-label text-muted small d-block text-uppercase">Notes</span>
+                      <span className="info-val fw-medium text-dark">{viewingSubscription.notes}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ── Footer ── */}
+            <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top bg-white px-3 py-2" style={{ margin: '0 -24px -24px -24px' }}>
+              <Button variant="outline-secondary" onClick={() => setViewingSubscription(null)} className="border-secondary-subtle fw-semibold px-4">
+                Close
+              </Button>
+            </div>
+            
+          </Modal.Body>
         </Modal>
       )}
 

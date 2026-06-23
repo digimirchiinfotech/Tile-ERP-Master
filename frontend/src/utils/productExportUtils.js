@@ -1060,7 +1060,7 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       let cSqm = 0, cBox = 0, cGr = 0;
       containerArr.forEach((c, idx) => {
         const sq = parseFloat(c.sqm || c.total_sqm || c.totalSqm || 0);
-        const bx = parseInt(c.boxes || c.total_boxes || c.box || c.boxQuantity || 0, 10);
+        const bx = parseInt(c.boxes || c.total_boxes || c.totalBoxes || c.box || c.boxQuantity || 0, 10);
         const gr = parseFloat(c.gross_weight || c.grossWeight || c.grossWt || c.gross_wt || c.vgm_weight || c.vgmWeight || 0);
         
         cSqm += sq; cBox += bx; cGr += gr;
@@ -1364,8 +1364,8 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
 
       let tSqm = 0, tBox = 0, tNet = 0, tGross = 0;
       containerArr.forEach((c, i) => {
-        const sq = parseFloat(c.sqm || c.total_sqm || 0);
-        const bx = parseInt(c.boxes || c.total_boxes || c.box || c.boxQuantity || 0, 10);
+        const sq = parseFloat(c.sqm || c.total_sqm || c.totalSqm || 0);
+        const bx = parseInt(c.boxes || c.total_boxes || c.totalBoxes || c.box || c.boxQuantity || 0, 10);
         const nt = parseFloat(c.net_weight || c.netWeight || c.netWt || c.net_wt || c.cargo_weight || c.cargo_wt || c.cargoWeight || 0);
         const gr = parseFloat(c.gross_weight || c.grossWeight || c.grossWt || c.gross_wt || c.vgm_weight || c.vgmWeight || 0);
         
@@ -1873,7 +1873,7 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       let cSqm = 0, cBox = 0, cNet = 0, cGr = 0;
       containers.forEach((c, idx) => {
         const sq = parseFloat(c.sqm || c.total_sqm || c.totalSqm || 0);
-        const bx = parseInt(c.boxes || c.total_boxes || c.box || c.boxQuantity || 0, 10);
+        const bx = parseInt(c.boxes || c.total_boxes || c.totalBoxes || c.box || c.boxQuantity || 0, 10);
         const nt = parseFloat(c.net_weight || c.netWeight || c.netWt || c.net_wt || c.cargo_weight || c.cargo_wt || c.cargoWeight || c.netWt || c.net_wt || c.cargo_weight || c.cargo_wt || c.cargoWeight || 0);
         const gr = parseFloat(c.gross_weight || c.grossWeight || c.grossWt || c.gross_wt || c.vgm_weight || c.vgmWeight || c.grossWt || c.gross_wt || c.vgm_weight || c.vgmWeight || 0);
         
@@ -2538,7 +2538,7 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
 
       containers.forEach(c => {
         const sqm = parseFloat(c.sqm || c.total_sqm || c.totalSqm || 0);
-        const boxes = parseInt(c.boxes || c.total_boxes || c.box || 0, 10);
+        const boxes = parseInt(c.boxes || c.total_boxes || c.totalBoxes || c.box || c.boxQuantity || 0, 10);
         const gross = parseFloat(c.gross_weight || c.grossWeight || c.grossWt || c.gross_wt || c.vgm_weight || c.vgmWeight || 0);
 
         totalSqm += sqm;
@@ -2679,4 +2679,5 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
     throw error;
   }
 };
+
 

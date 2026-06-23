@@ -20,10 +20,17 @@ export const authenticate = async (req, res, next) => {
   try {
     let token;
 
-    // SECURITY FIX (HIGH-SEC-001): Accept tokens via Authorization header OR HttpOnly cookie.
+    // SECURITY FIX: Accept tokens via Authorization header OR HttpOnly cookie.
+    // The frontend tokenManager returns 'cookie-auth-active' when using cookies.
+    // If we receive this placeholder, or 'null', ignore it and read from the cookie.
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-      token = req.headers.authorization.split(' ')[1];
-    } else if (req.cookies && req.cookies.accessToken) {
+      const headerToken = req.headers.authorization.split(' ')[1];
+      if (headerToken && headerToken !== 'cookie-auth-active' && headerToken !== 'null' && headerToken !== 'undefined') {
+        token = headerToken;
+      }
+    }
+    
+    if (!token && req.cookies && req.cookies.accessToken) {
       token = req.cookies.accessToken;
     }
 
@@ -102,8 +109,13 @@ export const optionalAuth = async (req, res, next) => {
     let token;
 
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-      token = req.headers.authorization.split(' ')[1];
-    } else if (req.cookies && req.cookies.accessToken) {
+      const headerToken = req.headers.authorization.split(' ')[1];
+      if (headerToken && headerToken !== 'cookie-auth-active' && headerToken !== 'null' && headerToken !== 'undefined') {
+        token = headerToken;
+      }
+    }
+    
+    if (!token && req.cookies && req.cookies.accessToken) {
       token = req.cookies.accessToken;
     }
 

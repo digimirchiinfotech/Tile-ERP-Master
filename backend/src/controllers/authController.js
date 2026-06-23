@@ -223,7 +223,7 @@ export const login = async (req, res, next) => {
 
 export const refreshToken = async (req, res, next) => {
   try {
-    const { refreshToken: token } = req.body;
+    const token = req.body.refreshToken || (req.cookies && req.cookies.refreshToken);
     if (!token) return next(new AppError('Refresh token required', 400));
 
     const tokenResult = await req.db.globalQuery('SELECT user_id, expires_at FROM refresh_tokens WHERE token = $1', [token]);
@@ -371,7 +371,7 @@ export const getCurrentUser = async (req, res, next) => {
 
 export const logout = async (req, res, next) => {
   try {
-    const { refreshToken } = req.body;
+    const refreshToken = req.body.refreshToken || (req.cookies && req.cookies.refreshToken);
     if (refreshToken) await req.db.globalQuery('DELETE FROM refresh_tokens WHERE token = $1 AND user_id = $2', [refreshToken, req.user.id]);
     await req.db.globalQuery('DELETE FROM refresh_tokens WHERE user_id = $1 AND expires_at < CURRENT_TIMESTAMP', [req.user.id]);
 

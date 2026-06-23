@@ -59,7 +59,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
         gstn: supplier.gstn || '',
         pan: supplier.pan || '',
         productCategories: supplier.productCategories || [],
-        qualityRating: supplier.qualityRating || null,
+        qualityRating: supplier.qualityRating ? Number(supplier.qualityRating) : null,
         status: supplier.status || 'Active',
         notes: supplier.notes || '',
         bankDetails: supplier.bankDetails || {
@@ -475,4 +475,5 @@ function SupplierForm({ supplier, onSave, onCancel }) {
 }
 
 export default SupplierForm;
+
 

@@ -533,12 +533,9 @@ export const getInvoicesByPartyName = async (req, res, next) => {
       }
     }
 
-    conditions.push(`(TRIM(c.name) ILIKE $${paramCount} OR TRIM(inv.client_name) ILIKE $${paramCount})`);
+    conditions.push(`(c.name ILIKE $${paramCount} OR c.client_name ILIKE $${paramCount} OR inv.client_name ILIKE $${paramCount})`);
     values.push(`%${partyName.trim()}%`);
     paramCount++;
-    
-    // Only fetch finalized/locked invoices
-    conditions.push('inv.is_locked = true');
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     

@@ -533,7 +533,7 @@ export const getInvoicesByPartyName = async (req, res, next) => {
       }
     }
 
-    conditions.push(`(TRIM(c.name) ILIKE $\${paramCount} OR TRIM(inv.client_name) ILIKE $\${paramCount} OR TRIM(inv.party_name) ILIKE $\${paramCount})`);
+    conditions.push(`(TRIM(c.name) ILIKE $${paramCount} OR TRIM(inv.client_name) ILIKE $${paramCount})`);
     values.push(`%${partyName.trim()}%`);
     paramCount++;
     

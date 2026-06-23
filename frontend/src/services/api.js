@@ -16,8 +16,7 @@ import { trackError, trackSlowRequest } from '../utils/errorTracker';
 
 // Use Vite proxy in development (configured in vite.config.js)
 // In production, ignore Vercel environment variables because they contain the dead .up.railway.app domain
-const isDev = import.meta.env.DEV || import.meta.env.MODE === 'development';
-const API_BASE_URL = isDev ? '/api' : (import.meta.env.DEV || import.meta.env.MODE === 'development' ? '/api' : 'https://tile-erp-master-production.up.railway.app/api');
+const API_BASE_URL = '/api';
 
 console.log("API_BASE_URL =", API_BASE_URL);
 

@@ -13,7 +13,7 @@ import { useState, useEffect } from 'react';
 import {
   Row, Col, Card, Button, Table, Badge, Form, Modal, Spinner, Alert,
 } from 'react-bootstrap';
-import { Plus, Edit, Trash2, Eye, IndianRupee, RefreshCw, X, Power, Download } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, IndianRupee, RefreshCw, X, Power, Download, Layers, Activity, Calendar, Box, Users, FileText, Check } from 'lucide-react';
 import SubscriptionPlanForm from './SubscriptionPlanForm.jsx';
 import { useSubscriptions } from '../../hooks/useSubscriptions';
 import { showSuccess, showError } from '../shared/NotificationManager.jsx';
@@ -548,70 +548,201 @@ function SubscriptionManagement({ currentUser }) {
       )}
 
       {viewingPlan && (
-        <Modal show onHide={() => setViewingPlan(null)} size="lg" backdrop="static">
-          <Modal.Header closeButton>
-            <Modal.Title>Subscription Plan Details</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Row className="g-3">
-              <Col md={12}><h5 className="fw-bold mb-1">{viewingPlan.name}</h5><Badge bg={viewingPlan.status === 'Active' ? 'success' : 'danger'}>{viewingPlan.status}</Badge></Col>
-              <Col md={6}>
-                <div className="sub-detail-item"><span className="sub-detail-label">Price</span><span className="sub-detail-value fw-semibold">{viewingPlan.price === 0 ? 'Free' : `₹${viewingPlan.price}`}</span></div>
-              </Col>
-              <Col md={6}>
-                <div className="sub-detail-item"><span className="sub-detail-label">Duration</span><span className="sub-detail-value">{viewingPlan.duration} {viewingPlan.durationType}</span></div>
-              </Col>
-              <Col md={6}>
-                <div className="sub-detail-item"><span className="sub-detail-label">Max Users</span><span className="sub-detail-value">{viewingPlan.maxUsers === -1 ? 'Unlimited' : viewingPlan.maxUsers}</span></div>
-              </Col>
-              <Col md={6}>
-                <div className="sub-detail-item"><span className="sub-detail-label">Max Companies</span><span className="sub-detail-value">{viewingPlan.maxCompanies}</span></div>
-              </Col>
-              <Col md={12}>
-                <p className="fw-semibold mb-2">Features</p>
-                <div className="d-flex flex-wrap gap-2">
-                  {(() => {
-                    let features = [];
-                    try {
-                      const parsed = Array.isArray(viewingPlan.features) ? viewingPlan.features : JSON.parse(viewingPlan.features || '[]');
-                      features = Array.isArray(parsed) ? parsed : [];
-                    } catch (e) { features = []; }
-                    return features.map((f, i) => (
-                      <Badge key={i} bg="secondary" className="fw-normal px-2 py-1" style={{fontSize:'12px'}}>✓ {f}</Badge>
-                    ));
-                  })()}
+        <Modal contentClassName="glass-modal border-0 shadow-lg" show onHide={() => setViewingPlan(null)} size="lg" backdrop="static" centered>
+          <div className="position-relative">
+            <div className="modal-header-bg bg-primary opacity-10" style={{ height: '120px', borderRadius: '16px 16px 0 0', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 0 }}></div>
+            
+            <Modal.Header className="border-0 pt-4 pb-0 px-4 position-relative" style={{ zIndex: 1 }}>
+              <div className="w-100">
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                  <div className="d-flex align-items-center gap-2 text-muted small fw-medium text-uppercase tracking-wider">
+                    <Layers size={14} />
+                    <span>Plans</span>
+                    <span>/</span>
+                    <span className="text-primary">{viewingPlan.name}</span>
+                  </div>
+                  <button onClick={() => setViewingPlan(null)} className="btn-close-custom" aria-label="Close">
+                    <X size={20} />
+                  </button>
                 </div>
-              </Col>
-            </Row>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => setViewingPlan(null)}><X size={15} className="me-1" />Close</Button>
-          </Modal.Footer>
+                
+                <div className="d-flex align-items-end justify-content-between mt-3">
+                  <div className="d-flex align-items-center gap-3">
+                    <div className="icon-box bg-white text-primary shadow-sm rounded-4 d-flex align-items-center justify-content-center" style={{ width: '64px', height: '64px' }}>
+                      <Layers size={32} strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <h3 className="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+                        {viewingPlan.name}
+                        <Badge bg={viewingPlan.status === 'Active' ? 'success' : 'danger'} className="px-3 py-2 rounded-pill fw-medium fs-6">
+                          {viewingPlan.status}
+                        </Badge>
+                      </h3>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Modal.Header>
+
+            <Modal.Body className="p-4 position-relative" style={{ zIndex: 1 }}>
+              <div className="user-card bg-white p-4 h-100 shadow-sm border-0">
+                <div className="d-flex align-items-center gap-2 mb-4 border-bottom pb-3">
+                  <div className="bg-primary-subtle text-primary p-2 rounded-3">
+                    <Layers size={20} />
+                  </div>
+                  <h5 className="fw-bold mb-0 text-dark">Plan Details</h5>
+                </div>
+                
+                <div className="info-grid">
+                  <div className="info-cell">
+                    <div className="icon-wrapper bg-light text-secondary"><IndianRupee size={18} /></div>
+                    <div className="content">
+                      <label>Price</label>
+                      <span className="fw-bold text-success">{viewingPlan.price === 0 ? 'Free' : `₹${viewingPlan.price}`}</span>
+                    </div>
+                  </div>
+                  <div className="info-cell">
+                    <div className="icon-wrapper bg-light text-secondary"><Calendar size={18} /></div>
+                    <div className="content">
+                      <label>Duration</label>
+                      <span>{viewingPlan.duration} {viewingPlan.durationType}</span>
+                    </div>
+                  </div>
+                  <div className="info-cell">
+                    <div className="icon-wrapper bg-light text-secondary"><Users size={18} /></div>
+                    <div className="content">
+                      <label>Max Users</label>
+                      <span>{viewingPlan.maxUsers === -1 ? 'Unlimited' : viewingPlan.maxUsers}</span>
+                    </div>
+                  </div>
+                  <div className="info-cell">
+                    <div className="icon-wrapper bg-light text-secondary"><Box size={18} /></div>
+                    <div className="content">
+                      <label>Max Companies</label>
+                      <span>{viewingPlan.maxCompanies}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-3 border-top">
+                  <label className="text-muted small text-uppercase fw-bold mb-3 d-block">Features</label>
+                  <div className="d-flex flex-wrap gap-2">
+                    {(() => {
+                      let features = [];
+                      try {
+                        const parsed = Array.isArray(viewingPlan.features) ? viewingPlan.features : JSON.parse(viewingPlan.features || '[]');
+                        features = Array.isArray(parsed) ? parsed : [];
+                      } catch (e) { features = []; }
+                      return features.map((f, i) => (
+                        <Badge key={i} bg="primary-subtle" text="primary" className="fw-medium px-3 py-2 border border-primary-subtle rounded-pill">
+                          <Check size={14} className="me-1"/> {f}
+                        </Badge>
+                      ));
+                    })()}
+                  </div>
+                </div>
+              </div>
+            </Modal.Body>
+          </div>
         </Modal>
       )}
 
       {viewingSubscription && (
-        <Modal show onHide={() => setViewingSubscription(null)} size="lg" backdrop="static">
-          <Modal.Header closeButton>
-            <Modal.Title>Company Subscription Details</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Row className="g-3">
-              <Col md={12}>
-                <h5 className="fw-bold mb-1">{viewingSubscription.company_name || viewingSubscription.companyName}</h5>
-                {statusBadge(viewingSubscription.status)}
-              </Col>
-              <Col md={6}><div className="sub-detail-item"><span className="sub-detail-label">Plan</span><span className="sub-detail-value fw-semibold">{viewingSubscription.plan_name || viewingSubscription.planName}</span></div></Col>
-              <Col md={6}><div className="sub-detail-item"><span className="sub-detail-label">Amount</span><span className="sub-detail-value fw-bold text-success">₹{viewingSubscription.amount}</span></div></Col>
-              <Col md={6}><div className="sub-detail-item"><span className="sub-detail-label">Start Date</span><span className="sub-detail-value">{fmtDate(viewingSubscription.start_date || viewingSubscription.startDate)}</span></div></Col>
-              <Col md={6}><div className="sub-detail-item"><span className="sub-detail-label">End Date</span><span className="sub-detail-value">{fmtDate(viewingSubscription.end_date || viewingSubscription.endDate)}</span></div></Col>
-              <Col md={6}><div className="sub-detail-item"><span className="sub-detail-label">Auto Renewal</span><Badge bg={(viewingSubscription.auto_renewal || viewingSubscription.autoRenewal) ? 'success' : 'secondary'}>{(viewingSubscription.auto_renewal || viewingSubscription.autoRenewal) ? 'Enabled' : 'Disabled'}</Badge></div></Col>
-              {viewingSubscription.notes && <Col md={12}><div className="sub-detail-item"><span className="sub-detail-label">Notes</span><span className="sub-detail-value">{viewingSubscription.notes}</span></div></Col>}
-            </Row>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => setViewingSubscription(null)}><X size={15} className="me-1" />Close</Button>
-          </Modal.Footer>
+        <Modal contentClassName="glass-modal border-0 shadow-lg" show onHide={() => setViewingSubscription(null)} size="lg" backdrop="static" centered>
+          <div className="position-relative">
+            <div className="modal-header-bg bg-success opacity-10" style={{ height: '120px', borderRadius: '16px 16px 0 0', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 0 }}></div>
+            
+            <Modal.Header className="border-0 pt-4 pb-0 px-4 position-relative" style={{ zIndex: 1 }}>
+              <div className="w-100">
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                  <div className="d-flex align-items-center gap-2 text-muted small fw-medium text-uppercase tracking-wider">
+                    <Activity size={14} />
+                    <span>Subscriptions</span>
+                    <span>/</span>
+                    <span className="text-primary">{viewingSubscription.company_name || viewingSubscription.companyName}</span>
+                  </div>
+                  <button onClick={() => setViewingSubscription(null)} className="btn-close-custom" aria-label="Close">
+                    <X size={20} />
+                  </button>
+                </div>
+                
+                <div className="d-flex align-items-end justify-content-between mt-3">
+                  <div className="d-flex align-items-center gap-3">
+                    <div className="icon-box bg-white text-success shadow-sm rounded-4 d-flex align-items-center justify-content-center" style={{ width: '64px', height: '64px' }}>
+                      <Activity size={32} strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <h3 className="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+                        {viewingSubscription.company_name || viewingSubscription.companyName}
+                        {statusBadge(viewingSubscription.status)}
+                      </h3>
+                      <p className="text-muted mb-0 d-flex align-items-center gap-2">
+                         {viewingSubscription.plan_name || viewingSubscription.planName}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Modal.Header>
+
+            <Modal.Body className="p-4 position-relative" style={{ zIndex: 1 }}>
+              <div className="user-card bg-white p-4 h-100 shadow-sm border-0">
+                <div className="d-flex align-items-center gap-2 mb-4 border-bottom pb-3">
+                  <div className="bg-success-subtle text-success p-2 rounded-3">
+                    <Activity size={20} />
+                  </div>
+                  <h5 className="fw-bold mb-0 text-dark">Subscription Overview</h5>
+                </div>
+                
+                <div className="info-grid">
+                  <div className="info-cell">
+                    <div className="icon-wrapper bg-light text-secondary"><Layers size={18} /></div>
+                    <div className="content">
+                      <label>Plan</label>
+                      <span className="fw-bold text-dark">{viewingSubscription.plan_name || viewingSubscription.planName}</span>
+                    </div>
+                  </div>
+                  <div className="info-cell">
+                    <div className="icon-wrapper bg-light text-secondary"><IndianRupee size={18} /></div>
+                    <div className="content">
+                      <label>Amount</label>
+                      <span className="fw-bold text-success">₹{viewingSubscription.amount}</span>
+                    </div>
+                  </div>
+                  <div className="info-cell">
+                    <div className="icon-wrapper bg-light text-secondary"><Calendar size={18} /></div>
+                    <div className="content">
+                      <label>Start Date</label>
+                      <span>{fmtDate(viewingSubscription.start_date || viewingSubscription.startDate)}</span>
+                    </div>
+                  </div>
+                  <div className="info-cell">
+                    <div className="icon-wrapper bg-light text-secondary"><Calendar size={18} /></div>
+                    <div className="content">
+                      <label>End Date</label>
+                      <span>{fmtDate(viewingSubscription.end_date || viewingSubscription.endDate)}</span>
+                    </div>
+                  </div>
+                  <div className="info-cell" style={{ gridColumn: '1 / -1' }}>
+                    <div className="icon-wrapper bg-light text-secondary"><RefreshCw size={18} /></div>
+                    <div className="content">
+                      <label>Auto Renewal</label>
+                      <span><Badge bg={(viewingSubscription.auto_renewal || viewingSubscription.autoRenewal) ? 'success' : 'secondary'}>{(viewingSubscription.auto_renewal || viewingSubscription.autoRenewal) ? 'Enabled' : 'Disabled'}</Badge></span>
+                    </div>
+                  </div>
+                  {viewingSubscription.notes && (
+                    <div className="info-cell" style={{ gridColumn: '1 / -1' }}>
+                      <div className="icon-wrapper bg-light text-secondary"><FileText size={18} /></div>
+                      <div className="content">
+                        <label>Notes</label>
+                        <span>{viewingSubscription.notes}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Modal.Body>
+          </div>
         </Modal>
       )}
 
@@ -696,6 +827,73 @@ function SubscriptionManagement({ currentUser }) {
         .sub-tab-btn.active {
           color: #0d6efd;
           border-bottom-color: #0d6efd;
+        }
+
+        /* User Card & Grid Styles for View Modals */
+        .glass-modal .modal-content {
+          border-radius: 16px;
+          overflow: hidden;
+          background: #f8fafc;
+        }
+        .btn-close-custom {
+          background: #f1f5f9;
+          border: none;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #64748b;
+          transition: all 0.2s;
+        }
+        .btn-close-custom:hover {
+          background: #e2e8f0;
+          color: #0f172a;
+        }
+        .user-card {
+          border-radius: 16px;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .user-card:hover {
+          box-shadow: 0 10px 25px rgba(0,0,0,0.05) !important;
+        }
+        .info-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 1.5rem;
+        }
+        .info-cell {
+          display: flex;
+          align-items: flex-start;
+          gap: 1rem;
+        }
+        .info-cell .icon-wrapper {
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .info-cell .content {
+          display: flex;
+          flex-direction: column;
+        }
+        .info-cell label {
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          color: #64748b;
+          margin-bottom: 0.25rem;
+          font-weight: 600;
+        }
+        .info-cell span {
+          color: #0f172a;
+          font-weight: 500;
+          font-size: 0.95rem;
+          word-break: break-word;
         }
       `}</style>
     </>

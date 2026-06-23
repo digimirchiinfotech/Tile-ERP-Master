@@ -193,7 +193,7 @@ function App() {
       <PollingManager currentUser={currentUser}>
         {({ loading, ...hooks }) => (
           <GlobalSearchHandler
-            onSearchComplete={() => setCurrentView('search-results')}
+            onSearchComplete={() => handleNavigate('search-results')}
             syncURLWithState={syncURLWithState}
           >
             {({ handleSearch, searchResults, searchQuery, setSearchResults }) => (
@@ -242,3 +242,4 @@ function App() {
 }
 
 export default App;
+

@@ -1754,13 +1754,13 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
 
       // 4. Notify I
       mergeRow(r, 'A', r, 'G');
-      setCell(r, 1, `NOTIFY - I :-\n${doc.notify_party || doc.notifyParty || '-'}`, { bold: true, size: 8, align: { horizontal: 'left', vertical: 'top' } });
+      setCell(r, 1, `NOTIFY - I :-\n${doc.notifyParty1 || doc.notify_party_1 || doc.notify_party || doc.notifyParty || '-'}`, { bold: true, size: 8, align: { horizontal: 'left', vertical: 'top' } });
       sheet.getRow(r).height = 45;
       r++;
 
       // 5. Notify II
       mergeRow(r, 'A', r, 'G');
-      setCell(r, 1, `NOTIFY - II :-\n${doc.notify_party_2 || doc.notifyParty2 || '-'}`, { bold: true, size: 8, align: { horizontal: 'left', vertical: 'top' } });
+      setCell(r, 1, `NOTIFY - II :-\n${doc.notifyParty2 || doc.notify_party_2 || '-'}`, { bold: true, size: 8, align: { horizontal: 'left', vertical: 'top' } });
       sheet.getRow(r).height = 30;
       r++;
 

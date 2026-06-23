@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": "https://tile-erp-master-production.up.railway.app/api/$1"
+    },
+    {
+      "source": "/socket.io/(.*)",
+      "destination": "https://tile-erp-master-production.up.railway.app/socket.io/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

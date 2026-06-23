@@ -586,7 +586,7 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
 
         setCell(r, 1, index + 1, { align: { horizontal: 'center', vertical: 'top' } });
         setCell(r, 2, finalDesc, { bold: true, align: { horizontal: 'left', vertical: 'top' } });
-        setCell(r, 3, p.hsnCode || p.hsn_code || p.hsCode || p.hs_code || (tariffCode !== '-' ? tariffCode : ''), { align: { horizontal: 'center', vertical: 'top' } });
+        setCell(r, 3, (p.hsnCode || p.hsn_code || p.hsCode || p.hs_code || p.hsn || doc.hs_code || doc.hsCode || doc.tariff_code || doc.tariffCode || tariffCode || '').replace(/^-$/, '').trim() || '-', { align: { horizontal: 'center', vertical: 'top' } });
         setCell(r, 4, boxes, { align: { horizontal: 'center', vertical: 'top' } });
         setCell(r, 5, sqm, { align: { horizontal: 'center', vertical: 'top' } });
         
@@ -1613,7 +1613,7 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
         finalDesc += (desc && desc !== name && desc !== '-') ? `${name}\n${desc}` : name;
 
         setCell(r, 1, finalDesc.trim(), { size: 8, align: { horizontal: 'left', vertical: 'middle' } });
-        setCell(r, 2, p.hsnCode || p.hsn_code || p.hsCode || p.hs_code || '', { size: 8, align: { horizontal: 'center', vertical: 'middle' } });
+        setCell(r, 2, (p.hsnCode || p.hsn_code || p.hsCode || p.hs_code || p.hsn || doc.hs_code || doc.hsCode || doc.tariff_code || doc.tariffCode || tariffCode || '').replace(/^-$/, '').trim() || '-', { size: 8, align: { horizontal: 'center', vertical: 'middle' } });
         setCell(r, 3, bx, { size: 8, align: { horizontal: 'center', vertical: 'middle' } });
         
         const c4 = setCell(r, 4, isSan ? 0 : sq, { size: 8, align: { horizontal: 'center', vertical: 'middle' } });
@@ -2128,7 +2128,7 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
         ...line,
         isFoc,
         isSanitaryware,
-        hsnCode: line.hsnCode || line.hsn_code || line.hsCode || line.hs_code || '',
+        hsnCode: (line.hsnCode || line.hsn_code || line.hsCode || line.hs_code || line.hsn || doc.hs_code || doc.hsCode || doc.tariff_code || doc.tariffCode || tariffCode || '').replace(/^-$/, '').trim() || '',
         finalDescription: finalDescription.trim(),
         totalBoxes: boxes,
         sqmAuto: sqm,
@@ -2679,6 +2679,9 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
     throw error;
   }
 };
+
+
+
 
 
 

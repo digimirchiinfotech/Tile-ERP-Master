@@ -63,6 +63,11 @@ const ERPFlowchart = React.lazy(() => import('./ERPFlowchart.jsx'));
 const SanitarywareProductDashboard = React.lazy(() => import('../sanitaryware-product-management/SanitarywareProductDashboard.jsx'));
 const SanitarywareMasterDataManagement = React.lazy(() => import('../super-admin/SanitarywareMasterDataManagement.jsx'));
 
+// User Views (Galleries)
+const TileProductGallery = React.lazy(() => import('../user-views/TileProductGallery.jsx'));
+const SanitarywareGallery = React.lazy(() => import('../user-views/SanitarywareGallery.jsx'));
+const CatalogueGallery = React.lazy(() => import('../user-views/CatalogueGallery.jsx'));
+
 // Operations & Production Planning
 const OrderSheetDashboard = React.lazy(() => import('../operations/OrderSheetDashboard.jsx'));
 const ProductionPlanningDashboard = React.lazy(() => import('../operations/ProductionPlanningDashboard.jsx'));
@@ -249,6 +254,9 @@ const AppRouter = ({
       'search-results': [],
       'terms': [],
       'privacy': [],
+      'tile-gallery': ['all'],
+      'sanitaryware-gallery': ['all'],
+      'catalogue-gallery': ['all'],
 
       'access-denied': [],
     };
@@ -692,6 +700,15 @@ const AppRouter = ({
 
     case 'help-center':
       return <HelpCenter currentUser={currentUser} onNavigate={handleNavigate} />;
+
+    case 'tile-gallery':
+      return <TileProductGallery currentUser={currentUser} onNavigate={handleNavigate} />;
+    
+    case 'sanitaryware-gallery':
+      return <SanitarywareGallery currentUser={currentUser} onNavigate={handleNavigate} />;
+    
+    case 'catalogue-gallery':
+      return <CatalogueGallery currentUser={currentUser} onNavigate={handleNavigate} />;
 
     default:
       return <NotFound onBack={() => handleNavigate(getDashboardForRole(currentUser.role))} />;

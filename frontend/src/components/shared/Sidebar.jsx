@@ -290,35 +290,6 @@ function Sidebar({
         ],
       },
       {
-        key: 'galleries',
-        label: 'User Galleries',
-        icon: ShoppingCart,
-        hasSubmenu: true,
-        submenu: [
-          {
-            key: 'tile-gallery',
-            label: 'Tile Collection',
-            icon: Package,
-            action: () => handleNavigation(() => onNavigate('tile-gallery')),
-            active: currentView === 'tile-gallery',
-          },
-          {
-            key: 'sanitaryware-gallery',
-            label: 'Bathware Collection',
-            icon: Package,
-            action: () => handleNavigation(() => onNavigate('sanitaryware-gallery')),
-            active: currentView === 'sanitaryware-gallery',
-          },
-          {
-            key: 'catalogue-gallery',
-            label: 'Digital Catalogues',
-            icon: BookOpen,
-            action: () => handleNavigation(() => onNavigate('catalogue-gallery')),
-            active: currentView === 'catalogue-gallery',
-          },
-        ],
-      },
-      {
         key: 'proforma',
         label: 'Proforma Management',
         icon: FileText,

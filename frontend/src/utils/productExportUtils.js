@@ -123,8 +123,8 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
     const iecNo = ci.iec_no || ci.iecNo || documentData.iec_no || documentData.iecNo || companyConfig.exporter.iecNo || '-';
     const gstn = ci.gstn || ci.gstin || documentData.gstn || documentData.gstin || companyConfig.exporter.gstn || '-';
     
-    const consignee = documentData.consignee_details || documentData.consigneeDetails || 'TO THE ORDER';
-    const buyer = documentData.buyer_details || documentData.buyerDetails || 'SAME AS ABOVE';
+    const consignee = documentData.consignee_details || documentData.consigneeDetails || documentData.consignee || 'TO THE ORDER';
+    const buyer = documentData.buyer_details || documentData.buyerDetails || documentData.buyer || 'SAME AS ABOVE';
     
     const invNo = documentData.igst_invoice_no || documentData.igstInvoiceNo || documentData.invoice_no || documentData.invoiceNo || documentData.exp_no || documentData.expNo || documentData.vgm_no || documentData.vgmNo || documentData.si_no || documentData.siNo || documentData.annexure_no || documentData.annexureNo || documentData.packing_list_no || documentData.packingListNo || documentData.po_no || documentData.proforma_order_no || documentData.proformaOrderNo || '-';
     const invDate = formatDisplayDate(documentData.invoice_date || documentData.invoiceDate || documentData.vgm_date || documentData.vgmDate || documentData.date || documentData.created_at || documentData.createdAt || documentData.packing_list_date);
@@ -378,7 +378,7 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       let totCargo = 0, totTare = 0, totVgm = 0;
 
       vgmContainers.forEach(c => {
-        const cargo  = parseFloat(c.cargo_wt || c.cargo_weight || c.cargoWeight || c.net_weight || c.netWeight || 0);
+        const cargo  = parseFloat(c.cargo_wt || c.cargo_weight || c.cargoWeight || c.net_weight || c.netWeight || c.netWt || c.net_wt || c.cargo_weight || c.cargo_wt || c.cargoWeight || 0);
         const rawTare = parseFloat(c.tare_wt || c.tare_weight || c.tareWeight || 0);
         const type   = (c.type || c.container_size || c.containerSize || c.size || "20'").toUpperCase();
         // Use stored tare if >0, otherwise estimate from size (same as backend)
@@ -902,9 +902,9 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       sheet.getRow(r).height = 80;
 
       mergeRow(r+1, 'A', r+1, 'B');
-      setCell(r+1, 1, `NET WEIGHT\n\n${parseFloat(documentData.netWeight || documentData.net_weight || tNet || 0).toFixed(2)} KGS`, { bold: true, size: 9, align: { horizontal: 'center', vertical: 'middle' } });
+      setCell(r+1, 1, `NET WEIGHT\n\n${parseFloat(documentData.netWeight || documentData.net_weight || documentData.netWt || documentData.net_wt || tNet || 0).toFixed(2)} KGS`, { bold: true, size: 9, align: { horizontal: 'center', vertical: 'middle' } });
       
-      setCell(r+1, 3, `GROSS WEIGHT\n\n${parseFloat(documentData.grossWeight || documentData.gross_weight || tGross || 0).toFixed(2)} KGS`, { bold: true, size: 9, align: { horizontal: 'center', vertical: 'middle' } });
+      setCell(r+1, 3, `GROSS WEIGHT\n\n${parseFloat(documentData.grossWeight || documentData.gross_weight || documentData.grossWt || documentData.gross_wt || tGross || 0).toFixed(2)} KGS`, { bold: true, size: 9, align: { horizontal: 'center', vertical: 'middle' } });
       sheet.getRow(r+1).height = 60;
       r += 1;
 
@@ -1061,7 +1061,7 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       containerArr.forEach((c, idx) => {
         const sq = parseFloat(c.sqm || c.total_sqm || c.totalSqm || 0);
         const bx = parseInt(c.boxes || c.total_boxes || c.box || c.boxQuantity || 0, 10);
-        const gr = parseFloat(c.gross_weight || c.grossWeight || 0);
+        const gr = parseFloat(c.gross_weight || c.grossWeight || c.grossWt || c.gross_wt || c.vgm_weight || c.vgmWeight || 0);
         
         cSqm += sq; cBox += bx; cGr += gr;
 
@@ -1366,8 +1366,8 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       containerArr.forEach((c, i) => {
         const sq = parseFloat(c.sqm || c.total_sqm || 0);
         const bx = parseInt(c.boxes || c.total_boxes || c.box || c.boxQuantity || 0, 10);
-        const nt = parseFloat(c.net_weight || c.netWeight || 0);
-        const gr = parseFloat(c.gross_weight || c.grossWeight || 0);
+        const nt = parseFloat(c.net_weight || c.netWeight || c.netWt || c.net_wt || c.cargo_weight || c.cargo_wt || c.cargoWeight || 0);
+        const gr = parseFloat(c.gross_weight || c.grossWeight || c.grossWt || c.gross_wt || c.vgm_weight || c.vgmWeight || 0);
         
         tSqm += sq; tBox += bx; tNet += nt; tGross += gr;
 
@@ -1419,10 +1419,10 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
 
       // Final Weights Footer
       mergeRow(r, 'A', r, 'C');
-      setCell(r, 1, `NET WEIGHT   ${parseFloat(documentData.netWeight || documentData.net_weight || tNet || 0).toFixed(2)}`, { bold: true, size: 8, align: { horizontal: 'center', vertical: 'middle' } });
+      setCell(r, 1, `NET WEIGHT   ${parseFloat(documentData.netWeight || documentData.net_weight || documentData.netWt || documentData.net_wt || tNet || 0).toFixed(2)}`, { bold: true, size: 8, align: { horizontal: 'center', vertical: 'middle' } });
       setCell(r, 4, 'KGS', { bold: true, size: 8, align: { horizontal: 'center', vertical: 'middle' } });
       mergeRow(r, 'E', r, 'G');
-      setCell(r, 5, `GROSS WEIGHT   ${parseFloat(documentData.grossWeight || documentData.gross_weight || tGross || 0).toFixed(2)}`, { bold: true, size: 8, align: { horizontal: 'center', vertical: 'middle' } });
+      setCell(r, 5, `GROSS WEIGHT   ${parseFloat(documentData.grossWeight || documentData.gross_weight || documentData.grossWt || documentData.gross_wt || tGross || 0).toFixed(2)}`, { bold: true, size: 8, align: { horizontal: 'center', vertical: 'middle' } });
       mergeRow(r, 'H', r, 'I');
       setCell(r, 8, 'KGS', { bold: true, size: 8, align: { horizontal: 'center', vertical: 'middle' } });
       sheet.getRow(r).height = 25;
@@ -1671,8 +1671,8 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       r += 2;
 
       // Final Weights
-      const tNet = parseFloat(documentData.net_weight || documentData.netWeight || 0);
-      const tGross = parseFloat(documentData.gross_weight || documentData.grossWeight || 0);
+      const tNet = parseFloat(documentData.net_weight || documentData.netWeight || documentData.netWt || documentData.net_wt || 0);
+      const tGross = parseFloat(documentData.gross_weight || documentData.grossWeight || documentData.grossWt || documentData.gross_wt || 0);
       
       mergeRow(r, 'A', r, 'C');
       setCell(r, 1, `NET WEIGHT\n${tNet.toFixed(2)} KGS`, { bold: true, size: 9, align: { horizontal: 'center', vertical: 'middle' } });
@@ -1821,7 +1821,7 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       r++;
 
       // 12. Boxes / Net Wt
-      const netTotal = parseFloat(documentData.net_weight || documentData.netWeight || 0);
+      const netTotal = parseFloat(documentData.net_weight || documentData.netWeight || documentData.netWt || documentData.net_wt || 0);
       mergeRow(r, 'A', r, 'B');
       setCell(r, 1, 'TOTAL BOXES :-', { bold: true, size: 8, align: { horizontal: 'left', vertical: 'middle' } });
       mergeRow(r, 'C', r, 'D');
@@ -1833,7 +1833,7 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       r++;
 
       // 13. Inv No / Gross Wt
-      const grTotal = parseFloat(documentData.gross_weight || documentData.grossWeight || 0);
+      const grTotal = parseFloat(documentData.gross_weight || documentData.grossWeight || documentData.grossWt || documentData.gross_wt || 0);
       mergeRow(r, 'A', r, 'B');
       setCell(r, 1, 'INVOICE NO. :-', { bold: true, size: 8, align: { horizontal: 'left', vertical: 'middle' } });
       mergeRow(r, 'C', r, 'D');
@@ -1874,8 +1874,8 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       containers.forEach((c, idx) => {
         const sq = parseFloat(c.sqm || c.total_sqm || c.totalSqm || 0);
         const bx = parseInt(c.boxes || c.total_boxes || c.box || c.boxQuantity || 0, 10);
-        const nt = parseFloat(c.net_weight || c.netWeight || c.netWt || c.net_wt || c.cargo_weight || c.cargo_wt || c.cargoWeight || 0);
-        const gr = parseFloat(c.gross_weight || c.grossWeight || c.grossWt || c.gross_wt || c.vgm_weight || c.vgmWeight || 0);
+        const nt = parseFloat(c.net_weight || c.netWeight || c.netWt || c.net_wt || c.cargo_weight || c.cargo_wt || c.cargoWeight || c.netWt || c.net_wt || c.cargo_weight || c.cargo_wt || c.cargoWeight || 0);
+        const gr = parseFloat(c.gross_weight || c.grossWeight || c.grossWt || c.gross_wt || c.vgm_weight || c.vgmWeight || c.grossWt || c.gross_wt || c.vgm_weight || c.vgmWeight || 0);
         
         cSqm += sq; cBox += bx; cNet += nt; cGr += gr;
 
@@ -2351,8 +2351,8 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       currentRow += 2;
 
       // Weights row
-      let netWeight = parseFloat(documentData.net_weight || documentData.netWeight || 0);
-      let grossWeight = parseFloat(documentData.gross_weight || documentData.grossWeight || 0);
+      let netWeight = parseFloat(documentData.net_weight || documentData.netWeight || documentData.netWt || documentData.net_wt || 0);
+      let grossWeight = parseFloat(documentData.gross_weight || documentData.grossWeight || documentData.grossWt || documentData.gross_wt || 0);
       
       // Fallback to aggregated totals if document level weights are missing or zero
       if (netWeight === 0) netWeight = totalNetWeightAll;
@@ -2490,8 +2490,8 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       currentRow += 2;
 
       // VGM Weight Summary row
-      const vgmNetWt   = parseFloat(documentData.net_weight || documentData.netWeight || documentData.total_cargo_weight || vgmTotalCargo || 0);
-      const vgmGrossWt = parseFloat(documentData.gross_weight || documentData.grossWeight || documentData.total_vgm_weight || vgmTotalVgm || 0);
+      const vgmNetWt   = parseFloat(documentData.net_weight || documentData.netWeight || documentData.netWt || documentData.net_wt || documentData.total_cargo_weight || vgmTotalCargo || 0);
+      const vgmGrossWt = parseFloat(documentData.gross_weight || documentData.grossWeight || documentData.grossWt || documentData.gross_wt || documentData.total_vgm_weight || vgmTotalVgm || 0);
 
       sheet.mergeCells(`A${currentRow}:C${currentRow}`);
       sheet.getCell(`A${currentRow}`).value = `NET WEIGHT\n${vgmNetWt.toFixed(2)} KGS`;
@@ -2539,7 +2539,7 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       containers.forEach(c => {
         const sqm = parseFloat(c.sqm || c.total_sqm || c.totalSqm || 0);
         const boxes = parseInt(c.boxes || c.total_boxes || c.box || 0, 10);
-        const gross = parseFloat(c.gross_weight || c.grossWeight || 0);
+        const gross = parseFloat(c.gross_weight || c.grossWeight || c.grossWt || c.gross_wt || c.vgm_weight || c.vgmWeight || 0);
 
         totalSqm += sqm;
         totalBoxes += boxes;
@@ -2626,8 +2626,8 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       currentRow += 2;
 
       // Weights row
-      const netW = parseFloat(documentData.net_weight || documentData.netWeight || totalGross || 0);
-      const grossW = parseFloat(documentData.gross_weight || documentData.grossWeight || totalGross || 0);
+      const netW = parseFloat(documentData.net_weight || documentData.netWeight || documentData.netWt || documentData.net_wt || totalGross || 0);
+      const grossW = parseFloat(documentData.gross_weight || documentData.grossWeight || documentData.grossWt || documentData.gross_wt || totalGross || 0);
 
       sheet.mergeCells(`A${currentRow}:C${currentRow}`);
       sheet.getCell(`A${currentRow}`).value = `NET WEIGHT\n${netW.toFixed(2)} KGS`;
@@ -2679,3 +2679,4 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
     throw error;
   }
 };
+

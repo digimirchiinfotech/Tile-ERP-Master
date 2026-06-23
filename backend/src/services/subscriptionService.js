@@ -191,6 +191,13 @@ export const renewSubscription = async (subscriptionId, durationDays = 30, db) =
       [newEndDate.toISOString().split('T')[0], subscriptionId]
     );
 
+    if (result.rows.length > 0) {
+      await db.query(
+        `UPDATE companies SET status = 'Active', updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
+        [result.rows[0].company_id]
+      );
+    }
+
     return result.rows[0];
   } catch (error) {
     debugLogger.error('SubscriptionService', 'Error renewing subscription:', error);

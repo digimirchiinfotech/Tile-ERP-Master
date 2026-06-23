@@ -491,6 +491,14 @@ export const renewSubscription = async (req, res, next) => {
       [newEndDate.toISOString().split('T')[0], ...queryParams]
     );
 
+    // Sync company status back to Active in case it was Suspended
+    if (result.rows.length > 0) {
+      await req.db.globalQuery(
+        `UPDATE companies SET status = 'Active', updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
+        [result.rows[0].company_id]
+      );
+    }
+
     // Log Transaction
     await req.db.globalQuery(
       `INSERT INTO subscription_transactions (company_id, plan_id, amount, payment_method, transaction_id, status)

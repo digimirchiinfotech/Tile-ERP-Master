@@ -455,7 +455,7 @@ export const notifyDocumentLocked = async (companyId, docType, docNo, docId, loc
 /**
  * Notify when a user is created
  */
-export const notifyUserCreated = async (companyId, newUser, createdByName, db) => {
+export const notifyUserCreated = async (companyId, newUser, createdByName, creatorId, db) => {
   try {
     const title = '👤 New User Added';
     const message = `${newUser.name || newUser.email_id} has been added as ${(newUser.role || 'staff').replace(/_/g, ' ')}${createdByName ? ` by ${createdByName}` : ''}`;
@@ -467,7 +467,8 @@ export const notifyUserCreated = async (companyId, newUser, createdByName, db) =
       redirect_url: `/user-management`,
       module: 'User Management',
       reference_id: newUser.id,
-      reference_type: 'user'
+      reference_type: 'user',
+      created_by: creatorId || null
     }, db);
   } catch (error) {
     debugLogger.error(CONTEXT, `Error in notifyUserCreated: ${error.message}`);

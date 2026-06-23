@@ -33,13 +33,12 @@ export const getDashboardAnalytics = async (req, res, next) => {
     const summaryQuery = `
       SELECT
         COALESCE(SUM(ei.total_amount), 0) as total_revenue,
-        COUNT(DISTINCT ei.id) as total_exports,
-        COUNT(DISTINCT pl.id) as total_shipments,
+        COUNT(ei.id) as total_exports,
+        (SELECT COUNT(id) FROM packing_lists WHERE company_id = $1) as total_shipments,
         COUNT(DISTINCT ei.client_name) as total_clients,
         SUM(CASE WHEN ei.status = 'Draft' OR ei.status = 'Pending' THEN 1 ELSE 0 END) as pending_payments,
         SUM(CASE WHEN ei.status = 'completed' THEN 1 ELSE 0 END) as completed_exports
       FROM export_invoices ei
-      LEFT JOIN packing_lists pl ON ei.id = pl.export_invoice_id
       WHERE ei.company_id = $1
     `;
 

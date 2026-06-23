@@ -112,12 +112,24 @@ export const getPaymentHistory = async (req, res, next) => {
   try {
     const { limit = 20, offset = 0 } = req.query;
 
+    let whereClause = '';
+    const queryParams = [parseInt(limit), parseInt(offset)];
+    
+    if (Object.hasOwn(req, 'companyFilter')) {
+      if (req.companyFilter === null) {
+        whereClause = 'WHERE company_id IS NULL';
+      } else {
+        whereClause = 'WHERE company_id = $3';
+        queryParams.push(req.companyFilter);
+      }
+    }
+
     const result = await req.db.query(
-      'SELECT id, invoice_no, client_name, total_amount, status, created_at FROM export_invoices ORDER BY created_at DESC LIMIT $1 OFFSET $2',
-      [parseInt(limit), parseInt(offset)]
+      `SELECT id, invoice_no, client_name, total_amount, status, created_at FROM export_invoices ${whereClause} ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
+      queryParams
     );
 
-    const countResult = await req.db.query('SELECT COUNT(*) as total FROM export_invoices');
+    const countResult = await req.db.query(`SELECT COUNT(*) as total FROM export_invoices ${whereClause}`, queryParams.slice(2));
 
     res.json({
       success: true,

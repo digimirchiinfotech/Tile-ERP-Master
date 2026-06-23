@@ -524,9 +524,7 @@ export const getInvoicesByPartyName = async (req, res, next) => {
     let paramCount = 1;
 
     if (Object.hasOwn(req, 'companyFilter')) {
-      if (req.companyFilter === null) {
-        conditions.push(`inv.company_id IS NULL`);
-      } else {
+      if (req.companyFilter !== null) {
         conditions.push(`inv.company_id = $${paramCount}`);
         values.push(req.companyFilter);
         paramCount++;

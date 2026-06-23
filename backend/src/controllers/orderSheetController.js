@@ -181,7 +181,6 @@ export const getOrderSheets = async (req, res, next) => {
 
 export const createOrderSheet = async (req, res, next) => {
   try {
-    await ensureMasterOrderSheetSchemaExists(req.db.query, req.companyFilter);
 
     const companyId = req.companyFilter;
     const data = req.body;
@@ -489,7 +488,6 @@ export const syncOrderSheetLines = async (req, res, next) => {
 
 export const getOrderSheetSummary = async (req, res, next) => {
   try {
-    await ensureMasterOrderSheetSchemaExists(req.db.query, req.companyFilter);
 
     const companyId = req.companyFilter;
     const wherePrefix = companyId ? `WHERE os.company_id = '${companyId}'` : 'WHERE os.company_id IS NULL';
@@ -958,8 +956,6 @@ export const getProductionLogs = async (req, res, next) => {
 export const exportExcel = async (req, res, next) => {
   try {
     const { status, po_no, supplier_name, search, page, limit, factory_name, product, size, surface } = req.query;
-    
-    await ensureMasterOrderSheetSchemaExists(req.db.query, req.companyFilter);
     const companyId = req.companyFilter;
 
     let conditions = [];
@@ -1137,7 +1133,6 @@ export const updateStatus = async (req, res, next) => {
 
 export const getFilterOptions = async (req, res, next) => {
   try {
-    await ensureMasterOrderSheetSchemaExists(req.db.query, req.companyFilter);
     const companyId = req.companyFilter;
     const wherePrefix = companyId ? `WHERE os.company_id = '${companyId}'` : 'WHERE os.company_id IS NULL';
 
@@ -1163,3 +1158,4 @@ export const getFilterOptions = async (req, res, next) => {
     next(err);
   }
 };
+

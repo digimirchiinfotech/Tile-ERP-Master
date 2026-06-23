@@ -1345,7 +1345,7 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
       r++;
 
       // 24. Table headers
-      const headers = ['SR.NO.', 'CONTAINER NO.', 'SEAL NO.', 'E SEAL NO.', 'SIZE', 'SQM', 'BOXES / PCS', 'NET WEIGHT', 'GROSS WEIGHT'];
+      const headers = ['SR.NO.', 'CONTAINER NO.', 'SEAL NO.', 'E SEAL NO.', 'MATERIAL DESCRIPTION', 'PALLET NO.', 'PALLET DETAIL', 'SIZE', 'SQM', 'BOXES / PCS', 'NET WEIGHT', 'GROSS WEIGHT'];
       headers.forEach((h, i) => {
         setCell(r, i + 1, h, { bold: true, size: 7, align: { horizontal: 'center', vertical: 'middle' } });
       });
@@ -2679,5 +2679,7 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
     throw error;
   }
 };
+
+
 
 

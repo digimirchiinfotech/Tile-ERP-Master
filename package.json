@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "cd backend && node src/server.js",
-    "build": "cd backend && npm install",
+    "build": "cd backend && npm install && cd ../frontend && npm install && npm run build",
     "install:backend": "cd backend && npm install",
     "start:backend": "cd backend && npm start",
     "start:frontend": "cd frontend && npm run dev -- --host 0.0.0.0 --port 5000",

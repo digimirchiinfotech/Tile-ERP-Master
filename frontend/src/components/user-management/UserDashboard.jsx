@@ -475,7 +475,7 @@ function UserDashboard({ currentUser, onNavigate, navigationData }) {
                           >
                             <Eye size={14} />
                           </Button>
-                          {canEdit && (
+                          {canEdit && user.status !== 'Deleted' && (
                             <Button
                               variant="outline"
                               size="sm"
@@ -495,7 +495,7 @@ function UserDashboard({ currentUser, onNavigate, navigationData }) {
                           >
                             <Download size={14} />
                           </Button>
-                          {canEdit && (
+                          {canEdit && user.status !== 'Deleted' && (
                             <Button
                               variant={user.status === 'Active' ? 'outline-danger' : 'outline-success'}
                               size="sm"
@@ -506,7 +506,7 @@ function UserDashboard({ currentUser, onNavigate, navigationData }) {
                               <Power size={14} />
                             </Button>
                           )}
-                          {canDelete && (
+                          {canDelete && user.status !== 'Deleted' && (
                             <Button
                               variant="outline"
                               size="sm"
@@ -585,7 +585,7 @@ function UserDashboard({ currentUser, onNavigate, navigationData }) {
                       >
                         <Eye size={14} className="me-1" /> View
                       </Button>
-                      {canEdit && (
+                      {canEdit && user.status !== 'Deleted' && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -614,7 +614,7 @@ function UserDashboard({ currentUser, onNavigate, navigationData }) {
                       >
                         <Printer size={14} className="me-1" /> Print
                       </Button>
-                      {canEdit && (
+                      {canEdit && user.status !== 'Deleted' && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -625,7 +625,7 @@ function UserDashboard({ currentUser, onNavigate, navigationData }) {
                           <Power size={14} className="me-1" /> Status
                         </Button>
                       )}
-                      {canDelete && (
+                      {canDelete && user.status !== 'Deleted' && (
                         <Button
                           variant="outline"
                           size="sm"

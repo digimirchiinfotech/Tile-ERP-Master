@@ -55,6 +55,8 @@ export const getAll = async (req, res, next) => {
       conditions.push(`u.status = $${paramCount}`);
       values.push(status);
       paramCount++;
+    } else {
+      conditions.push(`u.status != 'Deleted'`);
     }
 
     if (department) {
@@ -254,12 +256,16 @@ export const update = async (req, res, next) => {
     }
 
     const existingUser = await req.db.globalQuery(
-      `SELECT id, role FROM users ${whereConditions}`,
+      `SELECT id, role, status FROM users ${whereConditions}`,
       checkParams
     );
 
     if (existingUser.rows.length === 0) {
       return next(new AppError('User not found', 404));
+    }
+
+    if (existingUser.rows[0].status === 'Deleted') {
+      return next(new AppError('Deleted users cannot be edited', 400));
     }
 
     if (req.user.role === 'company_admin' && existingUser.rows[0].role === 'company_admin') {
@@ -605,6 +611,10 @@ export const toggleStatus = async (req, res, next) => {
 
     if (existingUser.rows.length === 0) {
       return next(new AppError('User not found', 404));
+    }
+
+    if (existingUser.rows[0].status === 'Deleted') {
+      return next(new AppError('Deleted users cannot be activated or deactivated', 400));
     }
 
     if (id === req.user.id) {

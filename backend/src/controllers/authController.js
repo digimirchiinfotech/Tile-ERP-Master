@@ -95,6 +95,7 @@ export const login = async (req, res, next) => {
     if (result.rows.length === 0) return next(new AppError('Invalid email or password', 401));
 
     const user = result.rows[0];
+    if (user.status === 'Deleted') return next(new AppError('Account has been deleted', 401));
     if (user.status !== 'Active' && user.status !== 'active') return next(new AppError('Account inactive', 401));
     if (user.role !== 'super_admin' && user.company_status !== 'Active') return next(new AppError('Company inactive', 401));
 
@@ -285,8 +286,8 @@ export const refreshToken = async (req, res, next) => {
 export const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
-    const userResult = await req.db.globalQuery('SELECT id, name, email_id FROM users WHERE email_id = $1', [email]);
-    if (userResult.rows.length === 0) return successResponse(res, {}, 'Reset link sent if email exists');
+    const userResult = await req.db.globalQuery('SELECT id, name, email_id, status FROM users WHERE email_id = $1', [email]);
+    if (userResult.rows.length === 0 || userResult.rows[0].status === 'Deleted') return successResponse(res, {}, 'Reset link sent if email exists');
 
     const user = userResult.rows[0];
     const resetToken = generateResetToken();

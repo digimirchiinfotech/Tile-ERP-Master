@@ -19,10 +19,11 @@ const router = express.Router();
 router.get('/consistency-check', authenticate, filterByCompany, requirePermission('all'), async (req, res, next) => {
   try {
     const companyId = req.companyFilter;
-    const issues = await runConsistencyCheck(companyId, req.db);
+    const { issues, stats } = await runConsistencyCheck(companyId, req.db);
     res.json({
       success: true,
       issues,
+      stats,
       checkedAt: new Date(),
       totalIssues: issues.length
     });

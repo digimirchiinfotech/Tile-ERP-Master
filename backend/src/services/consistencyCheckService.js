@@ -17,6 +17,17 @@
  */
 export async function runConsistencyCheck(companyId, db) {
   const issues = [];
+  const stats = {
+    proformaInvoicesChecked: 0,
+    packingListsChecked: 0,
+    qcRecordsChecked: 0,
+    exportInvoicesChecked: 0,
+    annexuresChecked: 0,
+    vgmDocumentsChecked: 0,
+    shippingInstructionsChecked: 0,
+    lockDesyncChecked: 0
+  };
+
   const companyParams = companyId ? [companyId] : [];
 
   // 1. Check Proforma Invoice totals
@@ -25,6 +36,7 @@ export async function runConsistencyCheck(companyId, db) {
     `SELECT id, product_lines, total_amount FROM proforma_invoices WHERE status != 'Deleted'${invoiceCompanyFilter}`,
     companyParams
   );
+  stats.proformaInvoicesChecked = invoicesResult.rowCount;
 
   for (const invoice of invoicesResult.rows) {
     try {
@@ -49,6 +61,7 @@ export async function runConsistencyCheck(companyId, db) {
     `SELECT pl.id, pl.export_invoice_id FROM packing_lists pl LEFT JOIN export_invoices ei ON pl.export_invoice_id = ei.id WHERE ei.id IS NULL AND pl.deleted_at IS NULL AND pl.export_invoice_id IS NOT NULL${plFilter}`,
     companyParams
   );
+  stats.packingListsChecked = orphanPLResult.rowCount;
   for (const row of orphanPLResult.rows) {
     issues.push({ severity: 'error', type: 'orphan_record', table: 'packing_lists', recordId: row.id, description: `Packing list references non-existent export invoice ID ${row.export_invoice_id}` });
   }
@@ -59,6 +72,7 @@ export async function runConsistencyCheck(companyId, db) {
     `SELECT qr.id, qr.order_id FROM qc_records qr LEFT JOIN proforma_orders po ON qr.order_id = po.id WHERE po.id IS NULL AND qr.order_id IS NOT NULL${qcFilter}`,
     companyParams
   );
+  stats.qcRecordsChecked = orphanQCResult.rowCount;
   for (const row of orphanQCResult.rows) {
     issues.push({ severity: 'error', type: 'orphan_record', table: 'qc_records', recordId: row.id, description: `QC record references non-existent proforma order ID ${row.order_id}` });
   }
@@ -69,6 +83,7 @@ export async function runConsistencyCheck(companyId, db) {
     `SELECT ei.id, ei.proforma_invoice_id FROM export_invoices ei LEFT JOIN proforma_invoices pi ON ei.proforma_invoice_id = pi.id WHERE pi.id IS NULL AND ei.proforma_invoice_id IS NOT NULL${eiFilter}`,
     companyParams
   );
+  stats.exportInvoicesChecked = orphanEIResult.rowCount;
   for (const row of orphanEIResult.rows) {
     issues.push({ severity: 'error', type: 'missing_reference', table: 'export_invoices', recordId: row.id, description: `Export invoice references non-existent proforma invoice ID ${row.proforma_invoice_id}` });
   }
@@ -79,6 +94,7 @@ export async function runConsistencyCheck(companyId, db) {
     `SELECT a.id, a.export_invoice_id FROM export_invoice_annexures a LEFT JOIN export_invoices ei ON a.export_invoice_id = ei.id WHERE ei.id IS NULL AND a.export_invoice_id IS NOT NULL${annexFilter}`,
     companyParams
   );
+  stats.annexuresChecked = orphanAnnexResult.rowCount;
   for (const row of orphanAnnexResult.rows) {
     issues.push({ severity: 'error', type: 'orphan_record', table: 'export_invoice_annexures', recordId: row.id, description: `Annexure references non-existent export invoice ID ${row.export_invoice_id}` });
   }
@@ -89,6 +105,7 @@ export async function runConsistencyCheck(companyId, db) {
     `SELECT v.id, v.export_invoice_id FROM vgm_documents v LEFT JOIN export_invoices ei ON v.export_invoice_id = ei.id WHERE ei.id IS NULL AND v.export_invoice_id IS NOT NULL${vgmFilter}`,
     companyParams
   );
+  stats.vgmDocumentsChecked = orphanVGMResult.rowCount;
   for (const row of orphanVGMResult.rows) {
     issues.push({ severity: 'error', type: 'orphan_record', table: 'vgm_documents', recordId: row.id, description: `VGM document references non-existent export invoice ID ${row.export_invoice_id}` });
   }
@@ -99,6 +116,7 @@ export async function runConsistencyCheck(companyId, db) {
     `SELECT si.id, si.export_invoice_id FROM shipping_instructions si LEFT JOIN export_invoices ei ON si.export_invoice_id = ei.id WHERE ei.id IS NULL AND si.export_invoice_id IS NOT NULL${siFilter}`,
     companyParams
   );
+  stats.shippingInstructionsChecked = orphanSIResult.rowCount;
   for (const row of orphanSIResult.rows) {
     issues.push({ severity: 'error', type: 'orphan_record', table: 'shipping_instructions', recordId: row.id, description: `Shipping instruction references non-existent export invoice ID ${row.export_invoice_id}` });
   }
@@ -123,11 +141,12 @@ export async function runConsistencyCheck(companyId, db) {
         `SELECT id FROM ${table} WHERE is_locked = TRUE AND status != 'Locked'${lockSyncFilter}`,
         companyParams
       );
+      stats.lockDesyncChecked += lockDesyncResult.rowCount;
       for (const row of lockDesyncResult.rows) {
         issues.push({ severity: 'warning', type: 'lock_status_desync', table, recordId: row.id, description: `Document is_locked=TRUE but status is not 'Locked'. Possible lock/status desync.` });
       }
     } catch (e) { /* Skip if table/column doesn't exist */ }
   }
 
-  return issues;
+  return { issues, stats };
 }

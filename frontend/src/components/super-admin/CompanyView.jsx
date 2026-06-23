@@ -30,7 +30,20 @@ import {
   Info
 } from 'lucide-react';
 import Button from '../shared/Button.jsx';
-import { moduleNames } from '../../utils/moduleNames.js';
+
+const moduleNames = {
+  proforma_invoice: 'Proforma Invoices',
+  proforma_order: 'Proforma Orders',
+  lead_management: 'Lead Management',
+  client_management: 'Client Management',
+  product_management: 'Tile Product',
+  catalogue_management: 'Catalogue Management',
+  qc_management: 'QC Management',
+  pallet_management: 'Pallet Management',
+  invoice_packing: 'Packing List Management',
+  account_finance: 'Account & Finance',
+  user_management: 'User Management',
+};
 
 function CompanyView({ company, onClose, onEdit, canEdit }) {
   if (!company) return null;

@@ -1965,13 +1965,12 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
         <Modal.Body>
           <Form.Group className="mb-3">
             <Form.Label className="fw-semibold">Please provide a reason for editing/revising this document:</Form.Label>
-            <Form.Control className="premium-input"
+            <Form.Control className="premium-input form-control-enhanced"
               as="textarea"
               rows={3}
               value={revisionReason}
               onChange={(e) => setRevisionReason(e.target.value)}
               placeholder="e.g., Updated quantities and terms, adjusted prices per supplier's request"
-              className="form-control-enhanced"
               required
             />
           </Form.Group>

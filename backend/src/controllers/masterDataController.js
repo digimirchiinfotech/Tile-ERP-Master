@@ -40,7 +40,21 @@ const TABLE_MAPPING = {
   tariffCodes: { table: 'tariff_codes', column: 'code', global: false },
   authorizedSignatories: { table: 'authorized_signatories', column: 'name', global: false },
   contactDetails: { table: 'contact_details', column: 'name', global: false },
-  maxPermissibleWeights: { table: 'max_permissible_weights', column: 'weight', global: false }
+  maxPermissibleWeights: { table: 'max_permissible_weights', column: 'weight', global: false },
+  sanitarywareCategories: { table: 'sanitaryware_categories', column: 'name', global: false },
+  sanitarywareBrands: { table: 'sanitaryware_brands', column: 'name', global: false },
+  sanitarywareCollections: { table: 'sanitaryware_collections', column: 'name', global: false },
+  sanitarywareMaterialTypes: { table: 'sanitaryware_material_types', column: 'name', global: false },
+  sanitarywareColors: { table: 'sanitaryware_colors', column: 'name', global: false },
+  sanitarywareShapes: { table: 'sanitaryware_shapes', column: 'name', global: false },
+  sanitarywareFlushTypes: { table: 'sanitaryware_flush_types', column: 'name', global: false },
+  sanitarywareTrapTypes: { table: 'sanitaryware_trap_types', column: 'name', global: false },
+  sanitarywareMountTypes: { table: 'sanitaryware_mount_types', column: 'name', global: false },
+  sanitarywareSeatCoverTypes: { table: 'sanitaryware_seat_cover_types', column: 'name', global: false },
+  sanitarywarePackagingTypes: { table: 'sanitaryware_packaging_types', column: 'name', global: false },
+  sanitarywareFinishTypes: { table: 'sanitaryware_finish_types', column: 'name', global: false },
+  sanitarywareDimensionStandards: { table: 'sanitaryware_dimension_standards', column: 'name', global: false },
+  sanitarywareContainerCapacityRules: { table: 'sanitaryware_container_capacity_rules', column: 'name', global: false }
 };
 
 const toCamelCase = (str) => str.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());

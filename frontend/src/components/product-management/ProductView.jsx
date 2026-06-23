@@ -147,7 +147,7 @@ function ProductView({ product, onClose, onEdit, canEdit }) {
                     <span>Description</span>
                   </div>
                   <div className="p-4">
-                    <p className="mb-0 text-dark fw-medium">{product.description}</p>
+                    <p className="mb-0 text-dark fw-medium" style={{ whiteSpace: 'pre-wrap' }}>{product.description}</p>
                   </div>
                 </div>
               </Col>

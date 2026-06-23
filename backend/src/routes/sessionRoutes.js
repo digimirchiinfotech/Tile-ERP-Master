@@ -64,10 +64,18 @@ router.delete('/active/:id', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
     
+    let queryArgs = [id];
+    let queryCond = `WHERE id = $1`;
+    
+    if (req.user.role !== 'super_admin') {
+      queryCond += ` AND user_id = $2`;
+      queryArgs.push(req.user.id);
+    }
+    
     // First get the session to find the refresh token
     const sessionResult = await req.db.globalQuery(
-      `SELECT refresh_token FROM active_user_sessions WHERE id = $1 AND user_id = $2`,
-      [id, req.user.id]
+      `SELECT refresh_token FROM active_user_sessions ${queryCond}`,
+      queryArgs
     );
 
     if (sessionResult.rows.length > 0) {
@@ -104,26 +112,43 @@ router.get('/admin/all', authenticate, async (req, res) => {
     }
     const result = await query(`
       SELECT 
-        rt.id,
-        rt.user_id,
+        aus.id,
+        aus.user_id,
         u.name as user_name,
         u.email_id as email,
         u.role,
         c.id as company_id,
         c.name as company_name,
-        c.status as company_status,
-        rt.created_at,
-        rt.expires_at,
-        CASE WHEN rt.expires_at > CURRENT_TIMESTAMP THEN 'Active' ELSE 'Expired' END as session_status
-      FROM refresh_tokens rt
-      LEFT JOIN users u ON rt.user_id = u.id
+        aus.device,
+        aus.browser,
+        aus.ip_address as ip,
+        aus.location,
+        TO_CHAR(aus.last_login, 'YYYY-MM-DD HH12:MI AM') as "lastLogin",
+        aus.status as session_status
+      FROM active_user_sessions aus
+      LEFT JOIN users u ON aus.user_id = u.id
       LEFT JOIN companies c ON u.company_id = c.id
-      WHERE rt.expires_at > CURRENT_TIMESTAMP
-        AND u.status = 'Active'
-      ORDER BY rt.created_at DESC
+      ORDER BY aus.last_login DESC
       LIMIT 200
     `);
-    res.json({ success: true, data: result.rows });
+    
+    // Map data for frontend compatibility
+    const mappedData = result.rows.map(row => ({
+      id: row.id,
+      user_id: row.user_id,
+      userName: row.user_name,
+      email: row.email,
+      role: row.role,
+      companyName: row.company_name,
+      device: row.device,
+      browser: row.browser,
+      ip: row.ip,
+      location: row.location,
+      lastLogin: row.lastLogin,
+      status: row.session_status
+    }));
+
+    res.json({ success: true, data: mappedData });
   } catch (error) {
     console.error('Error fetching all sessions:', error);
     res.status(500).json({ success: false, message: 'Failed to fetch sessions: ' + error.message });

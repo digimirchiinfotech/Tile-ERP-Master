@@ -118,7 +118,7 @@ function SystemSettings({ currentUser }) {
 
   const fetchSessions = useCallback(async () => {
     try {
-      const response = await api.get('/session/active');
+      const response = await api.get('/session/admin/all');
       if (response.data?.success) {
         setActiveSessions(response.data.data);
       }
@@ -1059,6 +1059,7 @@ function SystemSettings({ currentUser }) {
                     <table className="table table-hover border align-middle bg-white shadow-sm rounded">
                       <thead className="bg-light text-muted small">
                         <tr>
+                          <th className="border-0 px-3 py-3">USER</th>
                           <th className="border-0 px-3 py-3">LAST LOGIN</th>
                           <th className="border-0 px-3 py-3">DEVICE</th>
                           <th className="border-0 px-3 py-3">BROWSER</th>
@@ -1071,6 +1072,10 @@ function SystemSettings({ currentUser }) {
                       <tbody>
                         {activeSessions.map(session => (
                           <tr key={session.id}>
+                            <td className="px-3 py-3">
+                              <div className="fw-bold text-dark">{session.userName || 'Unknown'}</div>
+                              <div className="small text-muted">{session.companyName || 'N/A'}</div>
+                            </td>
                             <td className="px-3 py-3 fw-medium text-dark">{session.lastLogin || 'N/A'}</td>
                             <td className="px-3 py-3 text-muted">{session.device || 'Unknown'}</td>
                             <td className="px-3 py-3 text-muted">{session.browser || 'Unknown'}</td>

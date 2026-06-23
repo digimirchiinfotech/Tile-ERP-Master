@@ -67,8 +67,7 @@ export const createQcRecordValidator = [
     .isObject()
     .withMessage('Inspection media must be an object'),
 
-  body('overall_grade')
-    .optional()
+  body('overall_grade').optional({ checkFalsy: true })
     .isIn(['A+', 'A', 'B+', 'B', 'C', 'Reject'])
     .withMessage('Invalid overall grade'),
 
@@ -130,8 +129,7 @@ export const updateQcRecordValidator = [
     .isObject()
     .withMessage('Inspection media must be an object'),
 
-  body('overall_grade')
-    .optional()
+  body('overall_grade').optional({ checkFalsy: true })
     .isIn(['A+', 'A', 'B+', 'B', 'C', 'Reject'])
     .withMessage('Invalid overall grade'),
 
@@ -150,3 +148,4 @@ export const updateQcRecordValidator = [
     .isArray()
     .withMessage('Product lines must be an array')
 ];
+

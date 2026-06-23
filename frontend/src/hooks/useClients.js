@@ -27,7 +27,7 @@ export const useClients = () => {
     queryFn: async () => {
       const response = await clientService.getAll();
       const responseData = response?.data?.data || response?.data || {};
-      const data = Array.isArray(responseData) ? responseData : (responseData.data || []);
+      const data = Array.isArray(responseData) ? responseData : (responseData.items || responseData.data || []);
       return normalizeArray(data, normalizeClient);
     },
     enabled: !!tokenManager.getAccessToken(),
@@ -77,3 +77,4 @@ export const useClients = () => {
     toggleClientStatus: toggleStatusMutation.mutateAsync
   };
 };
+

@@ -27,7 +27,7 @@ export const useProducts = () => {
     queryFn: async () => {
       const response = await productService.getAll();
       const responseData = response?.data?.data || response?.data || {};
-      const data = Array.isArray(responseData) ? responseData : (responseData.data || []);
+      const data = Array.isArray(responseData) ? responseData : (responseData.items || responseData.data || []);
       return normalizeArray(data, normalizeProduct);
     },
     enabled: !!tokenManager.getAccessToken(),
@@ -86,3 +86,4 @@ export const useProducts = () => {
     toggleProductStatus: toggleStatusMutation.mutateAsync
   };
 };
+

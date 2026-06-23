@@ -33,7 +33,7 @@ export const useCatalogues = () => {
       setLoading(true);
       const response = await RequestManager.execute(() => catalogueService.getAll(), '/catalogues', 3);
       const responseData = response?.data?.data || {};
-      const data = Array.isArray(responseData) ? responseData : (responseData.data || []);
+      const data = Array.isArray(responseData) ? responseData : (responseData.items || responseData.data || []);
       const normalizedCatalogues = normalizeArray(data, normalizeCatalogue);
       setCatalogues(Array.isArray(normalizedCatalogues) ? normalizedCatalogues : []);
       setError(null);
@@ -108,3 +108,4 @@ export const useCatalogues = () => {
 
   return { catalogues, loading, error, fetchCatalogues, createCatalogue, updateCatalogue, deleteCatalogue, hardDeleteCatalogue, toggleCatalogueStatus };
 };
+

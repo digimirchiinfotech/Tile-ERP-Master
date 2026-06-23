@@ -17,7 +17,7 @@ export const useSubscriptions = () => {
       setLoading(true);
       const response = await RequestManager.execute(() => subscriptionService.getAllPlans(), '/subscriptions/plans', 3);
       const responseData = response?.data?.data || {};
-      const data = Array.isArray(responseData) ? responseData : (responseData.data || []);
+      const data = Array.isArray(responseData) ? responseData : (responseData.items || responseData.data || []);
       setSubscriptionPlans(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
@@ -33,7 +33,7 @@ export const useSubscriptions = () => {
       setLoading(true);
       const response = await subscriptionService.getAllCompanySubscriptions();
       const responseData = response?.data?.data || {};
-      const data = Array.isArray(responseData) ? responseData : (responseData.data || []);
+      const data = Array.isArray(responseData) ? responseData : (responseData.items || responseData.data || []);
       setCompanySubscriptions(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
@@ -49,7 +49,7 @@ export const useSubscriptions = () => {
       setLoading(true);
       const response = await subscriptionService.getTransactions();
       const responseData = response?.data?.data || {};
-      const data = Array.isArray(responseData) ? responseData : (responseData.data || []);
+      const data = Array.isArray(responseData) ? responseData : (responseData.items || responseData.data || []);
       setTransactions(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
@@ -162,3 +162,4 @@ export const useSubscriptions = () => {
     fetchAnalytics
   };
 };
+

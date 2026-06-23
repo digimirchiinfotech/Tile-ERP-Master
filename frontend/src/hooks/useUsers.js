@@ -27,7 +27,7 @@ export const useUsers = () => {
     queryFn: async () => {
       const response = await UserService.getAllUsers();
       const responseData = response?.data?.data || response?.data || {};
-      const data = Array.isArray(responseData) ? responseData : (responseData.data || []);
+      const data = Array.isArray(responseData) ? responseData : (responseData.items || responseData.data || []);
       return normalizeArray(data, normalizeUser);
     },
     enabled: !!tokenManager.getAccessToken(),
@@ -77,3 +77,4 @@ export const useUsers = () => {
     toggleUserStatus: toggleStatusMutation.mutateAsync
   };
 };
+

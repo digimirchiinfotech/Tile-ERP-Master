@@ -32,7 +32,7 @@ export const useSuppliers = () => {
       setLoading(true);
       const response = await RequestManager.execute(() => supplierService.getAll(), '/suppliers', 3);
       const responseData = response?.data?.data || {};
-      const data = Array.isArray(responseData) ? responseData : (responseData.data || []);
+      const data = Array.isArray(responseData) ? responseData : (responseData.items || responseData.data || []);
       // Transform snake_case fields to camelCase for frontend rendering
       const normalizedSuppliers = normalizeArray(data, normalizeSupplier);
       setSuppliers(Array.isArray(normalizedSuppliers) ? normalizedSuppliers : []);
@@ -138,3 +138,4 @@ export const useSuppliers = () => {
 
   return { suppliers, loading, error, fetchSuppliers, createSupplier, updateSupplier, deleteSupplier, hardDeleteSupplier, toggleSupplierStatus };
 };
+

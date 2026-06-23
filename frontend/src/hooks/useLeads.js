@@ -27,7 +27,7 @@ export const useLeads = () => {
     queryFn: async () => {
       const response = await leadService.getAll();
       const responseData = response?.data?.data || response?.data || {};
-      const data = Array.isArray(responseData) ? responseData : (responseData.data || []);
+      const data = Array.isArray(responseData) ? responseData : (responseData.items || responseData.data || []);
       return normalizeArray(data, normalizeLead);
     },
     enabled: !!tokenManager.getAccessToken(),
@@ -88,3 +88,4 @@ export const useLeads = () => {
     convertToClient: convertToClientMutation.mutateAsync
   };
 };
+

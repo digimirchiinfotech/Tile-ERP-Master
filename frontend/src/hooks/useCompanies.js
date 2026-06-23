@@ -27,7 +27,7 @@ export const useCompanies = () => {
       setLoading(true);
       const response = await RequestManager.execute(() => companyService.getAll(), '/companies', 3);
       const responseData = response?.data?.data || {};
-      const data = Array.isArray(responseData) ? responseData : (responseData.data || []);
+      const data = Array.isArray(responseData) ? responseData : (responseData.items || responseData.data || []);
       const normalizedData = normalizeCompanyDataArray(Array.isArray(data) ? data : []);
       setCompanies(normalizedData);
       setError(null);
@@ -112,3 +112,4 @@ export const useCompanies = () => {
 
   return { companies, loading, error, fetchCompanies, createCompany, updateCompany, deleteCompany, hardDeleteCompany, toggleCompanyStatus, getCompanyById };
 };
+

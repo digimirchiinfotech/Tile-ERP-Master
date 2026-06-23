@@ -27,7 +27,7 @@ export const useQCRecords = () => {
     queryFn: async () => {
       const response = await qcService.getAll();
       const responseData = response?.data?.data || response?.data || {};
-      const data = Array.isArray(responseData) ? responseData : (responseData.data || []);
+      const data = Array.isArray(responseData) ? responseData : (responseData.items || responseData.data || []);
       return normalizeArray(data, normalizeQCRecord);
     },
     enabled: !!tokenManager.getAccessToken(),
@@ -77,3 +77,4 @@ export const useQCRecords = () => {
     toggleQCRecordStatus: toggleStatusMutation.mutateAsync
   };
 };
+

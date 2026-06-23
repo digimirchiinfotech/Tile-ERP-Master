@@ -26,7 +26,7 @@ export const useRateHistory = () => {
       setLoading(true);
       const response = await RequestManager.execute(() => rateHistoryService.getAll(), '/rate-history', 3);
       const responseData = response?.data?.data || {};
-      const data = Array.isArray(responseData) ? responseData : (responseData.data || []);
+      const data = Array.isArray(responseData) ? responseData : (responseData.items || responseData.data || []);
       setRateHistory(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
@@ -97,3 +97,4 @@ export const useRateHistory = () => {
     hardDeleteRateHistory
   };
 };
+

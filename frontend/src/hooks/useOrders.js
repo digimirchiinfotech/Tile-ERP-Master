@@ -32,7 +32,7 @@ export const useOrders = () => {
         : await orderService.getAll();
       
       const responseData = response?.data?.data || response?.data || {};
-      const data = Array.isArray(responseData) ? responseData : (responseData.data || []);
+      const data = Array.isArray(responseData) ? responseData : (responseData.items || responseData.data || []);
       return normalizeArray(data, normalizeOrder);
     },
     enabled: tokenManager.isAuthenticated() && (!!selectedCompanyId || tokenManager.getUser()?.role === 'super_admin'),
@@ -82,3 +82,4 @@ export const useOrders = () => {
     toggleOrderStatus: toggleStatusMutation.mutateAsync
   };
 };
+

@@ -30,7 +30,7 @@ export const useAccountEntries = () => {
       setLoading(true);
       const response = await accountEntryService.getAll();
       const responseData = response?.data?.data || {};
-      const data = Array.isArray(responseData) ? responseData : (responseData.data || []);
+      const data = Array.isArray(responseData) ? responseData : (responseData.items || responseData.data || []);
       setAccountEntries(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
@@ -127,3 +127,4 @@ export const useAccountEntries = () => {
     toggleAccountEntryStatus 
   };
 };
+

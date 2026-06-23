@@ -197,6 +197,18 @@ const transformImportData = (validData, moduleType) => {
   const currentDate = new Date().toLocaleDateString('en-CA');
 
   switch (moduleType) {
+    case 'export-invoices':
+      return validData.map((row, index) => ({
+        id: Date.now() + index,
+        invoiceNo: row.invoiceNo || `EI/IMP/${Date.now()}/${index}`,
+        date: row.date || currentDate,
+        clientName: row.clientName,
+        country: row.country,
+        amount: parseFloat(row.amount) || 0,
+        status: 'Pending',
+        importedAt: new Date().toISOString(),
+      }));
+
     case 'proforma-invoice-enhanced':
       return validData.map((row, index) => ({
         id: Date.now() + index,
@@ -426,6 +438,16 @@ export const processImportWithProgress = async (file, moduleType, onProgress) =>
  */
 export const getImportTemplate = (moduleType) => {
   const templates = {
+    'export-invoices': {
+      name: 'Export Invoices',
+      fields: [
+        { name: 'invoiceNo', label: 'Invoice No.', required: true, example: 'EI/2025/001' },
+        { name: 'date', label: 'Date', required: true, example: '2025-01-15' },
+        { name: 'clientName', label: 'Client Name', required: true, example: 'ABC Corp' },
+        { name: 'country', label: 'Country', required: true, example: 'USA' },
+        { name: 'amount', label: 'Amount', required: true, example: '50000' },
+      ],
+    },
     'proforma-invoice-enhanced': {
       name: 'Proforma Invoices',
       fields: [

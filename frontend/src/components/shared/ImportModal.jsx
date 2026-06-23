@@ -209,6 +209,7 @@ function ImportModal({ show, onHide, onImport, moduleType }) {
   const getModuleDisplayName = () => {
     const names = {
       'proforma-invoice-enhanced': 'Proforma Invoices',
+      'export-invoices': 'Export Invoices',
       'proforma-order': 'Proforma Orders',
       leads: 'Leads',
       clients: 'Clients',

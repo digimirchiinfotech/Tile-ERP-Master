@@ -65,6 +65,13 @@ export const getMyNotifications = async (req, res, next) => {
       'Notifications retrieved successfully'
     );
   } catch (error) {
+    if (error.code === '42P01') {
+      return successResponse(
+        res,
+        paginationResponse([], 0, parseInt(req.query.page) || 1, parseInt(req.query.limit) || 20),
+        'Notifications retrieved successfully'
+      );
+    }
     next(error);
   }
 };
@@ -91,6 +98,9 @@ export const getUnreadNotifications = async (req, res, next) => {
       'Unread notifications retrieved successfully'
     );
   } catch (error) {
+    if (error.code === '42P01') {
+      return successResponse(res, [], 'Unread notifications retrieved successfully');
+    }
     next(error);
   }
 };
@@ -159,6 +169,9 @@ export const markAsRead = async (req, res, next) => {
       'Notification marked as read'
     );
   } catch (error) {
+    if (error.code === '42P01') {
+      return next(new AppError('Notification not found', 404));
+    }
     next(error);
   }
 };
@@ -183,6 +196,9 @@ export const markAllAsRead = async (req, res, next) => {
       'All notifications marked as read'
     );
   } catch (error) {
+    if (error.code === '42P01') {
+      return successResponse(res, { success: true }, 'All notifications marked as read');
+    }
     next(error);
   }
 };
@@ -224,6 +240,9 @@ export const deleteNotificationById = async (req, res, next) => {
       'Notification deleted successfully'
     );
   } catch (error) {
+    if (error.code === '42P01') {
+      return next(new AppError('Notification not found', 404));
+    }
     next(error);
   }
 };
@@ -243,6 +262,9 @@ export const deleteAllNotifications = async (req, res, next) => {
       'All notifications deleted successfully'
     );
   } catch (error) {
+    if (error.code === '42P01') {
+      return successResponse(res, { deleted_count: 0 }, 'All notifications deleted successfully');
+    }
     next(error);
   }
 };

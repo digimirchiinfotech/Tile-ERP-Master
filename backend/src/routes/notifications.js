@@ -38,6 +38,9 @@ router.put('/mark-all-read', authenticate, filterByCompany, async (req, res, nex
 
     res.json({ success: true, message: 'All notifications marked as read' });
   } catch (error) {
+    if (error.code === '42P01') {
+      return res.json({ success: true, message: 'All notifications marked as read' });
+    }
     next(error);
   }
 });
@@ -152,6 +155,16 @@ router.get('/', authenticate, filterByCompany, async (req, res, next) => {
       offset
     });
   } catch (error) {
+    if (error.code === '42P01') {
+      // Notifications table does not exist yet
+      return res.json({
+        success: true,
+        data: [],
+        total: 0,
+        limit: parseInt(req.query.limit) || 20,
+        offset: parseInt(req.query.offset) || 0
+      });
+    }
     next(error);
   }
 });
@@ -208,6 +221,9 @@ router.put('/:id/read', authenticate, filterByCompany, async (req, res, next) =>
 
     res.json({ success: true, data: result.rows[0] });
   } catch (error) {
+    if (error.code === '42P01') {
+      return res.status(404).json({ success: false, message: 'Notification not found' });
+    }
     next(error);
   }
 });
@@ -231,6 +247,9 @@ router.delete('/:id', authenticate, filterByCompany, async (req, res, next) => {
 
     res.json({ success: true, message: 'Notification deleted' });
   } catch (error) {
+    if (error.code === '42P01') {
+      return res.status(404).json({ success: false, message: 'Notification not found' });
+    }
     next(error);
   }
 });

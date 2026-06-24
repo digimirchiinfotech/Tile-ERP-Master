@@ -235,7 +235,7 @@ function AccountEntryForm({ entry, onSave, onCancel, viewOnly = false }) {
                     className="form-control-enhanced py-2 border-1 fw-bold"
                     style={{ borderRadius: '10px' }}
                   >
-                    <option value="">Select Party</option>
+                    <option value="" disabled hidden>Select Party</option>
                     {clients.filter(c => c.status !== 'Inactive').map((client) => (
                       <option key={client.id} value={client.clientName}>
                         {client.clientName}
@@ -270,7 +270,7 @@ function AccountEntryForm({ entry, onSave, onCancel, viewOnly = false }) {
                       className="form-control-enhanced py-2 border-1 fw-medium"
                       style={{ borderRadius: '10px' }}
                     >
-                      <option value="">Select Invoice</option>
+                      <option value="" disabled hidden>Select Invoice</option>
                       {invoices && invoices.length > 0 ? (
                         invoices.map((invoice) => (
                           <option key={invoice.id} value={invoice.invoiceNo || invoice.invoice_no}>
@@ -332,7 +332,7 @@ function AccountEntryForm({ entry, onSave, onCancel, viewOnly = false }) {
                     className="form-control-enhanced py-2 border-1"
                     style={{ borderRadius: '10px' }}
                   >
-                    <option value="">Select Mode</option>
+                    <option value="" disabled hidden>Select Mode</option>
                     {paymentModes.map((mode) => (
                       <option key={mode} value={mode}>{mode}</option>
                     ))}

@@ -1075,7 +1075,7 @@ function ExportInvoiceAnnexureForm({ exportInvoiceId: initialExportInvoiceId, an
                   <th>PALLET Detail</th>
                   <th>SQM/Box</th>
                   <th>Total SQM</th>
-                  <th>Boxes</th>
+                  <th style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>Boxes</th>
                   <th>Box Wt</th>
                   <th>Net Wt</th>
                   <th>Gross Wt</th>
@@ -1116,7 +1116,7 @@ function ExportInvoiceAnnexureForm({ exportInvoiceId: initialExportInvoiceId, an
                     <td data-label="Pallet Detail"><Form.Control size="sm" style={{ minWidth: '100px', maxWidth: '150px' }} value={c.detail || ''} onChange={e => handleContainerChange(i, 'detail', e.target.value.toUpperCase())} className="border-0 bg-light text-end text-lg-center ms-auto mx-lg-auto" /></td>
                     <td data-label="SQM/Box"><Form.Control size="sm" type="number" style={{ minWidth: '80px', maxWidth: '120px' }} value={c.sqm_per_box || 0} onChange={e => handleContainerChange(i, 'sqm_per_box', e.target.value)} className="border-0 bg-light text-end text-lg-center ms-auto mx-lg-auto" /></td>
                     <td data-label="Total SQM"><Form.Control size="sm" type="number" style={{ minWidth: '90px', maxWidth: '130px' }} value={c.total_sqm || 0} readOnly className="border-0 bg-white text-end text-lg-center fw-bold ms-auto mx-lg-auto" /></td>
-                    <td data-label="Boxes"><Form.Control size="sm" type="number" style={{ minWidth: '80px', maxWidth: '120px' }} value={c.boxes || 0} onChange={e => handleContainerChange(i, 'boxes', e.target.value)} className="border-0 bg-light text-end text-lg-center ms-auto mx-lg-auto" /></td>
+                    <td data-label="Boxes" style={{ backgroundColor: '#fef3c7' }}><Form.Control size="sm" type="number" style={{ minWidth: '80px', maxWidth: '120px', backgroundColor: '#fef3c7', color: '#92400e', fontWeight: '600' }} value={c.boxes || 0} onChange={e => handleContainerChange(i, 'boxes', e.target.value)} className="border-0 text-end text-lg-center ms-auto mx-lg-auto" /></td>
                     <td data-label="Box Wt"><Form.Control size="sm" type="number" style={{ minWidth: '70px', maxWidth: '110px' }} value={c.box_weight || 0} onChange={e => handleContainerChange(i, 'box_weight', e.target.value)} className="border-0 bg-light text-end text-lg-center ms-auto mx-lg-auto" /></td>
                     <td data-label="Net Wt"><Form.Control size="sm" type="number" style={{ minWidth: '90px', maxWidth: '130px' }} value={c.net_weight || 0} onChange={e => handleContainerChange(i, 'net_weight', e.target.value)} className="border-0 bg-light text-end text-lg-center ms-auto mx-lg-auto" /></td>
                     <td data-label="Gross Wt"><Form.Control size="sm" type="number" style={{ minWidth: '90px', maxWidth: '130px' }} value={c.gross_weight || 0} onChange={e => handleContainerChange(i, 'gross_weight', e.target.value)} className="border-0 bg-light text-end text-lg-center ms-auto mx-lg-auto" /></td>
@@ -1314,6 +1314,7 @@ function ExportInvoiceAnnexureForm({ exportInvoiceId: initialExportInvoiceId, an
                               value={c.boxes || 0}
                               onChange={e => handleContainerChange(i, 'boxes', e.target.value)}
                               className="fw-bold small py-1"
+                              style={{ backgroundColor: '#fef3c7', color: '#92400e', fontWeight: '600' }}
                             />
                           </Col>
                           <Col xs={4}>

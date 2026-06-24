@@ -895,8 +895,8 @@ export const downloadAdvancedReport = async (req, res, next) => {
         query = `
           SELECT 
             pil.product_name as "Product Name",
-            SUM(CAST(pil.total_sqm AS DECIMAL)) as "Total SQM Sold",
-            COALESCE(ROUND(SUM(CAST(pil.amount AS DECIMAL)) / NULLIF(SUM(CAST(pil.total_sqm AS DECIMAL)), 0), 2), 0) as "Avg Rate/SQM (INR)",
+            SUM(CAST(pil.sqm_auto AS DECIMAL)) as "Total SQM Sold",
+            COALESCE(ROUND(SUM(CAST(pil.amount AS DECIMAL)) / NULLIF(SUM(CAST(pil.sqm_auto AS DECIMAL)), 0), 2), 0) as "Avg Rate/SQM (INR)",
             COALESCE(SUM(CAST(pil.amount AS DECIMAL)), 0) as "Total Revenue (INR)"
           FROM proforma_invoice_lines pil
           JOIN proforma_invoices pi ON pil.proforma_invoice_id = pi.id
@@ -1003,4 +1003,5 @@ export const downloadAdvancedReport = async (req, res, next) => {
     next(error);
   }
 };
+
 

@@ -457,22 +457,22 @@ export const create = async (req, res, next) => {
     const qcRecordId = result.rows[0].id;
     await saveQCItems(client, qcRecordId, companyId, order_id, order_number, inspection_details, overall_grade);
 
+    await client.query('COMMIT');
+
     if (order_id) {
       const dbStatus = qc_status === 'Passed' ? 'Passed' : (qc_status === 'Failed' ? 'Failed' : 'Pending');
       // Update legacy order_sheets
-      client.query(
+      req.db.query(
         `UPDATE order_sheets SET qc_status = $1, qc_date = CURRENT_TIMESTAMP WHERE id = $2 AND company_id = $3`,
         [dbStatus, order_id, companyId]
       ).catch(() => {});
       
       // Update new master_order_sheet_lines
-      client.query(
+      req.db.query(
         `UPDATE master_order_sheet_lines SET qc_status = $1, updated_at = CURRENT_TIMESTAMP WHERE master_order_sheet_id = $2 AND company_id = $3`,
         [dbStatus, order_id, companyId]
       ).catch(() => {});
     }
-
-    await client.query('COMMIT');
 
     return successResponse(
       res,

@@ -862,8 +862,8 @@ export const downloadAdvancedReport = async (req, res, next) => {
           SELECT 
             c.client_name as "Customer Name",
             COALESCE(c.country, 'Unknown') as "Country",
-            COALESCE(c.email, '-') as "Email",
-            COALESCE(c.phone, '-') as "Phone",
+            COALESCE(c.email_id, '-') as "Email",
+            COALESCE(c.contact_number, '-') as "Phone",
             COUNT(DISTINCT pi.id) as "Total Orders",
             COALESCE(SUM(CAST(pi.total_amount AS DECIMAL)), 0) as "Total Revenue (INR)",
             COALESCE(ROUND(SUM(CAST(pi.total_amount AS DECIMAL)) / NULLIF(COUNT(DISTINCT pi.id), 0), 2), 0) as "Avg Order Value (INR)",
@@ -872,7 +872,7 @@ export const downloadAdvancedReport = async (req, res, next) => {
           FROM clients c
           LEFT JOIN proforma_invoices pi ON c.id = pi.client_id
           ${cCompFilter}
-          GROUP BY c.id, c.client_name, c.country, c.email, c.phone
+          GROUP BY c.id, c.client_name, c.country, c.email_id, c.contact_number
           ORDER BY "Total Revenue (INR)" DESC
         `;
         break;
@@ -935,7 +935,7 @@ export const downloadAdvancedReport = async (req, res, next) => {
             pl.total_weight as "Net Weight (KG)",
             COALESCE(pl.gross_weight, pl.total_weight * 1.02) as "Gross Weight (KG)"
           FROM packing_lists pl
-          JOIN proforma_invoices pi ON pl.proforma_invoice_no = pi.proforma_invoice_no OR pl.proforma_invoice_no = pi.invoice_no
+          JOIN proforma_invoices pi ON pl.proforma_invoice_no = pi.invoice_no
           LEFT JOIN clients c ON pi.client_id = c.id
           ${compFilter}
           ORDER BY pl.created_at DESC
@@ -947,7 +947,7 @@ export const downloadAdvancedReport = async (req, res, next) => {
             c.client_name as "Customer Name",
             COALESCE(c.country, 'Unknown') as "Country",
             pi.invoice_no as "Invoice No",
-            pi.proforma_invoice_no as "Proforma No",
+            pi.invoice_no as "Proforma No",
             pi.date as "Invoice Date",
             pi.total_amount as "Invoice Amount",
             CURRENT_DATE - pi.date as "Aging (Days)",
@@ -1003,3 +1003,4 @@ export const downloadAdvancedReport = async (req, res, next) => {
     next(error);
   }
 };
+

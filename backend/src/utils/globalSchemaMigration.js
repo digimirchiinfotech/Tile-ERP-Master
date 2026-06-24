@@ -371,6 +371,35 @@ export const runGlobalSchemaMigration = async () => {
             CREATE INDEX IF NOT EXISTS idx_leads_company_created ON leads (company_id, created_at DESC);
             CREATE INDEX IF NOT EXISTS idx_clients_company_created ON clients (company_id, created_at DESC);
 
+            -- ── 2026-06-24: Double-Entry Accounting Tables ───────────────────
+            -- journal_entries and ledger_entries were added in a migration file
+            -- but never applied to existing tenant DBs, causing 500 on account entry creation.
+            CREATE TABLE IF NOT EXISTS journal_entries (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              company_id UUID NOT NULL,
+              entry_no VARCHAR(100) NOT NULL,
+              date DATE NOT NULL,
+              reference VARCHAR(100),
+              source_type VARCHAR(50),
+              source_id UUID,
+              notes TEXT,
+              created_by UUID,
+              created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+              updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS ledger_entries (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              company_id UUID NOT NULL,
+              journal_entry_id UUID NOT NULL REFERENCES journal_entries(id) ON DELETE CASCADE,
+              account_code VARCHAR(50) NOT NULL,
+              account_name VARCHAR(100),
+              debit NUMERIC(15, 2) DEFAULT 0,
+              credit NUMERIC(15, 2) DEFAULT 0,
+              created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_journal_entries_company_date ON journal_entries(company_id, date);
+            CREATE INDEX IF NOT EXISTS idx_ledger_entries_journal ON ledger_entries(journal_entry_id);
+
           END $$;
         `);
         debugLogger.info(CONTEXT, `[TenantSchema] ✅ Schema self-heal complete for company ${company.id}`);

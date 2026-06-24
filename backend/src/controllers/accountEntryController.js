@@ -17,6 +17,53 @@ import {
   getFirstRow
 } from '../utils/helpers.js';
 import { generateDocumentNumber } from '../utils/documentNumberGenerator.js';
+import { debugLogger } from '../utils/debugLogger.js';
+
+const CONTEXT = 'AccountEntryController';
+
+// Self-heal guard: runs once per tenant pool to ensure double-entry tables exist
+const healedPools = new Set();
+
+const ensureDoubleEntrySchema = async (db) => {
+  if (!db) return;
+  const poolKey = db._poolId || db._companyId || 'default';
+  if (healedPools.has(poolKey)) return;
+  try {
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS journal_entries (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        company_id UUID NOT NULL,
+        entry_no VARCHAR(100) NOT NULL,
+        date DATE NOT NULL,
+        reference VARCHAR(100),
+        source_type VARCHAR(50),
+        source_id UUID,
+        notes TEXT,
+        created_by UUID,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE TABLE IF NOT EXISTS ledger_entries (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        company_id UUID NOT NULL,
+        journal_entry_id UUID NOT NULL REFERENCES journal_entries(id) ON DELETE CASCADE,
+        account_code VARCHAR(50) NOT NULL,
+        account_name VARCHAR(100),
+        debit NUMERIC(15, 2) DEFAULT 0,
+        credit NUMERIC(15, 2) DEFAULT 0,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_journal_entries_company_date ON journal_entries(company_id, date);
+      CREATE INDEX IF NOT EXISTS idx_ledger_entries_journal ON ledger_entries(journal_entry_id);
+    `);
+    healedPools.add(poolKey);
+    debugLogger.info(CONTEXT, `Double-entry schema self-heal complete for pool: ${poolKey}`);
+  } catch (err) {
+    // Non-fatal: log and continue — tables may already exist or DDL may fail in some edge cases
+    debugLogger.warn(CONTEXT, `Double-entry schema self-heal warning (non-fatal): ${err.message}`);
+    healedPools.add(poolKey); // Don't retry on every request
+  }
+};
 
 export const getAll = async (req, res, next) => {
   try {
@@ -141,6 +188,9 @@ export const getById = async (req, res, next) => {
 };
 
 export const create = async (req, res, next) => {
+  // Ensure journal_entries and ledger_entries tables exist (self-heal for existing tenants)
+  await ensureDoubleEntrySchema(req.db);
+
   const client = await req.db.getClient();
   try {
     const {

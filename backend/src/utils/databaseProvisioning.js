@@ -629,7 +629,38 @@ export const provisionCompanyDatabase = async (company) => {
         created_by UUID ,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );      -- Proforma Invoices table
+      );
+
+      -- Double-Entry Accounting: Journal Entries table
+      CREATE TABLE IF NOT EXISTS journal_entries (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        company_id UUID NOT NULL,
+        entry_no VARCHAR(100) NOT NULL,
+        date DATE NOT NULL,
+        reference VARCHAR(100),
+        source_type VARCHAR(50),
+        source_id UUID,
+        notes TEXT,
+        created_by UUID,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      -- Double-Entry Accounting: Ledger Entries table
+      CREATE TABLE IF NOT EXISTS ledger_entries (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        company_id UUID NOT NULL,
+        journal_entry_id UUID NOT NULL REFERENCES journal_entries(id) ON DELETE CASCADE,
+        account_code VARCHAR(50) NOT NULL,
+        account_name VARCHAR(100),
+        debit NUMERIC(15, 2) DEFAULT 0,
+        credit NUMERIC(15, 2) DEFAULT 0,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_journal_entries_company_date ON journal_entries(company_id, date);
+      CREATE INDEX IF NOT EXISTS idx_ledger_entries_journal ON ledger_entries(journal_entry_id);
+
+      -- Proforma Invoices table
       CREATE TABLE IF NOT EXISTS proforma_invoices (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         company_id UUID NOT NULL,

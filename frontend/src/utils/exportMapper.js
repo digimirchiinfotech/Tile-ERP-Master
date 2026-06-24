@@ -160,7 +160,7 @@ const normalizeContainers = (input) => {
             tare_wt: parseFloat(getVal(c, 'tare_wt', 'tareWt', 0)) || 0,
             vgm_weight: parseFloat(getVal(c, 'vgm_weight', 'vgmWeight', 0)) || 0,
             slip_no: getVal(c, 'slip_no', 'slipNo', 'slip_number', '') || '',
-            slip_no_date: getVal(c, 'slip_no_date', 'slipNoDate', '') || '',
+            slip_no_date: getVal(c, 'slip_no_date', 'slipNoDate', '') || new Date().toLocaleDateString('en-CA'),
             is_foc: !!(getVal(c, 'is_foc', 'isFoc', false)),
             detail: getVal(c, 'detail', 'details', '') || ''
         };

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * TILE EXPORTER ERP SAAS
  * 
  * COPYRIGHT © 2026. ALL RIGHTS RESERVED.
@@ -329,8 +329,8 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
       if ((!camelLine.sqm || parseFloat(camelLine.sqm || 0) === 0) && (productMaster.sqmPerBox || productMaster.sqm || productMaster.sqm_per_box)) {
         camelLine.sqm = parseFloat(productMaster.sqmPerBox || productMaster.sqm || productMaster.sqm_per_box || 0);
       }
-      if ((!camelLine.weightPerSqm || parseFloat(camelLine.weightPerSqm || 0) === 0) && (productMaster.weightPerSqm || productMaster.perBoxWeight || productMaster.weight_per_sqm || productMaster.boxWeight || productMaster.box_weight)) {
-        camelLine.weightPerSqm = parseFloat(productMaster.weightPerSqm || productMaster.perBoxWeight || productMaster.weight_per_sqm || productMaster.boxWeight || productMaster.box_weight || 0);
+      if ((!camelLine.weightPerSqm || parseFloat(camelLine.weightPerSqm || 0) === 0) && (productMaster.weightPerSqm || productMaster.perBoxWeight || productMaster.weight_per_sqm || productMaster.boxWeight || productMaster.box_weight || productMaster.defaultPerBoxWeight || productMaster.default_per_box_weight)) {
+        camelLine.weightPerSqm = parseFloat(productMaster.weightPerSqm || productMaster.perBoxWeight || productMaster.weight_per_sqm || productMaster.boxWeight || productMaster.box_weight || productMaster.defaultPerBoxWeight || productMaster.default_per_box_weight || 0);
       }
 
       // Sanitaryware specifications mapping
@@ -611,7 +611,7 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
         item.size = p.dimensions || p.size || p.productSize || '';
         item.surface = p.finish || p.surface || p.productSurface || '';
         // Use normalized camelCase field names from products master
-        item.weightPerSqm = parseFloat(p.weightPerSqm || p.perBoxWeight || p.boxWeight || p.box_weight || 0);
+        item.weightPerSqm = parseFloat(p.weightPerSqm || p.perBoxWeight || p.boxWeight || p.box_weight || p.defaultPerBoxWeight || p.default_per_box_weight || 0);
         item.perBoxWeight = item.weightPerSqm;
         item.boxWeight = item.weightPerSqm;
         item.box_weight = item.weightPerSqm;

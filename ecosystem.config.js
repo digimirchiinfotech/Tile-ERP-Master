@@ -2,7 +2,8 @@ module.exports = {
   apps: [
     {
       name: 'tile-exporter-backend',
-      script: './backend/src/server.js',
+      script: 'src/server.js',
+      cwd: './backend',
       env: {
         NODE_ENV: 'production',
         PORT: 8000
@@ -10,14 +11,16 @@ module.exports = {
     },
     {
       name: 'tile-exporter-frontend',
-      script: './frontend/server.js',
+      script: 'server.js',
+      cwd: './frontend',
       env: {
         NODE_ENV: 'production'
       }
     },
     {
       name: 'tile-exporter-pdf-service',
-      script: './pdf-service/index.js',
+      script: 'index.js',
+      cwd: './pdf-service',
       env: {
         NODE_ENV: 'production',
         PORT: 8001

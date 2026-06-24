@@ -1,7 +1,7 @@
-import express from 'express';
-import cors from 'cors';
-import puppeteer from 'puppeteer';
-import dotenv from 'dotenv';
+const express = require('express');
+const cors = require('cors');
+const puppeteer = require('puppeteer');
+const dotenv = require('dotenv');
 
 dotenv.config();
 

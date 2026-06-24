@@ -9,50 +9,36 @@
  * or reverse engineering of this file, via any medium, is strictly prohibited.
  */
 
-import { Worker } from 'worker_threads';
-import { fileURLToPath } from 'url';
-import path from 'path';
 import debugLogger from '../utils/debugLogger.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import axios from 'axios';
 
 export const generatePdfFromHtml = async (htmlContent, options = {}) => {
-  return new Promise((resolve, reject) => {
-    debugLogger.info('[PDFService]', 'Delegating PDF generation to worker thread');
-    const workerPath = path.resolve(__dirname, '../workers/pdfWorker.js');
+  return new Promise(async (resolve, reject) => {
+    debugLogger.info('[PDFService]', 'Delegating PDF generation to standalone microservice');
     
-    const worker = new Worker(workerPath, {
-      workerData: {
-        htmlContent,
+    const pdfServiceUrl = process.env.PDF_SERVICE_URL || 'http://127.0.0.1:8001/generate';
+
+    try {
+      const response = await axios.post(pdfServiceUrl, {
+        html: htmlContent,
         options: {
           format: options.format || 'A4',
           margin: options.margin
         }
-      }
-    });
+      }, {
+        responseType: 'arraybuffer', // Expect binary PDF data
+        timeout: 60000 // 60 seconds
+      });
 
-    worker.on('message', (message) => {
-      if (message.success) {
-        debugLogger.info('[PDFService]', `PDF generated successfully via worker thread, size: ${message.buffer.length} bytes`);
-        resolve(Buffer.from(message.buffer));
-      } else {
-        debugLogger.error('[PDFService]', 'PDF Worker error:', message.error);
-        reject(new Error(message.error || 'Worker failed to generate PDF'));
-      }
-    });
-
-    worker.on('error', (err) => {
-      debugLogger.error('[PDFService]', 'PDF Worker thread error:', err);
-      reject(err);
-    });
-
-    worker.on('exit', (code) => {
-      if (code !== 0) {
-        debugLogger.error('[PDFService]', `PDF Worker thread stopped with exit code ${code}`);
-        reject(new Error(`Worker stopped with exit code ${code}`));
-      }
-    });
+      debugLogger.info('[PDFService]', `PDF generated successfully via microservice, size: ${response.data.byteLength} bytes`);
+      resolve(Buffer.from(response.data));
+    } catch (error) {
+      debugLogger.error('[PDFService]', 'PDF microservice error:', error.message);
+      
+      // Fallback: If microservice is unreachable, you could optionally fallback to the local worker here.
+      // But for enterprise stability, we strictly enforce microservice isolation.
+      reject(new Error(`Microservice failed to generate PDF: ${error.message}`));
+    }
   });
 };
 

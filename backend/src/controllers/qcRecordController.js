@@ -81,7 +81,8 @@ const hydrateQCRecord = async (db, companyId, record) => {
   if (typeof productLines === 'string') {
     try {
       productLines = JSON.parse(productLines);
-    } catch {
+    } catch (parseErr) {
+      debugLogger.error('QCRecordController', `Failed to parse product_lines JSON for record ${record.id}:`, parseErr.message);
       productLines = [];
     }
   }
@@ -457,22 +458,22 @@ export const create = async (req, res, next) => {
     const qcRecordId = result.rows[0].id;
     await saveQCItems(client, qcRecordId, companyId, order_id, order_number, inspection_details, overall_grade);
 
-    await client.query('COMMIT');
-
     if (order_id) {
       const dbStatus = qc_status === 'Passed' ? 'Passed' : (qc_status === 'Failed' ? 'Failed' : 'Pending');
       // Update legacy order_sheets
-      req.db.query(
+      await client.query(
         `UPDATE order_sheets SET qc_status = $1, qc_date = CURRENT_TIMESTAMP WHERE id = $2 AND company_id = $3`,
         [dbStatus, order_id, companyId]
-      ).catch(() => {});
+      );
       
       // Update new master_order_sheet_lines
-      req.db.query(
+      await client.query(
         `UPDATE master_order_sheet_lines SET qc_status = $1, updated_at = CURRENT_TIMESTAMP WHERE master_order_sheet_id = $2 AND company_id = $3`,
         [dbStatus, order_id, companyId]
-      ).catch(() => {});
+      );
     }
+
+    await client.query('COMMIT');
 
     return successResponse(
       res,
@@ -682,8 +683,6 @@ export const update = async (req, res, next) => {
       );
     }
 
-    await client.query('COMMIT');
-
     // Trigger notification if QC status changed to Failed
     if (qc_status !== undefined && finalRecord) {
       try {
@@ -692,17 +691,19 @@ export const update = async (req, res, next) => {
           const dbStatus = qc_status === 'Passed' ? 'Passed' : (qc_status === 'Failed' ? 'Failed' : 'Pending');
           
           // Legacy update
-          await req.db.query(
+          await client.query(
             `UPDATE order_sheets SET qc_status = $1, qc_date = CURRENT_TIMESTAMP WHERE id = $2 AND company_id = $3`,
             [dbStatus, sheetId, finalRecord.company_id]
-          ).catch(() => {});
+          );
           
           // Master Order Sheet Lines update
-          await req.db.query(
+          await client.query(
             `UPDATE master_order_sheet_lines SET qc_status = $1, updated_at = CURRENT_TIMESTAMP WHERE master_order_sheet_id = $2 AND company_id = $3`,
             [dbStatus, sheetId, finalRecord.company_id]
-          ).catch(() => {});
+          );
         }
+
+        await client.query('COMMIT');
 
         if (qc_status === 'Failed') {
           notifyQCFailed(req.companyFilter || finalRecord.company_id, finalRecord, notes || 'See QC record for details', req.db);
@@ -710,8 +711,11 @@ export const update = async (req, res, next) => {
           notifyQCCompleted(req.companyFilter || finalRecord.company_id, finalRecord, req.db);
         }
       } catch (err) {
-        // Don't block QC update if notification fails
+        await client.query('ROLLBACK');
+        throw err;
       }
+    } else {
+      await client.query('COMMIT');
     }
 
     return successResponse(

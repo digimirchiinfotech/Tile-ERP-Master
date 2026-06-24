@@ -10,8 +10,7 @@ module.exports = {
     },
     {
       name: 'tile-exporter-frontend',
-      script: 'npx',
-      args: 'serve -s frontend/dist -l 5000',
+      script: './frontend/server.js',
       env: {
         NODE_ENV: 'production'
       }

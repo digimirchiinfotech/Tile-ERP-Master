@@ -501,6 +501,32 @@ function VGMForm({ exportInvoiceId: propExportInvoiceId, onBack, currentUser }) 
           </Alert>
         )}
 
+        {/* Validation Error Summary Banner */}
+        {Object.keys(errors).length > 0 && (
+          <Alert variant="danger" className="mb-4 shadow-sm rounded-3" id="vgm-error-summary">
+            <div className="d-flex align-items-center mb-2">
+              <Info size={18} className="me-2 flex-shrink-0" />
+              <strong>Please fix the following errors before saving:</strong>
+            </div>
+            <ul className="mb-0 ps-3">
+              {errors.vessel_name && <li>{errors.vessel_name}</li>}
+              {errors.port_of_loading && <li>{errors.port_of_loading}</li>}
+              {errors.shipper_name && <li>{errors.shipper_name}</li>}
+              {errors.booking_number && <li>{errors.booking_number}</li>}
+              {errors.weighbridge_name && <li>{errors.weighbridge_name}</li>}
+              {errors.container_no && <li>{errors.container_no}</li>}
+              {errors.product_description && <li>{errors.product_description}</li>}
+              {errors.authorized_person && <li>{errors.authorized_person}</li>}
+              {errors.contact_details && <li>{errors.contact_details}</li>}
+              {errors.max_permissible_weight && <li>{errors.max_permissible_weight}</li>}
+              {errors.weighing_method && <li>{errors.weighing_method}</li>}
+              {errors.container_weights && errors.container_weights.split(' | ').map((msg, idx) => (
+                <li key={idx} className="text-danger fw-semibold">{msg}</li>
+              ))}
+            </ul>
+          </Alert>
+        )}
+
         {/* BASIC INFORMATION */}
         <section className="mb-4">
           <div className="blue-ribbon">BASIC INFORMATION</div>
@@ -968,6 +994,21 @@ function VGMForm({ exportInvoiceId: propExportInvoiceId, onBack, currentUser }) 
                 </tbody>
               </Table>
             </DoubleScrollbarWrapper>
+
+            {/* Container Weight Validation Error */}
+            {errors.container_weights && (
+              <Alert variant="danger" className="mx-3 mt-3 mb-0 rounded-3" id="container-weight-error">
+                <div className="d-flex align-items-center mb-1 fw-bold">
+                  <Info size={16} className="me-2 flex-shrink-0" />
+                  Weight Validation Errors — please correct before saving:
+                </div>
+                <ul className="mb-0 ps-3">
+                  {errors.container_weights.split(' | ').map((msg, idx) => (
+                    <li key={idx}>{msg}</li>
+                  ))}
+                </ul>
+              </Alert>
+            )}
 
             {/* Mobile View: Container Cards */}
             <div className="d-block d-lg-none p-3 bg-light bg-opacity-50">

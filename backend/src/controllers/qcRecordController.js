@@ -458,22 +458,22 @@ export const create = async (req, res, next) => {
     const qcRecordId = result.rows[0].id;
     await saveQCItems(client, qcRecordId, companyId, order_id, order_number, inspection_details, overall_grade);
 
+    await client.query('COMMIT');
+
     if (order_id) {
       const dbStatus = qc_status === 'Passed' ? 'Passed' : (qc_status === 'Failed' ? 'Failed' : 'Pending');
-      // Update legacy order_sheets
-      await client.query(
+      // Update legacy order_sheets outside transaction to prevent poisoning
+      req.db.query(
         `UPDATE order_sheets SET qc_status = $1, qc_date = CURRENT_TIMESTAMP WHERE id = $2 AND company_id = $3`,
         [dbStatus, order_id, companyId]
-      );
+      ).catch(err => debugLogger.error('QCRecordController', 'Legacy order_sheets update failed', err));
       
       // Update new master_order_sheet_lines
-      await client.query(
+      req.db.query(
         `UPDATE master_order_sheet_lines SET qc_status = $1, updated_at = CURRENT_TIMESTAMP WHERE master_order_sheet_id = $2 AND company_id = $3`,
         [dbStatus, order_id, companyId]
-      );
+      ).catch(err => debugLogger.error('QCRecordController', 'Legacy master_order_sheet_lines update failed', err));
     }
-
-    await client.query('COMMIT');
 
     return successResponse(
       res,
@@ -683,6 +683,8 @@ export const update = async (req, res, next) => {
       );
     }
 
+    await client.query('COMMIT');
+
     // Trigger notification if QC status changed to Failed
     if (qc_status !== undefined && finalRecord) {
       try {
@@ -690,20 +692,18 @@ export const update = async (req, res, next) => {
           const sheetId = finalRecord.order_sheet_id || finalRecord.order_id;
           const dbStatus = qc_status === 'Passed' ? 'Passed' : (qc_status === 'Failed' ? 'Failed' : 'Pending');
           
-          // Legacy update
-          await client.query(
+          // Legacy update outside transaction to prevent poisoning
+          req.db.query(
             `UPDATE order_sheets SET qc_status = $1, qc_date = CURRENT_TIMESTAMP WHERE id = $2 AND company_id = $3`,
             [dbStatus, sheetId, finalRecord.company_id]
-          );
+          ).catch(err => debugLogger.error('QCRecordController', 'Legacy order_sheets update failed', err));
           
           // Master Order Sheet Lines update
-          await client.query(
+          req.db.query(
             `UPDATE master_order_sheet_lines SET qc_status = $1, updated_at = CURRENT_TIMESTAMP WHERE master_order_sheet_id = $2 AND company_id = $3`,
             [dbStatus, sheetId, finalRecord.company_id]
-          );
+          ).catch(err => debugLogger.error('QCRecordController', 'Legacy master_order_sheet_lines update failed', err));
         }
-
-        await client.query('COMMIT');
 
         if (qc_status === 'Failed') {
           notifyQCFailed(req.companyFilter || finalRecord.company_id, finalRecord, notes || 'See QC record for details', req.db);
@@ -711,11 +711,8 @@ export const update = async (req, res, next) => {
           notifyQCCompleted(req.companyFilter || finalRecord.company_id, finalRecord, req.db);
         }
       } catch (err) {
-        await client.query('ROLLBACK');
-        throw err;
+        debugLogger.error('QCRecordController', 'Post-QC hook failure', err);
       }
-    } else {
-      await client.query('COMMIT');
     }
 
     return successResponse(

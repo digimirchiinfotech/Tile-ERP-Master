@@ -1,4 +1,4 @@
-/**
+﻿/**
  * TILE EXPORTER ERP SAAS
  * 
  * COPYRIGHT © 2026. ALL RIGHTS RESERVED.
@@ -230,7 +230,7 @@ const PackingListPrintView = forwardRef(({ data, boxTypeImageUrl }, ref) => {
         .packing-list-print-view {
           background: white;
           width: 210mm;
-          min-height: 297mm;
+          min-height: 100%; height: auto;
           margin: 0 auto;
           font-family: Arial, sans-serif;
           font-size: 7.2pt;
@@ -294,7 +294,7 @@ const PackingListPrintView = forwardRef(({ data, boxTypeImageUrl }, ref) => {
           }
           .print-container {
             width: 210mm !important;
-            min-height: 297mm !important;
+            min-height: 100% !important; height: auto !important;
             margin: 0 !important;
             padding: 10mm !important;
             box-shadow: none !important;
@@ -308,7 +308,7 @@ const PackingListPrintView = forwardRef(({ data, boxTypeImageUrl }, ref) => {
         
         .print-container {
           width: 210mm;
-          min-height: 297mm;
+          min-height: 100%; height: auto;
           margin: 20px auto;
           padding: 10mm;
           background: white;

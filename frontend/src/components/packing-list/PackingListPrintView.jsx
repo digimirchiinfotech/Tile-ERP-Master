@@ -1,4 +1,4 @@
-/**
+﻿/**
  * TILE EXPORTER ERP SAAS
  * 
  * COPYRIGHT © 2026. ALL RIGHTS RESERVED.
@@ -81,7 +81,7 @@ const PackingListPrintView = forwardRef(({ packingListData }, ref) => {
       <style>{`
         .packing-list-print-view {
           width: 210mm;
-          min-height: 297mm;
+          min-height: 100%; height: auto;
           margin: 0 auto;
           padding: 15mm;
           background: #fff;

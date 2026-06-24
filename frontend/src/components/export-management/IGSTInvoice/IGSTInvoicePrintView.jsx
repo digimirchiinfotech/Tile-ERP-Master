@@ -1,4 +1,4 @@
-/**
+﻿/**
  * TILE EXPORTER ERP SAAS
  * 
  * COPYRIGHT © 2026. ALL RIGHTS RESERVED.
@@ -136,7 +136,7 @@ const IGSTInvoicePrintView = forwardRef(({ data }, ref) => {
         
         .print-container {
           width: 210mm;
-          min-height: 297mm;
+          min-height: 100%; height: auto;
           margin: 20px auto;
           padding: 10mm;
           background: white;
@@ -148,7 +148,7 @@ const IGSTInvoicePrintView = forwardRef(({ data }, ref) => {
         }
 
         .pi-table { width: 100%; border-collapse: collapse; margin-bottom: 0; table-layout: fixed; }
-        .pi-table th, .pi-table td { border: 1px solid #000; padding: 1.2mm 2mm; vertical-align: top; font-size: 8pt; line-height: 1.3; overflow: hidden; word-wrap: break-word; }
+        .pi-table th, .pi-table td { border: 1px solid #000; padding: 1.2mm 2mm; vertical-align: top; font-size: 8pt; line-height: 1.3; overflow: visible; word-wrap: break-word; }
         .pi-table th { background-color: #f8f9fa; font-weight: 800; text-transform: uppercase; text-align: center; font-size: 7.5pt; }
 
         .header-title {
@@ -180,12 +180,12 @@ const IGSTInvoicePrintView = forwardRef(({ data }, ref) => {
           }
           .print-container {
             width: 210mm !important;
-            min-height: 297mm !important;
+            min-height: 100% !important; height: auto !important;
             margin: 0 !important;
             padding: 10mm !important;
             box-shadow: none !important;
             box-sizing: border-box !important;
-            overflow: hidden;
+            overflow: visible;
           }
         }
       `}</style>

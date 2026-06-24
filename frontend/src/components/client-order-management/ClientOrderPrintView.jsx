@@ -1,4 +1,4 @@
-/**
+﻿/**
  * TILE EXPORTER ERP SAAS
  * 
  * COPYRIGHT © 2026. ALL RIGHTS RESERVED.
@@ -43,7 +43,7 @@ const ClientOrderPrintView = forwardRef(({ orderData }, ref) => {
         .client-order-print-view {
           background: white;
           width: 210mm;
-          min-height: 297mm;
+          min-height: 100%; height: auto;
           margin: 0 auto;
           padding: 20mm;
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;

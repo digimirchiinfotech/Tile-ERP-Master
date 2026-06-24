@@ -1,4 +1,4 @@
-/**
+﻿/**
  * TILE EXPORTER ERP SAAS
  * 
  * COPYRIGHT © 2026. ALL RIGHTS RESERVED.
@@ -140,7 +140,7 @@ const ShippingInstructionsPrintView = ({ data }) => {
           }
           .print-container {
             width: 210mm !important;
-            min-height: 297mm !important;
+            min-height: 100% !important; height: auto !important;
             margin: 0 !important;
             padding: 10mm !important;
             box-shadow: none !important;
@@ -159,7 +159,7 @@ const ShippingInstructionsPrintView = ({ data }) => {
 
         .print-container {
           width: 210mm;
-          min-height: 297mm;
+          min-height: 100%; height: auto;
           margin: 20px auto;
           padding: 10mm;
           background: white;

@@ -22,7 +22,7 @@
   html,
   body {
     width: 210mm;
-    height: 297mm;
+    height: auto;
     margin: 0;
     padding: 0;
     background: #ffffff;
@@ -65,10 +65,7 @@
 .doc-box {
   border: 1px solid var(--print-border-color);
   width: 100%;
-  min-height: 275mm;
-  /* Leave room for margins */
-  display: flex;
-  flex-direction: column;
+  display: block; /* changed from flex to allow page breaks */
 }
 
 /* Typography */

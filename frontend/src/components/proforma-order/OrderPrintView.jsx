@@ -1,4 +1,4 @@
-/**
+﻿/**
  * TILE EXPORTER ERP SAAS
  * 
  * COPYRIGHT © 2026. ALL RIGHTS RESERVED.
@@ -140,7 +140,7 @@ const OrderPrintView = forwardRef(({ orderData, boxTypeImageUrl }, ref) => {
 
         .order-page {
           width: 210mm;
-          min-height: 297mm;
+          min-height: 100%; height: auto;
           padding: 10mm;
           background: white;
           margin-bottom: 10mm;

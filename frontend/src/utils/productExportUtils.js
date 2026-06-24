@@ -126,10 +126,10 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
     const consignee = documentData.consignee_details || documentData.consigneeDetails || documentData.consignee || 'TO THE ORDER';
     const buyer = documentData.buyer_details || documentData.buyerDetails || documentData.buyer || 'SAME AS ABOVE';
     
-    const invNo = documentData.igst_invoice_no || documentData.igstInvoiceNo || documentData.invoice_no || documentData.invoiceNo || documentData.exp_no || documentData.expNo || documentData.vgm_no || documentData.vgmNo || documentData.si_no || documentData.siNo || documentData.annexure_no || documentData.annexureNo || documentData.packing_list_no || documentData.packingListNo || documentData.po_no || documentData.proforma_order_no || documentData.proformaOrderNo || '-';
+    const invNo = documentData.igst_invoice_no || documentData.igstInvoiceNo || documentData.invoice_no || documentData.invoiceNo || documentData.exp_no || documentData.expNo || documentData.vgm_no || documentData.vgmNo || documentData.si_no || documentData.siNo || documentData.annexure_no || documentData.annexureNo || documentData.packing_list_no || documentData.packingListNo || documentData.po_no || documentData.proforma_order_no || documentData.proformaOrderNo || documentData.order_no || documentData.orderNo || '-';
     const invDate = formatDisplayDate(documentData.invoice_date || documentData.invoiceDate || documentData.vgm_date || documentData.vgmDate || documentData.date || documentData.created_at || documentData.createdAt || documentData.packing_list_date);
     
-    const piNo = documentData.pi_no || documentData.piNo || documentData.proforma_invoice_no || documentData.proformaInvoiceNo || documentData.exporter_ref || documentData.exporterRef || '-';
+    const piNo = documentData.pi_no || documentData.piNo || documentData.proforma_invoice_no || documentData.proformaInvoiceNo || documentData.exporter_ref || documentData.exporterRef || documentData.invoice_ref || documentData.invoiceRef || '-';
     const piDate = formatDisplayDate(documentData.pi_date || documentData.piDate || documentData.proforma_date || documentData.proformaDate);
     
     const buyerOrderNo = documentData.buyers_order_no || documentData.buyersOrderNo || documentData.buyer_order_no || documentData.buyerOrderNo || '-';
@@ -2679,6 +2679,8 @@ export const exportProductDetailsToXLSX = async (documentData, moduleType, boxTy
     throw error;
   }
 };
+
+
 
 
 

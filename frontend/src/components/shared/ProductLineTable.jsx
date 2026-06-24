@@ -1081,16 +1081,20 @@ function ProductLineTable({
 
         .col-pallet,
         .col-boxes {
-          min-width: 100px;
-          max-width: 120px;
+          min-width: 140px;
+          max-width: 180px;
         }
 
         .col-sqm,
         .col-rate,
-        .col-amount,
-        .col-weight {
+        .col-amount {
           min-width: 120px;
           max-width: 150px;
+        }
+
+        .col-weight {
+          min-width: 140px;
+          max-width: 180px;
         }
 
         .col-actions {

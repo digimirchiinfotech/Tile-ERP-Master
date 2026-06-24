@@ -571,7 +571,7 @@ function OrderProductLineTable({
         .col-pallet,
         .col-boxes,
         .col-weight {
-          min-width: 100px;
+          min-width: 140px;
         }
 
         .col-sqm,

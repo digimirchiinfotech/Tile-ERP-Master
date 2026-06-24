@@ -300,8 +300,12 @@ function ProductLineTable({
     // Auto-calculate dependent fields
     productLine.totalPallet = (parseFloat(productLine.bigPallet) || 0) + (parseFloat(productLine.kathaliPallet) || 0);
     productLine.pallets = productLine.totalPallet; // Synchronize for backward compatibility
+    const bigPalletCount = parseFloat(productLine.bigPallet) || 0;
+    const boxesPerBigPalletCount = parseFloat(productLine.boxesPerBigPallet) || 0;
+    const bigPalletBoxes = bigPalletCount > 0 ? bigPalletCount * boxesPerBigPalletCount : boxesPerBigPalletCount;
+
     productLine.totalBoxes =
-      (parseFloat(productLine.bigPallet) || 0) * (parseFloat(productLine.boxesPerBigPallet) || 0) +
+      bigPalletBoxes +
       (parseFloat(productLine.kathaliPallet) || 0) * (parseFloat(productLine.boxesPerKathali) || 0);
 
     // Get SQM per box from selected product or productLine

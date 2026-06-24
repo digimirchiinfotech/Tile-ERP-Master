@@ -442,8 +442,6 @@ export const remove = async (req, res, next) => {
     const { id } = req.params;
     const { force } = req.query;
 
-    await client.query('BEGIN');
-
     let whereConditions = 'WHERE id = $1';
     let queryParams = [id];
 
@@ -456,45 +454,48 @@ export const remove = async (req, res, next) => {
       }
     }
 
-    const existingSupplier = await client.query(
+    // Check supplier exists (before opening the transaction)
+    const existingSupplier = await req.db.query(
       `SELECT id, supplier_id, name FROM suppliers ${whereConditions}`,
       queryParams
     );
 
     if (existingSupplier.rows.length === 0) {
-      await client.query('ROLLBACK');
+      client.release();
       return next(new AppError('Supplier not found', 404));
     }
 
     const supplierRecord = existingSupplier.rows[0];
     const dependencies = [];
 
+    // Run optional dependency checks on pool (req.db), NOT on the transaction client.
+    // This prevents a failed query (e.g. missing column) from aborting the transaction.
     try {
-      const poResult = await client.query(
+      const poResult = await req.db.query(
         `SELECT COUNT(*) as count FROM proforma_orders WHERE supplier_id = $1 AND status != 'Deleted'`,
         [id]
       );
       if (parseInt(poResult.rows[0].count) > 0) {
         dependencies.push({ type: 'Proforma Orders', count: parseInt(poResult.rows[0].count) });
       }
-      } catch (e) {
-        debugLogger.warn('Optional dependency check (proforma_orders) failed for supplier:', e.message);
-      }
+    } catch (e) {
+      debugLogger.warn('Optional dependency check (proforma_orders) failed for supplier:', e.message);
+    }
 
     try {
-      const qcResult = await client.query(
+      const qcResult = await req.db.query(
         `SELECT COUNT(*) as count FROM qc_records WHERE supplier_id = $1`,
         [id]
       );
       if (parseInt(qcResult.rows[0].count) > 0) {
         dependencies.push({ type: 'QC Records', count: parseInt(qcResult.rows[0].count) });
       }
-      } catch (e) {
-        debugLogger.warn('Optional dependency check (qc_records) failed for supplier:', e.message);
-      }
+    } catch (e) {
+      debugLogger.warn('Optional dependency check (qc_records) failed for supplier:', e.message);
+    }
 
     if (dependencies.length > 0 && force !== 'true') {
-      await client.query('ROLLBACK');
+      client.release();
       const depList = dependencies.map(d => `${d.count} ${d.type}`).join(', ');
       return res.status(409).json({
         success: false,
@@ -503,6 +504,9 @@ export const remove = async (req, res, next) => {
         supplierId: supplierRecord.supplier_id
       });
     }
+
+    // Now open the transaction for the actual soft-delete
+    await client.query('BEGIN');
 
     queryParams.push('Deleted');
     const result = await client.query(
@@ -521,12 +525,13 @@ export const remove = async (req, res, next) => {
       'Supplier deleted successfully'
     );
   } catch (error) {
-    await client.query('ROLLBACK');
+    await client.query('ROLLBACK').catch(() => {});
     next(error);
   } finally {
     client.release();
   }
 };
+
 
 export const hardDelete = async (req, res, next) => {
   const client = await req.db.getClient();

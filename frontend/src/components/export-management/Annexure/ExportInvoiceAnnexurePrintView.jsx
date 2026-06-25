@@ -1,4 +1,4 @@
-﻿/**
+/**
  * TILE EXPORTER ERP SAAS
  * 
  * COPYRIGHT © 2026. ALL RIGHTS RESERVED.
@@ -196,20 +196,50 @@ const ExportInvoiceAnnexurePrintView = forwardRef(({ data, annexureData: annexur
         .container-table th { background: #f8f9fa; font-weight: 800; font-size: ${isOfficePrint ? '5.6pt' : '6.2pt'}; text-transform: uppercase; }
 
         @media print {
-          @page { size: A4 portrait; margin: 0; }
+          @page { size: A4 portrait; margin: 10mm 15mm; }
           body {
-            margin: 0;
-            padding: 0;
+            margin: 0 !important;
+            padding: 0 !important;
             background-color: white !important;
+            overflow: visible !important;
+            height: auto !important;
+          }
+          .invoice-print-view {
+            display: block !important;
+            overflow: visible !important;
+            height: auto !important;
           }
           .print-container {
             width: 210mm !important;
-            min-height: 100% !important; height: auto !important;
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            overflow: visible !important;
             margin: 0 !important;
-            padding: 10mm !important;
+            padding: 8mm 10mm !important;
             box-shadow: none !important;
             box-sizing: border-box !important;
-            overflow: visible;
+            page-break-after: auto;
+            break-after: auto;
+          }
+          .doc-box {
+            overflow: visible !important;
+            height: auto !important;
+            max-height: none !important;
+            page-break-inside: auto;
+            break-inside: auto;
+          }
+          .container-table {
+            page-break-inside: auto;
+            break-inside: auto;
+          }
+          .container-table tr {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          .pi-table {
+            page-break-inside: avoid;
+            break-inside: avoid;
           }
         }
       `}</style>

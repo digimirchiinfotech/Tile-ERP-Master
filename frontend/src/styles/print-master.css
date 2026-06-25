@@ -10,7 +10,7 @@
 
 @page {
   size: A4;
-  margin: 15mm;
+  margin: 10mm 15mm;
 }
 
 @media print {
@@ -21,17 +21,53 @@
 
   html,
   body {
-    width: 210mm;
-    height: auto;
-    margin: 0;
-    padding: 0;
-    background: #ffffff;
+    width: 210mm !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
     color: var(--print-text-color);
     font-family: var(--print-font-body);
   }
 
+  /* ── Bootstrap Modal: remove all layout constraints for print ── */
+  .modal,
+  .modal-dialog,
+  .modal-content,
+  .modal-body,
+  .modal-fullscreen,
+  .modal-fullscreen .modal-dialog,
+  .modal-fullscreen .modal-content,
+  .modal-fullscreen .modal-body {
+    position: static !important;
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    transform: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  /* Hide modal backdrop and non-print chrome */
+  .modal-backdrop,
+  .modal-header,
   .no-print {
     display: none !important;
+  }
+
+  /* Ensure the scrollable container doesn't clip content */
+  .overflow-auto,
+  [class*="overflow"] {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
   }
 
   /* Force display table headers and footers on every page */
@@ -45,10 +81,22 @@
 
   tr {
     page-break-inside: avoid;
+    break-inside: avoid;
   }
 
   table {
     page-break-inside: auto;
+    break-inside: auto;
+  }
+
+  /* Allow the document border box to break across pages */
+  .doc-box {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    border: 1px solid #000;
+    page-break-inside: auto;
+    break-inside: auto;
   }
 }
 

@@ -32,7 +32,7 @@ import StatusBadge from '../common/StatusBadge';
 import ActivityTimeline from '../shared/ActivityTimeline.jsx';
 import PremiumCard from '../shared/PremiumCard.jsx';
 import PremiumDataGrid from '../shared/PremiumDataGrid.jsx';
-
+import Skeleton from '../shared/Skeleton.jsx';
 
 function UserDashboard({ currentUser, onNavigate, navigationData }) {
   const { users: apiUsers, loading, error, createUser, updateUser, deleteUser, toggleUserStatus, fetchUsers } = useUsers();
@@ -290,11 +290,9 @@ function UserDashboard({ currentUser, onNavigate, navigationData }) {
 
   if (loading) {
     return (
-      <div className="text-center py-5">
-        <Spinner animation="border" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </Spinner>
-        <p className="mt-3">Loading users...</p>
+      <div className="py-4">
+        <Skeleton type="card" rows={3} className="mb-4" />
+        <Skeleton type="table" rows={10} />
       </div>
     );
   }

@@ -49,20 +49,23 @@ const queryClient = new QueryClient({
 });
 
 import { BrowserRouter } from 'react-router-dom';
+import ErrorBoundary from './components/shared/ErrorBoundary.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <UserProvider>
-            <SocketProvider>
-              <App />
-            </SocketProvider>
-          </UserProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider>
+            <UserProvider>
+              <SocketProvider>
+                <App />
+              </SocketProvider>
+            </UserProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   </StrictMode>
 );
 

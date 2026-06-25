@@ -24,6 +24,7 @@ import GlobalSearchHandler from './components/shared/GlobalSearchHandler.jsx';
 import GlobalErrorBoundary from './components/shared/GlobalErrorBoundary.jsx';
 import SessionWarningModal from './components/common/SessionWarningModal.jsx';
 import NotificationManager, { showSuccess, showError } from './components/shared/NotificationManager.jsx';
+import OfflineBanner from './components/shared/OfflineBanner.jsx';
 
 /**
  * Main Application Component
@@ -190,6 +191,7 @@ function App() {
 
   return (
     <GlobalErrorBoundary>
+      <OfflineBanner />
       <PollingManager currentUser={currentUser}>
         {({ loading, ...hooks }) => (
           <GlobalSearchHandler

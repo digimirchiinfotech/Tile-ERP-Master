@@ -1,0 +1,39 @@
+.offline-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  animation: slideDown 0.3s ease-out;
+}
+
+.offline-banner.offline {
+  background-color: #f59e0b; /* Amber */
+  color: #fff;
+}
+
+.offline-banner.online {
+  background-color: #10b981; /* Emerald */
+  color: #fff;
+}
+
+.offline-banner-content {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}

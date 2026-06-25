@@ -13,6 +13,7 @@ import axios from 'axios';
 import { tokenManager } from '../utils/tokenManager';
 import { normalizeData, prepareDataForAPI } from '../utils/dataTransformers';
 import { trackError, trackSlowRequest } from '../utils/errorTracker';
+import { showError } from '../components/shared/NotificationManager';
 
 // Use Vite proxy in development (configured in vite.config.js)
 // In production, ignore Vercel environment variables because they contain the dead .up.railway.app domain
@@ -97,12 +98,14 @@ api.interceptors.response.use(
     if (duration > 0) trackSlowRequest(originalRequest?.url || 'unknown', duration);
     if (error.response?.status >= 500) {
       trackError(error, `API ${originalRequest?.method?.toUpperCase()} ${originalRequest?.url}`);
+      showError('Server error. Please try again in a moment.');
     }
     if (error.response?.status === 400 || error.response?.status === 422) {
       console.error('[API] Validation Error:', error.response.data);
     }
 
     if (error.response?.status === 403) {
+      showError("You don't have permission to do this.");
       // We no longer blindly override the 403 message so backend lock messages are preserved
       try {
         error.response.data = error.response.data || {};
@@ -151,6 +154,10 @@ api.interceptors.response.use(
         window.dispatchEvent(new CustomEvent('auth:logout', { detail: { reason: 'Token refresh failed' } }));
         return Promise.reject(refreshError);
       }
+    }
+
+    if (!error.response) {
+      showError('Connection lost. Check your internet.');
     }
 
     return Promise.reject(error);

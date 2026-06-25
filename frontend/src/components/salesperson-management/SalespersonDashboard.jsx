@@ -43,6 +43,7 @@ import ConfirmationModal from '../shared/ConfirmationModal.jsx';
 import UserService from '../../services/userService.js';
 import { formatPrice, formatDisplayDate } from '../../utils/formatters.js';
 import SalespersonPrintView from './SalespersonPrintView.jsx';
+import Skeleton from '../shared/Skeleton.jsx';
 import { downloadPDF } from '../../utils/pdfGenerator.js';
 import { useRef } from 'react';
 import { Modal } from 'react-bootstrap';
@@ -346,11 +347,9 @@ function SalespersonDashboard({ currentUser }) {
 
   if (loading) {
     return (
-      <div className="text-center py-5">
-        <Spinner animation="border" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </Spinner>
-        <p className="mt-3">Loading salespersons...</p>
+      <div className="py-4">
+        <Skeleton type="card" rows={4} className="mb-4" />
+        <Skeleton type="table" rows={10} />
       </div>
     );
   }

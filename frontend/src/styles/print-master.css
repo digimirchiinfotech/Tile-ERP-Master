@@ -58,7 +58,17 @@
   /* Hide modal backdrop and non-print chrome */
   .modal-backdrop,
   .modal-header,
-  .no-print {
+  .no-print,
+  .proper-topbar,
+  .sidebar-overlay,
+  .app-sidebar,
+  header,
+  .app-footer {
+    display: none !important;
+  }
+
+  /* Hide the main app background when a print modal is open */
+  body.modal-open #root {
     display: none !important;
   }
 

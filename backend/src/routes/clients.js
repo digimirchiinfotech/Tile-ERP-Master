@@ -27,6 +27,7 @@ import {
   updateClientValidator
 } from '../validators/clientValidator.js';
 import { createAuditMiddleware } from '../middleware/auditLog.js';
+import { dataMaskingMiddleware } from '../middleware/dataMasking.js';
 
 const router = express.Router();
 
@@ -35,6 +36,7 @@ router.get(
   authenticate,
   filterByCompany,
   requirePermission('client_management', 'all'),
+  dataMaskingMiddleware,
   getAll
 );
 
@@ -43,6 +45,7 @@ router.get(
   authenticate,
   filterByCompany,
   requirePermission('client_management', 'all'),
+  dataMaskingMiddleware,
   getById
 );
 

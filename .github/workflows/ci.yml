@@ -38,12 +38,10 @@ jobs:
     - name: Lint Backend Code
       working-directory: ./backend
       run: npm run lint
-      continue-on-error: true
 
     - name: Lint Frontend Code
       working-directory: ./frontend
       run: npm run lint
-      continue-on-error: true
 
     - name: Build Frontend
       working-directory: ./frontend
@@ -51,10 +49,10 @@ jobs:
 
     - name: Run Backend Tests
       working-directory: ./backend
-      run: npm test || echo "No backend tests found"
+      run: npm test
 
     # E2E Tests would be run here if a display server is available, 
     # but we will just ensure the scripts pass syntactically.
-    - name: Run Frontend E2E Tests
+    - name: Run Frontend Tests
       working-directory: ./frontend
-      run: npm run test:e2e || echo "E2E tests skipped/missing"
+      run: npm run test

@@ -52,27 +52,40 @@ export const insertAuditLog = (data, db) => {
     return;
   }
 
+  // Use a transaction or sequential query to write to both tables
+  const changesJSON = JSON.stringify({ 
+    old: maskSensitiveFields(oldValues) || null, 
+    new: maskSensitiveFields(newValues) || null,
+    _metadata: {
+      user_agent: userAgent || null,
+      method: method || null,
+      url: url || null
+    }
+  });
+
   db.query(
     `INSERT INTO audit_logs (user_id, company_id, action, resource_type, resource_id, changes, ip_address, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+     VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING id`,
     [
       userId || null,
       companyId || null,
       action,
       resourceType,
       resourceId || null,
-      JSON.stringify({ 
-        old: maskSensitiveFields(oldValues) || null, 
-        new: maskSensitiveFields(newValues) || null,
-        _metadata: {
-          user_agent: userAgent || null,
-          method: method || null,
-          url: url || null
-        }
-      }),
+      changesJSON,
       ipAddress || null
     ]
-  ).catch((err) => {
+  ).then(result => {
+    // Replicate to global master log
+    const originalId = result.rows[0]?.id;
+    if (originalId) {
+      db.query(
+        `INSERT INTO global_audit_logs (original_id, tenant_company_id, user_id, action, resource_type, resource_id, changes, ip_address, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
+        [originalId, companyId || null, userId || null, action, resourceType, resourceId || null, changesJSON, ipAddress || null]
+      ).catch(err => debugLogger.error('❌ Failed to replicate to global audit log:', err.message));
+    }
+  }).catch((err) => {
     debugLogger.error('❌ insertAuditLog Error:', err.message);
   });
 };
@@ -173,11 +186,22 @@ export const auditLog = async (userId, action, resource, resourceId, changes = {
       _metadata: Object.keys(metadata).length > 0 ? metadata : undefined
     };
 
-    await db.query(
+    const changesJSON = JSON.stringify(enrichedChanges);
+    
+    const result = await db.query(
       `INSERT INTO audit_logs (user_id, company_id, action, resource_type, resource_id, changes, ip_address, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
-      [userId, companyId, action, resource, resourceId, JSON.stringify(enrichedChanges), ipAddress]
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING id`,
+      [userId, companyId, action, resource, resourceId, changesJSON, ipAddress]
     );
+    
+    const originalId = result.rows[0]?.id;
+    if (originalId) {
+      await db.query(
+        `INSERT INTO global_audit_logs (original_id, tenant_company_id, user_id, action, resource_type, resource_id, changes, ip_address, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
+        [originalId, companyId, userId, action, resource, resourceId, changesJSON, ipAddress]
+      );
+    }
   } catch (error) {
     debugLogger.error('Audit log error:', error);
   }

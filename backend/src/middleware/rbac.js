@@ -93,7 +93,6 @@ export const rolePermissions = {
     PERMISSIONS.QC_MANAGEMENT,
     PERMISSIONS.EXPORT_MANAGEMENT,
     PERMISSIONS.PACKING_LIST_MANAGEMENT,
-    // ACCOUNT_FINANCE removed: segregation of duties requires finance & sales separation
     PERMISSIONS.MASTER_DATA_MANAGEMENT,
     'reports_analytics'
   ],
@@ -166,7 +165,6 @@ export const rolePermissions = {
   administration: [
     PERMISSIONS.PRODUCT_MANAGEMENT,
     PERMISSIONS.CATALOGUE_MANAGEMENT,
-    PERMISSIONS.QC_MANAGEMENT,
     PERMISSIONS.PALLET_MANAGEMENT,
     PERMISSIONS.EXPORT_MANAGEMENT,
     PERMISSIONS.PACKING_LIST_MANAGEMENT,
@@ -204,8 +202,8 @@ export const requirePermission = (...requiredPermissions) => {
 
     const role = req.user.role;
 
-    // Super admin, company_admin, and admin always have all permissions
-    if (['super_admin', 'company_admin', 'admin'].includes(role)) {
+    // Super admin and company_admin have all permissions
+    if (['super_admin', 'company_admin'].includes(role)) {
       return next();
     }
 

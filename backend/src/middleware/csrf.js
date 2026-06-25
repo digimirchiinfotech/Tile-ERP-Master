@@ -68,6 +68,12 @@ export const csrfProtection = (req, res, next) => {
     return next();
   }
   
+  // Skip CSRF verification if authentication was via Bearer token (no cookies)
+  // CSRF attacks rely on the browser automatically attaching cookies
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+    return next();
+  }
+  
   // Verify CSRF token for POST/PUT/DELETE
   const token = req.headers['x-csrf-token'] || req.body._csrf;
   

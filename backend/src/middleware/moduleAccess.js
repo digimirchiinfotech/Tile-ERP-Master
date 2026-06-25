@@ -15,8 +15,8 @@ import { AppError } from './errorHandler.js';
 export const checkModuleAccess = (moduleName) => {
   return async (req, res, next) => {
     try {
-      // Allow super admins and company admins to bypass module checks
-      if (req.user && ['super_admin', 'company_admin', 'admin'].includes(req.user.role)) return next();
+      // Allow super admins to bypass module checks
+      if (req.user && req.user.role === 'super_admin') return next();
 
       // Determine company id
       const companyId = req.user?.company_id || req.user?.companyId || req.params?.companyId || req.params?.id || req.query?.companyId || req.body?.companyId;

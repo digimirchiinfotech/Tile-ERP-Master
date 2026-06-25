@@ -20,6 +20,7 @@ import {
   normalizeEmptyToNull,
   getFirstRow
 } from '../utils/helpers.js';
+import { encrypt, decrypt } from '../utils/encryption.js';
 
 export const getAll = async (req, res, next) => {
   try {
@@ -119,10 +120,13 @@ export const getAll = async (req, res, next) => {
     );
 
     // Normalize counts to numbers
+    // Normalize counts to numbers and decrypt PII
     const processedRows = result.rows.map(row => ({
       ...row,
       total_orders: parseInt(row.total_orders || 0),
-      total_order_value: parseFloat(row.total_order_value || 0)
+      total_order_value: parseFloat(row.total_order_value || 0),
+      buyer_details: decrypt(row.buyer_details),
+      consignee_details: decrypt(row.consignee_details)
     }));
 
     return successResponse(
@@ -183,6 +187,8 @@ export const getById = async (req, res, next) => {
     clientData.total_order_value = parseFloat(clientData.total_order_value || 0);
     clientData.active_invoices = parseInt(clientData.active_invoices || 0);
     clientData.pending_payments = parseInt(clientData.pending_payments || 0);
+    clientData.buyer_details = decrypt(clientData.buyer_details);
+    clientData.consignee_details = decrypt(clientData.consignee_details);
 
     return successResponse(
       res,
@@ -229,7 +235,7 @@ export const create = async (req, res, next) => {
         companyId, clientId, client_name, normalizeEmptyToNull(contact_person_name), normalizeEmptyToNull(email_id),
         normalizeEmptyToNull(contact_number), normalizeEmptyToNull(address), normalizeEmptyToNull(city), country, normalizeEmptyToNull(business_type),
         credit_limit || 0, credit_days || 0,
-        normalizeEmptyToNull(assigned_salesperson), status || 'Active', normalizeEmptyToNull(notes), normalizeEmptyToNull(consignee_details), normalizeEmptyToNull(buyer_details),
+        normalizeEmptyToNull(assigned_salesperson), status || 'Active', normalizeEmptyToNull(notes), encrypt(normalizeEmptyToNull(consignee_details)), encrypt(normalizeEmptyToNull(buyer_details)),
         port_of_loading || 'MUNDRA PORT', normalizeEmptyToNull(port_of_discharge), normalizeEmptyToNull(final_destination), currency || 'INR', req.user.id
       ]
     );
@@ -376,13 +382,13 @@ export const update = async (req, res, next) => {
 
     if (consignee_details !== undefined) {
       updates.push(`consignee_details = $${paramCount}`);
-      values.push(normalizeEmptyToNull(consignee_details));
+      values.push(encrypt(normalizeEmptyToNull(consignee_details)));
       paramCount++;
     }
 
     if (buyer_details !== undefined) {
       updates.push(`buyer_details = $${paramCount}`);
-      values.push(normalizeEmptyToNull(buyer_details));
+      values.push(encrypt(normalizeEmptyToNull(buyer_details)));
       paramCount++;
     }
 

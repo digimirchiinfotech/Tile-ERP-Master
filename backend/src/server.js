@@ -23,6 +23,7 @@ import errorHandler from './middleware/errorHandler.js';
 import securityHeaders from './middleware/securityHeaders.js';
 import requestLogger from './middleware/requestLogger.js';
 import performanceMonitor, { getMetrics } from './middleware/performanceMonitor.js';
+import { progressiveBackoff } from './middleware/progressiveBackoff.js';
 import csrfProtection from './middleware/csrf.js';
 import { preventParameterPollution, sanitizeInput } from './middleware/inputValidation.js';
 import { authenticate, optionalAuth } from './middleware/auth.js';
@@ -183,12 +184,13 @@ app.use(dbRouter); // Global database context
 
 
 // ─── RATE LIMITING ─────────────────────────────────────────────────────────────
-// Raised to 1000 req/15 min: an ERP dashboard with 10+ polling hooks (invoices,
-// products, leads, clients, suppliers, etc.) easily exceeds 300 in normal use.
-// Socket.IO handles real-time updates, so polling intervals are being relaxed too.
+// Apply progressive backoff before rate limiting to catch repeat offenders
+app.use('/api/', progressiveBackoff);
+
+// Global limiter: Reduced to 300 req/15 min in production
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: env.node_env === 'development' ? 2000 : 1000,
+  max: env.node_env === 'development' ? 2000 : 300,
   message: { success: false, message: 'Too many requests from this IP, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -198,6 +200,29 @@ const globalLimiter = rateLimit({
   }
 });
 app.use('/api/', globalLimiter);
+
+// Tiered limiters for sensitive endpoints
+export const sensitiveLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30, // 30 requests per 15 minutes
+  message: { success: false, message: 'Rate limit exceeded for sensitive operation.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+export const exportLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20, // 20 requests per 15 minutes to prevent data scraping
+  message: { success: false, message: 'Rate limit exceeded for exports.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use('/api/export-invoices/', sensitiveLimiter);
+app.use('/api/account-entries/', sensitiveLimiter);
+app.use('/api/users/', sensitiveLimiter);
+app.use('/api/reports/', exportLimiter);
+app.use('/api/csv-export/', exportLimiter);
 
 // Strict limiter for mutating operations (POST/PUT/PATCH/DELETE)
 // Applied specifically in sensitive modules via route-level middleware
@@ -308,7 +333,7 @@ app.post('/api/csrf-token', csrfProtection, (req, res) => {
 // Rate limiting for file access
 const fileLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 500,
+  max: 50, // Reduced from 500 to 50
   message: 'Too many file requests, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,

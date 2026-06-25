@@ -11,6 +11,29 @@ app.use(express.json({ limit: '50mb' })); // Allow large HTML template sizes
 
 const PORT = process.env.PORT || 8001;
 
+let globalBrowser = null;
+
+async function getBrowser() {
+  if (!globalBrowser) {
+    console.log('[PDFService] Initializing global Puppeteer browser...');
+    globalBrowser = await puppeteer.launch({
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--disable-gpu'
+      ]
+    });
+  }
+  return globalBrowser;
+}
+
+// Pre-warm browser
+getBrowser().catch(err => console.error('[PDFService] Failed to pre-warm browser:', err));
+
 app.get('/health', (req, res) => {
   res.json({ status: 'healthy', service: 'pdf-service' });
 });
@@ -26,20 +49,9 @@ app.post('/generate', async (req, res) => {
       return res.status(400).json({ success: false, error: 'HTML content is required' });
     }
     
-    console.log('[PDFService] Launching Puppeteer browser page generation request...');
+    console.log('[PDFService] Generating PDF using global browser instance...');
     
-    browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--disable-gpu'
-      ]
-    });
-    
+    browser = await getBrowser();
     page = await browser.newPage();
     
     await page.setContent(html, {
@@ -71,9 +83,7 @@ app.post('/generate', async (req, res) => {
     if (page) {
       try { await page.close(); } catch (_) {}
     }
-    if (browser) {
-      try { await browser.close(); } catch (_) {}
-    }
+    // DO NOT close the global browser here
   }
 });
 

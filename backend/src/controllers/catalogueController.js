@@ -275,17 +275,17 @@ export const create = async (req, res, next) => {
     // Handle initial products if provided
     // product_ids may be plain UUIDs (tile) or objects with { id, productType }
     if (selectedProductIds.length > 0) {
-      for (let i = 0; i < selectedProductIds.length; i++) {
-        const item = selectedProductIds[i];
+      const insertPromises = selectedProductIds.map((item, i) => {
         const productId = typeof item === 'object' ? (item.id || item) : item;
         const productType = typeof item === 'object' && item.productType ? item.productType : 'tile';
         if (productId) {
-          await req.db.query(
+          return req.db.query(
             'INSERT INTO catalogue_products (catalogue_id, product_id, product_type, display_order) VALUES ($1, $2, $3, $4)',
             [newCatalogue.id, productId, productType, i + 1]
           );
         }
-      }
+      });
+      await Promise.all(insertPromises.filter(Boolean));
     }
 
 
@@ -371,17 +371,17 @@ export const update = async (req, res, next) => {
       
       // product_ids may be plain UUIDs (tile) or objects with { id, productType }
       if (selectedProductIds.length > 0) {
-        for (let i = 0; i < selectedProductIds.length; i++) {
-          const item = selectedProductIds[i];
+        const insertPromises = selectedProductIds.map((item, i) => {
           const productId = typeof item === 'object' ? (item.id || item) : item;
           const productType = typeof item === 'object' && item.productType ? item.productType : 'tile';
           if (productId) {
-            await req.db.query(
+            return req.db.query(
               'INSERT INTO catalogue_products (catalogue_id, product_id, product_type, display_order) VALUES ($1, $2, $3, $4)',
               [id, productId, productType, i + 1]
             );
           }
-        }
+        });
+        await Promise.all(insertPromises.filter(Boolean));
       }
     }
 

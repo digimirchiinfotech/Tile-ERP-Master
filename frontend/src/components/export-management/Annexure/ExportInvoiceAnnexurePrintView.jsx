@@ -196,7 +196,7 @@ const ExportInvoiceAnnexurePrintView = forwardRef(({ data, annexureData: annexur
         .container-table th { background: #f8f9fa; font-weight: 800; font-size: ${isOfficePrint ? '5.6pt' : '6.2pt'}; text-transform: uppercase; }
 
         @media print {
-          @page { size: A4 portrait; margin: 10mm 15mm; }
+          @page { size: A4 portrait; margin: 0; }
           body {
             margin: 0 !important;
             padding: 0 !important;

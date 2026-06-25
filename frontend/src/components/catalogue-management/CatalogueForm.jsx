@@ -31,7 +31,7 @@ function CatalogueForm({
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    status: 'Draft',
+    status: 'Active',
     coverImage: [],
     pdfFile: [],
     selectedProducts: [],
@@ -88,10 +88,14 @@ function CatalogueForm({
         productType: p.productType || p.product_type || 'tile'
       }));
 
+      // Normalize legacy statuses (Draft/Archived) to 'Active' since only Active/Inactive are supported
+      const rawStatus = catalogue.status || 'Active';
+      const normalizedStatus = ['Active', 'Inactive'].includes(rawStatus) ? rawStatus : 'Active';
+
       setFormData({
         name: catalogue.name || '',
         description: catalogue.description || '',
-        status: catalogue.status || 'Draft',
+        status: normalizedStatus,
         coverImage,
         pdfFile,
         selectedProducts,
@@ -249,10 +253,8 @@ function CatalogueForm({
                           value={formData.status}
                           onChange={(e) => handleInputChange('status', e.target.value)}
                         >
-                    <option value="Draft">Draft</option>
                     <option value="Active">Active</option>
                     <option value="Inactive">Inactive</option>
-                    <option value="Archived">Archived</option>
                   </Form.Select>
                       </Form.Group>
                     </Col>

@@ -1052,10 +1052,10 @@ export default function ShippingInstructionsForm({
           {/* Activity History */}
           {(formData.id || formData.exists) && (
             <Card className="mt-4 shadow-sm border-0 rounded-4 overflow-hidden mb-5">
-              <Card.Header className="bg-light py-3 border-0 d-flex align-items-center">
-                <History className="me-2 text-primary" size={20} />
-                <h6 className="mb-0 fw-bold text-uppercase tracking-wider">Activity History</h6>
-              </Card.Header>
+              <Card.Header className="bg-primary text-white py-3 border-0 d-flex align-items-center justify-content-start" style={{ borderTopLeftRadius: '1rem', borderTopRightRadius: '1rem' }}>
+              <History className="me-2 text-white" size={20} />
+              <h6 className="mb-0 fw-bold text-uppercase tracking-wider text-white">Activity History</h6>
+            </Card.Header>
               <Card.Body className="p-0 bg-white">
                 <ModuleAuditLog resourceType="shipping_instruction" resourceId={formData.id} />
               </Card.Body>

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * TILE EXPORTER ERP SAAS
  * 
  * COPYRIGHT © 2026. ALL RIGHTS RESERVED.
@@ -931,21 +931,6 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
               </>
             )}
           </Button>
-          {(formData.id || savedInvoiceId) && (
-            <Button
-              variant="success"
-              className="shadow-sm px-4 fw-bold d-flex align-items-center"
-              style={{ height: '55px', borderRadius: '12px' }}
-              onClick={() => window.dispatchEvent(new CustomEvent('navigate', {
-                detail: {
-                  page: 'packing-list-form',
-                  exportInvoiceId: formData.id || savedInvoiceId
-                }
-              }))}
-            >
-              Next: Packing List <ChevronRight size={20} className="ms-1" />
-            </Button>
-          )}
         </div>
 
       </div>
@@ -2433,9 +2418,9 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
         {/* Activity History */}
         {(formData.id || savedInvoiceId) && (
           <Card className="mt-4 shadow-sm border-0 rounded-4 overflow-hidden mb-5">
-            <Card.Header className="bg-light py-3 border-0 d-flex align-items-center">
-              <History className="me-2 text-primary" size={20} />
-              <h6 className="mb-0 fw-bold text-uppercase tracking-wider">Activity History</h6>
+            <Card.Header className="bg-primary text-white py-3 border-0 d-flex align-items-center justify-content-start" style={{ borderTopLeftRadius: '1rem', borderTopRightRadius: '1rem' }}>
+              <History className="me-2 text-white" size={20} />
+              <h6 className="mb-0 fw-bold text-uppercase tracking-wider text-white">Activity History</h6>
             </Card.Header>
             <Card.Body className="p-0 bg-white">
               <ModuleAuditLog resourceType="export_invoice" resourceId={formData.id || savedInvoiceId} />

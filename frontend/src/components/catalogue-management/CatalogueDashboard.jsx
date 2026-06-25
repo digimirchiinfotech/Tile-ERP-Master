@@ -108,7 +108,7 @@ function CatalogueDashboard({ currentUser }) {
   const dashboardStats = {
     total: (catalogues || []).length,
     active: (catalogues || []).filter(c => c.status === 'Active').length,
-    draft: (catalogues || []).filter(c => c.status === 'Draft').length,
+    inactive: (catalogues || []).filter(c => c.status === 'Inactive').length,
     products: (catalogues || []).reduce((sum, c) => sum + (c.productCount || c.totalProducts || 0), 0)
   };
 
@@ -302,8 +302,8 @@ function CatalogueDashboard({ currentUser }) {
             <Card.Body className="p-2 d-flex align-items-center gap-2">
               <div className="icon-box bg-warning-light flex-shrink-0 d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px', borderRadius: '8px' }}><Edit size={18} className="text-warning" /></div>
               <div className="text-start">
-                <p className="text-muted fw-semibold mb-0 text-uppercase" style={{ letterSpacing: '0.5px', fontSize: '0.65rem' }}>Drafts</p>
-                <h5 className="fw-bold mb-0 text-dark" style={{ fontSize: '1.1rem' }}>{dashboardStats.draft}</h5>
+                <p className="text-muted fw-semibold mb-0 text-uppercase" style={{ letterSpacing: '0.5px', fontSize: '0.65rem' }}>Inactive</p>
+                <h5 className="fw-bold mb-0 text-dark" style={{ fontSize: '1.1rem' }}>{dashboardStats.inactive}</h5>
               </div>
             </Card.Body>
           </Card>

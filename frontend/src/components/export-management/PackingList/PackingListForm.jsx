@@ -603,11 +603,6 @@ function PackingListForm({ exportInvoiceId, packingList, packingListData, packin
 							{saving ? <div className="spinner-border spinner-border-sm me-2" /> : <Save size={20} className="me-2" />}
 							{saving ? 'Saving...' : `${formData.id ? 'Update' : 'Save'} Packing List`}
 						</Button>
-						{formData.id && (
-							<Button variant="success" className="shadow-sm px-4 fw-bold d-flex align-items-center" style={{ height: '55px', borderRadius: '12px' }} onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: { page: 'export-invoice-annexure-form', exportInvoiceId: formData.export_invoice_id } }))}>
-								Next: Annexure <Plus size={20} className="ms-1" />
-							</Button>
-						)}
 					</div>
 				</div>
 

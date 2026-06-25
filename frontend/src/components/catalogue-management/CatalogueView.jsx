@@ -104,7 +104,7 @@ function CatalogueView({ catalogue, onClose, onEdit, canEdit, products = [] }) {
                   <div className="info-text-wrapper">
                     <span className="info-label text-muted small d-block text-uppercase">Status</span>
                     <div className="mt-1">
-                      <Badge bg={catalogue.status === 'Active' ? 'success' : 'danger'} className="rounded-pill px-3 py-1.5" style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>
+                      <Badge bg={catalogue.status === 'Active' ? 'success' : 'secondary'} className="rounded-pill px-3 py-1.5" style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>
                         {(catalogue.status || 'Active').toUpperCase()}
                       </Badge>
                     </div>

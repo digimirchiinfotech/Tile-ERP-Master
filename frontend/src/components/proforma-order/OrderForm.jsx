@@ -1904,10 +1904,10 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
       {order && order.id && (
         <Card className="audit-history-card mt-4 mb-4 shadow-sm border-0 rounded-4 overflow-hidden">
           <Card.Header className="order-card-header bg-light border-bottom">
-            <div className="d-flex align-items-center">
-              <History size={20} className="me-2 text-primary" />
-              <h5 className="mb-0">Activity History</h5>
-            </div>
+            <div className="d-flex align-items-center text-white">
+                <History size={20} className="me-2 text-white" />
+                <h5 className="mb-0 text-white">Activity History</h5>
+              </div>
           </Card.Header>
           <Card.Body className="p-0">
             <ModuleAuditLog resourceType="proforma_order" resourceId={order.id} />

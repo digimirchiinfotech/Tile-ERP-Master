@@ -1,4 +1,4 @@
-﻿/**
+/**
  * TILE EXPORTER ERP SAAS
  * 
  * COPYRIGHT © 2026. ALL RIGHTS RESERVED.
@@ -364,8 +364,8 @@ const InvoicePrintView = forwardRef(({ invoiceData, products: masterProducts = [
           }
           
           .invoice-page {
-            width: 200mm !important;
-            max-width: 200mm !important;
+            width: 100% !important;
+            max-width: 100% !important;
             min-height: 287mm !important;
             margin: 0 auto !important;
             padding: 0 !important;

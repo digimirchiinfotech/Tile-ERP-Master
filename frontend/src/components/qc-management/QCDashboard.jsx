@@ -28,6 +28,9 @@ import ActivityTimeline from '../shared/ActivityTimeline.jsx';
 import PaginationControls from '../common/PaginationControls.jsx';
 import LockDocumentButton from '../shared/LockDocumentButton.jsx';
 import api from '../../services/api.js';
+import { Modal } from 'react-bootstrap';
+import QCPrintView from './QCPrintView.jsx';
+import { downloadPDF } from '../../utils/pdfGenerator.js';
 
 function QCDashboard({ currentUser, onNavigate, navigationData }) {
   const { qcRecords, loading, error, fetchQCRecords, createQCRecord, updateQCRecord, deleteQCRecord, toggleQCRecordStatus } = useQCRecords();
@@ -39,6 +42,8 @@ function QCDashboard({ currentUser, onNavigate, navigationData }) {
   const [viewingRecord, setViewingRecord] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmConfig, setConfirmConfig] = useState({});
+  const [showPrintModal, setShowPrintModal] = useState(false);
+  const printRef = useRef(null);
   const [filters, setFilters] = useState({
     qcId: '',
     orderNumber: '',
@@ -110,6 +115,30 @@ function QCDashboard({ currentUser, onNavigate, navigationData }) {
   const handleView = (record) => {
     setViewingRecord(record);
     setShowView(true);
+  };
+
+  const handlePrintQC = async (record) => {
+    try { await api.post('/document-activity/doc/' + (record?.id || 'unknown') + '/action', { action: 'PRINT' }); } catch(e){}
+    setViewingRecord(record);
+    setShowPrintModal(true);
+    setTimeout(() => {
+      if (printRef.current) window.print();
+    }, 500);
+  };
+
+  const handleDownloadQC = async (record) => {
+    try { await api.post('/document-activity/doc/' + (record?.id || 'unknown') + '/action', { action: 'DOWNLOAD' }); } catch(e){}
+    setViewingRecord(record);
+    setShowPrintModal(true);
+    setTimeout(async () => {
+      if (printRef.current) {
+        showSuccess('Generating PDF...');
+        const filename = `QC_${record.qcId || 'Report'}_${new Date().toLocaleDateString('en-CA')}.pdf`;
+        const result = await downloadPDF(printRef.current, filename);
+        if (!result?.success) showError('Failed to generate PDF');
+      }
+      setShowPrintModal(false);
+    }, 800);
   };
 
   const handleDelete = (id) => {
@@ -362,8 +391,33 @@ function QCDashboard({ currentUser, onNavigate, navigationData }) {
           qcRecord={viewingRecord} 
           onClose={() => setShowView(false)} 
           onEdit={() => { setShowView(false); handleEdit(viewingRecord); }}
+          onPrint={() => handlePrintQC(viewingRecord)}
+          onDownload={() => handleDownloadQC(viewingRecord)}
           canEdit={!(viewingRecord.is_locked || viewingRecord.isLocked)}
         />
+      )}
+
+      {showPrintModal && viewingRecord && (
+        <Modal show={showPrintModal} onHide={() => setShowPrintModal(false)} fullscreen>
+          <Modal.Header closeButton>
+            <Modal.Title>QC Report Preview — {viewingRecord.qcId}</Modal.Title>
+            <div className="ms-auto me-3">
+              <Button variant="primary" size="sm" onClick={() => window.print()}>
+                <Printer size={14} className="me-1" /> Direct Print
+              </Button>
+            </div>
+          </Modal.Header>
+          <Modal.Body className="p-0 bg-light d-flex flex-column flex-md-row">
+            <div className="flex-grow-1 overflow-auto bg-light">
+              <div ref={printRef}>
+                <QCPrintView qcRecord={viewingRecord} />
+              </div>
+            </div>
+            <div className="no-print bg-white border-start p-3 shadow-sm" style={{ width: '100%', maxWidth: '350px', overflowY: 'auto' }}>
+              <ActivityTimeline resourceType="document" resourceId={viewingRecord?.id} />
+            </div>
+          </Modal.Body>
+        </Modal>
       )}
 
       <ConfirmationModal 

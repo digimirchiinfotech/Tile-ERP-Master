@@ -2215,9 +2215,9 @@ function InvoiceForm({ invoice, onBack = () => { }, onNavigate, currentUser, inv
         <Card className="audit-history-card mt-4 mb-4 shadow-sm border-0 rounded-4 overflow-hidden">
           <Card.Header className="invoice-card-header bg-light border-bottom">
             <div className="d-flex align-items-center justify-content-between py-1">
-              <div className="d-flex align-items-center">
-                <History size={20} className="me-2 text-primary" />
-                <h5 className="mb-0">Activity History</h5>
+              <div className="d-flex align-items-center text-white">
+                <History size={20} className="me-2 text-white" />
+                <h5 className="mb-0 text-white">Activity History</h5>
               </div>
             </div>
           </Card.Header>

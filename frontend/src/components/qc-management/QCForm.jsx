@@ -980,9 +980,9 @@ function QCForm({ qcRecord, onSave, onCancel, onBack, selectedOrder, existingRec
             {qcRecord && (qcRecord.id || qcRecord._id) && (
               <Col xs={12}>
                 <Card className="audit-history-card border-0 shadow-sm">
-                  <Card.Header className="bg-light d-flex align-items-center">
-                    <History size={18} className="me-2 text-primary" />
-                    <h6 className="mb-0">Activity History</h6>
+                  <Card.Header className="bg-primary text-white py-3 border-0 d-flex align-items-center justify-content-start" style={{ borderTopLeftRadius: '1rem', borderTopRightRadius: '1rem' }}>
+                    <History size={18} className="me-2 text-white" />
+                    <h6 className="mb-0 fw-bold text-uppercase tracking-wider text-white">Activity History</h6>
                   </Card.Header>
                   <Card.Body className="p-0">
                     <ModuleAuditLog resourceType="qc_record" resourceId={qcRecord.id || qcRecord._id} />

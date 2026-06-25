@@ -98,6 +98,7 @@ import orderSheetRoutes from './routes/orderSheets.js';
 import signatureRoutes from './routes/signatureRoutes.js';
 
 import backupRoutes from './routes/backupRoutes.js';
+import healthRoutes from './routes/health.js';
 import tenantBackupRoutes from './routes/tenantBackupRoutes.js';
 import inventoryRoutes from './routes/inventoryRoutes.js';
 import pdfRoutes from './routes/pdf.js';
@@ -336,6 +337,7 @@ app.get('/uploads/backups/:filename', authenticate, requireAdminRole, fileLimite
 });
 
 // Feature Routes
+app.use('/api/health', healthRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/users', userRoutes);

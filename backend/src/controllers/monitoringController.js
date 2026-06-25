@@ -14,6 +14,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import companyDatabaseRouterObj from '../config/companyDatabaseRouter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = dirname(__filename);
@@ -268,3 +269,40 @@ export const getSystemHealth = async (req, res) => {
     },
   });
 };
+
+export const getPoolHealth = async (req, res) => {
+  try {
+    const { companyDatabaseCache, masterPool } = companyDatabaseRouterObj;
+    
+    let total_pools = 0;
+    let active_pools = 0;
+    let idle_pools = 0;
+
+    for (const [companyId, pool] of companyDatabaseCache.entries()) {
+      if (pool === masterPool) continue; // Skip master pool
+      
+      total_pools++;
+      
+      // Check if pool is idle based on pg Pool stats
+      if (pool.totalCount === pool.idleCount) {
+        idle_pools++;
+      } else {
+        active_pools++;
+      }
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        total_pools,
+        active_pools,
+        idle_pools,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (err) {
+    debugLogger.error('Monitoring', 'Error fetching pool health', err);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+

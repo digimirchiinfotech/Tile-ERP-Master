@@ -11,7 +11,7 @@
 
 import express from 'express';
 import { authenticate } from '../middleware/auth.js';
-import { getSystemHealth } from '../controllers/monitoringController.js';
+import { getSystemHealth, getPoolHealth } from '../controllers/monitoringController.js';
 
 const router = express.Router();
 
@@ -21,6 +21,13 @@ router.get('/health', authenticate, (req, res, next) => {
     return res.status(403).json({ success: false, message: 'Super admin access required' });
   }
   return getSystemHealth(req, res, next);
+});
+
+router.get('/health/pools', authenticate, (req, res, next) => {
+  if (req.user?.role !== 'super_admin') {
+    return res.status(403).json({ success: false, message: 'Super admin access required' });
+  }
+  return getPoolHealth(req, res, next);
 });
 
 export default router;

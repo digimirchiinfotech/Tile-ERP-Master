@@ -105,7 +105,7 @@ export const getCompanyDatabase = async (companyId) => {
         database: company.db_name,
         user: company.db_user,
         password: dbPassword,
-        max: 10, // Reduced from 30 to prevent global connection exhaustion in multi-tenant setup
+        max: 3, // Reduced to 3 to prevent global connection exhaustion in multi-tenant setup (was 10)
         idleTimeoutMillis: 10000, // Reduced to 10s to return idle connections to the server faster
         connectionTimeoutMillis: 30000, // Keep 30s for stability during peak loads
         ssl: env.db_ssl === 'true' ? { rejectUnauthorized: false } : false

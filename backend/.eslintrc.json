@@ -1,0 +1,19 @@
+{
+  "env": {
+    "node": true,
+    "es2022": true
+  },
+  "plugins": ["security"],
+  "extends": ["plugin:security/recommended"],
+  "rules": {
+    "security/detect-sql-injection": "error",
+    "security/detect-non-literal-regexp": "warn",
+    "security/detect-non-literal-fs-filename": "warn",
+    "security/detect-object-injection": "warn"
+  },
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module"
+  },
+  "ignorePatterns": ["node_modules/", "dist/", "uploads/"]
+}

@@ -1134,15 +1134,27 @@ export const updateStatus = async (req, res, next) => {
 export const getFilterOptions = async (req, res, next) => {
   try {
     const companyId = req.companyFilter;
-    const wherePrefix = companyId ? `WHERE os.company_id = '${companyId}'` : 'WHERE os.company_id IS NULL';
 
-    const suppliersRes = await req.db.query(`SELECT DISTINCT supplier_name FROM master_order_sheets os ${wherePrefix} AND supplier_name IS NOT NULL`);
-    const poNoRes = await req.db.query(`SELECT DISTINCT po_no FROM master_order_sheets os ${wherePrefix} AND po_no IS NOT NULL`);
-    
-    const linesWherePrefix = companyId ? `WHERE company_id = '${companyId}'` : 'WHERE company_id IS NULL';
-    const productsRes = await req.db.query(`SELECT DISTINCT product_category, design FROM master_order_sheet_lines ${linesWherePrefix} AND product_category IS NOT NULL`);
-    const sizesRes = await req.db.query(`SELECT DISTINCT size FROM master_order_sheet_lines ${linesWherePrefix} AND size IS NOT NULL`);
-    const surfacesRes = await req.db.query(`SELECT DISTINCT surface FROM master_order_sheet_lines ${linesWherePrefix} AND surface IS NOT NULL`);
+    // Use parameterized queries to prevent SQL injection
+    // companyId is from the verified JWT claim, but must still never be interpolated directly
+    let osWhereSQL, linesWhereSQL, queryParams;
+
+    if (companyId) {
+      osWhereSQL    = 'WHERE os.company_id = $1';
+      linesWhereSQL = 'WHERE company_id = $1';
+      queryParams   = [companyId];
+    } else {
+      osWhereSQL    = 'WHERE os.company_id IS NULL';
+      linesWhereSQL = 'WHERE company_id IS NULL';
+      queryParams   = [];
+    }
+
+    const suppliersRes = await req.db.query(`SELECT DISTINCT supplier_name FROM master_order_sheets os ${osWhereSQL} AND supplier_name IS NOT NULL`, queryParams);
+    const poNoRes      = await req.db.query(`SELECT DISTINCT po_no FROM master_order_sheets os ${osWhereSQL} AND po_no IS NOT NULL`, queryParams);
+
+    const productsRes  = await req.db.query(`SELECT DISTINCT product_category, design FROM master_order_sheet_lines ${linesWhereSQL} AND product_category IS NOT NULL`, queryParams);
+    const sizesRes     = await req.db.query(`SELECT DISTINCT size FROM master_order_sheet_lines ${linesWhereSQL} AND size IS NOT NULL`, queryParams);
+    const surfacesRes  = await req.db.query(`SELECT DISTINCT surface FROM master_order_sheet_lines ${linesWhereSQL} AND surface IS NOT NULL`, queryParams);
 
     const suppliers = suppliersRes.rows.map(r => r.supplier_name).sort();
     const pis = poNoRes.rows.map(r => r.po_no).sort();

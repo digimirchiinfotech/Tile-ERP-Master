@@ -107,7 +107,7 @@ export const processImportFile = (file) => {
           const firstSheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[firstSheetName];
           const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-          
+
           if (jsonData.length > 0) {
             resolve({
               success: true,
@@ -388,7 +388,7 @@ export const processImportWithProgress = async (file, moduleType, onProgress) =>
 
     onProgress?.(30, 'Parsing CSV content...');
     const parseResult = await processImportFile(file);
-    
+
     onProgress?.(60, 'Validating data integrity...');
     let validationResult;
     let transformedData;
@@ -398,7 +398,7 @@ export const processImportWithProgress = async (file, moduleType, onProgress) =>
         ? await (await import('../services/productService.js')).productService.validateImport(parseResult.data)
         : await (await import('../services/sanitarywareProductService.js')).validateImport(parseResult.data);
       validationResult = response.data.data;
-      
+
       // Map valid and invalid list for compatible UI fallback
       validationResult.valid = validationResult.results.filter(r => r.status === 'VALID');
       validationResult.invalid = validationResult.results.filter(r => r.status !== 'VALID');
@@ -500,22 +500,22 @@ export const getImportTemplate = (moduleType) => {
       name: 'Products',
       fields: [
         { name: 'Factory Name', label: 'Factory Name', required: false, example: 'Morbi Factory' },
-        { name: 'Factory Product Name', label: 'Factory Product Name', required: false, example: 'Ceramica 60x60' },
-        { name: 'Product Name', label: 'Product Name', required: true, example: 'Ceramic Tile 60x60' },
+        { name: 'Factory Product Name', label: 'Factory Product Name', required: false, example: 'NETRO Grey' },
+        { name: 'Product Name', label: 'Product Name', required: true, example: 'ASNA Grey' },
         { name: 'Description', label: 'Description', required: false, example: 'Premium quality floor tile' },
         { name: 'Product Code', label: 'Product Code', required: true, example: 'PROD-001' },
-        { name: 'Category', label: 'Category', required: true, example: 'Floor Tiles' },
+        { name: 'Category', label: 'Category', required: true, example: 'PORCELAIN' },
         { name: 'Size', label: 'Size', required: false, example: '600x600mm' },
         { name: 'Surface', label: 'Surface', required: false, example: 'Glossy' },
         { name: 'Thickness', label: 'Thickness', required: false, example: '9mm' },
-        { name: 'Application', label: 'Application', required: false, example: 'Indoor' },
+        { name: 'Application', label: 'Application', required: false, example: 'Floor' },
         { name: 'HSN Code', label: 'HSN Code', required: false, example: '69072100' },
         { name: 'Box PCS', label: 'Box PCS', required: false, example: '4' },
         { name: 'SQM Per Box', label: 'SQM Per Box', required: false, example: '1.44' },
         { name: 'Boxes Per Big Pallet', label: 'Boxes Per Big Pallet', required: false, example: '40' },
         { name: 'Boxes Per Kathali', label: 'Boxes Per Kathali', required: false, example: '0' },
         { name: 'Per Box Weight (KG)', label: 'Per Box Weight (KG)', required: false, example: '28' },
-        { name: 'Per Pallet Weight (KG)', label: 'Per Pallet Weight (KG)', required: false, example: '1120' },
+        { name: 'Per Pallet Weight (KG)', label: 'Per Pallet Weight (KG)', required: false, example: '20' },
         { name: 'Image URL', label: 'Image URL', required: false, example: 'https://example.com/img1.jpg' },
       ],
     },

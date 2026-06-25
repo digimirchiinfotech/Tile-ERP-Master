@@ -58,8 +58,8 @@ export default {
   jwt: {
     secret: getJWTSecret(),
     refreshSecret: getRefreshSecret(),
-    accessExpiry: process.env.JWT_ACCESS_EXPIRY === '15m' ? '4h' : (process.env.JWT_ACCESS_EXPIRY || '4h'),
-    refreshExpiry: process.env.JWT_REFRESH_EXPIRY || '30d',
+    accessExpiry: process.env.JWT_ACCESS_EXPIRY || '360m',  // 6 hours
+    refreshExpiry: process.env.JWT_REFRESH_EXPIRY || '7d',  // 7 days (DB-enforced; JWT expiry not used for refresh tokens)
   },
   
   resetToken: {

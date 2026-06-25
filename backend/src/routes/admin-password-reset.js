@@ -16,6 +16,7 @@ import { AppError } from '../middleware/errorHandler.js';
 import { successResponse } from '../utils/helpers.js';
 import { authenticate } from '../middleware/auth.js';
 import { requireRole } from '../middleware/rbac.js';
+import { revokeAllUserTokens } from '../utils/tokenManager.js';
 
 const router = express.Router();
 
@@ -52,11 +53,8 @@ router.post('/reset-password-direct', authenticate, requireRole('super_admin'), 
       [passwordHash, email]
     );
 
-    // Clear all refresh tokens
-    await query(
-      'DELETE FROM refresh_tokens WHERE user_id = $1',
-      [userResult.rows[0].id]
-    );
+    // Revoke all refresh tokens (marks revoked=TRUE instead of deleting, preserving audit trail)
+    await revokeAllUserTokens({ globalQuery: query }, userResult.rows[0].id, 'admin_password_reset');
 
     return successResponse(res, {}, 'Password has been reset successfully');
 

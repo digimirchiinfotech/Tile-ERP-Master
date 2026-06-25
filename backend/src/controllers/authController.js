@@ -11,10 +11,13 @@
 
 import bcrypt from 'bcrypt';
 import { AppError } from '../middleware/errorHandler.js';
-import { 
-  generateAccessToken, 
-  generateRefreshToken, 
-  verifyRefreshToken
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  storeRefreshToken,
+  rotateRefreshToken,
+  revokeRefreshToken,
+  revokeAllUserTokens
 } from '../utils/tokenManager.js';
 import { generateResetToken } from '../utils/jwt.js';
 import { sendPasswordResetEmail } from '../utils/emailService.js';
@@ -49,12 +52,9 @@ export const register = async (req, res, next) => {
 
     const user = result.rows[0];
     const accessToken = generateAccessToken(user.id, user.email_id, user.role, user.company_id);
-    const { token: refreshToken } = generateRefreshToken(user.id);
+    const { rawToken: refreshToken, tokenHash, family, expiresAt: refreshExpiry } = generateRefreshToken();
 
-    const refreshExpiry = new Date();
-    refreshExpiry.setDate(refreshExpiry.getDate() + 30);
-
-    await req.db.globalQuery('INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)', [user.id, refreshToken, refreshExpiry]);
+    await storeRefreshToken(req.db, user.id, tokenHash, family, refreshExpiry);
 
     const cookieOptions = {
       httpOnly: true,
@@ -124,13 +124,10 @@ export const login = async (req, res, next) => {
     }
 
     const accessToken = generateAccessToken(user.id, user.email_id, user.role, user.company_id);
-    const { token: refreshToken } = generateRefreshToken(user.id);
-
-    const refreshExpiry = new Date();
-    refreshExpiry.setDate(refreshExpiry.getDate() + 30);
+    const { rawToken: refreshToken, tokenHash, family, expiresAt: refreshExpiry } = generateRefreshToken();
 
     try {
-      await req.db.globalQuery('INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)', [user.id, refreshToken, refreshExpiry]);
+      await storeRefreshToken(req.db, user.id, tokenHash, family, refreshExpiry);
     } catch (err) {
       debugLogger.error('Auth', 'Error saving refresh token', err);
     }
@@ -178,10 +175,12 @@ export const login = async (req, res, next) => {
     }
 
     try {
+      // Store raw refresh token in session tracking (for session management UI only)
+      // The refresh_tokens table stores only the hash
       await req.db.globalQuery(
         `INSERT INTO active_user_sessions (user_id, refresh_token, ip_address, user_agent, device, browser, location, last_login, status)
          VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, 'Active')`,
-        [user.id, refreshToken, req.ip || 'Unknown', userAgent, device, browser, 'Local'] // Using 'Local' or geoip logic
+        [user.id, refreshToken, req.ip || 'Unknown', userAgent, device, browser, 'Local']
       );
     } catch (err) {
       debugLogger.error('Auth', 'Error saving active session', err);
@@ -227,57 +226,49 @@ export const refreshToken = async (req, res, next) => {
     const token = req.body.refreshToken || (req.cookies && req.cookies.refreshToken);
     if (!token) return next(new AppError('Refresh token required', 400));
 
-    const tokenResult = await req.db.globalQuery('SELECT user_id, expires_at FROM refresh_tokens WHERE token = $1', [token]);
-    if (tokenResult.rows.length === 0) return next(new AppError('Invalid refresh token', 401));
+    // Atomically validate, revoke old token, detect reuse, and issue new token
+    const rotated = await rotateRefreshToken(req.db, token);
 
-    const tokenData = tokenResult.rows[0];
-    if (new Date() > new Date(tokenData.expires_at)) {
-      await req.db.globalQuery('DELETE FROM refresh_tokens WHERE token = $1', [token]);
-      return next(new AppError('Refresh token expired', 401));
+    if (!rotated) {
+      // rotateRefreshToken returns null for: not found, already revoked (reuse = theft),
+      // or expired. All cases must be treated as authentication failure.
+      const cookieOptions = {
+        httpOnly: true,
+        secure: env.node_env === 'production',
+        sameSite: env.node_env === 'production' ? 'none' : 'lax',
+      };
+      res.clearCookie('accessToken', cookieOptions);
+      res.clearCookie('refreshToken', cookieOptions);
+      return next(new AppError('Refresh token invalid or expired. Please log in again.', 401));
     }
 
-    let decoded;
-    try {
-      decoded = verifyRefreshToken(token);
-    } catch (err) {
-      await req.db.globalQuery('DELETE FROM refresh_tokens WHERE token = $1', [token]);
-      return next(new AppError('Invalid refresh token', 401));
-    }
+    const { userId, newRawToken } = rotated;
 
-    const userResult = await req.db.globalQuery('SELECT id, email_id, role, company_id, status FROM users WHERE id = $1', [decoded.id]);
+    const userResult = await req.db.globalQuery(
+      'SELECT id, email_id, role, company_id, status FROM users WHERE id = $1',
+      [userId]
+    );
     if (userResult.rows.length === 0) return next(new AppError('User not found', 401));
 
     const user = userResult.rows[0];
     if (user.status !== 'Active') {
-      await req.db.globalQuery('DELETE FROM refresh_tokens WHERE user_id = $1', [user.id]);
+      await revokeAllUserTokens(req.db, user.id, 'account_inactive');
       return next(new AppError('Account inactive', 401));
     }
 
-    await req.db.globalQuery('DELETE FROM refresh_tokens WHERE token = $1', [token]);
-
     const newAccessToken = generateAccessToken(user.id, user.email_id, user.role, user.company_id);
-    const { token: newRefreshToken } = generateRefreshToken(user.id);
-
-    const refreshExpiry = new Date();
-    refreshExpiry.setDate(refreshExpiry.getDate() + 30);
-
-    await req.db.globalQuery('INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)', [user.id, newRefreshToken, refreshExpiry]);
 
     const cookieOptions = {
       httpOnly: true,
       secure: env.node_env === 'production',
       sameSite: env.node_env === 'production' ? 'none' : 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     };
 
     res.cookie('accessToken', newAccessToken, cookieOptions);
-    if (newRefreshToken) {
-      res.cookie('refreshToken', newRefreshToken, cookieOptions);
-    }
+    res.cookie('refreshToken', newRawToken, cookieOptions);
 
-    return successResponse(res, {
-      expiresIn: env.jwt.accessExpiry
-    }, 'Token refreshed successfully');
+    return successResponse(res, { expiresIn: env.jwt.accessExpiry }, 'Token refreshed successfully');
   } catch (error) {
     next(error);
   }
@@ -325,7 +316,8 @@ export const resetPassword = async (req, res, next) => {
     const passwordHash = await bcrypt.hash(new_password, env.security.bcryptRounds || 12);
     await req.db.globalQuery('UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', [passwordHash, tokenResult.rows[0].user_id]);
     await req.db.globalQuery('DELETE FROM password_reset_tokens WHERE id = $1', [tokenResult.rows[0].id]);
-    await req.db.globalQuery('DELETE FROM refresh_tokens WHERE user_id = $1', [tokenResult.rows[0].user_id]);
+    // Revoke all refresh tokens on password reset (security: invalidate all existing sessions)
+    await revokeAllUserTokens(req.db, tokenResult.rows[0].user_id, 'password_reset');
 
     notifySpecificUser(tokenResult.rows[0].user_id, {
       title: 'Password Reset Successful',
@@ -372,9 +364,11 @@ export const getCurrentUser = async (req, res, next) => {
 
 export const logout = async (req, res, next) => {
   try {
-    const refreshToken = req.body.refreshToken || (req.cookies && req.cookies.refreshToken);
-    if (refreshToken) await req.db.globalQuery('DELETE FROM refresh_tokens WHERE token = $1 AND user_id = $2', [refreshToken, req.user.id]);
-    await req.db.globalQuery('DELETE FROM refresh_tokens WHERE user_id = $1 AND expires_at < CURRENT_TIMESTAMP', [req.user.id]);
+    const rawRefreshToken = req.body.refreshToken || (req.cookies && req.cookies.refreshToken);
+    // Revoke the specific refresh token by hash (never by raw value stored in DB)
+    if (rawRefreshToken) {
+      await revokeRefreshToken(req.db, rawRefreshToken, req.user.id);
+    }
 
     insertAuditLog({
       userId: req.user.id,

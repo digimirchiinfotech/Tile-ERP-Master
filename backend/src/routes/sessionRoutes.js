@@ -81,9 +81,16 @@ router.delete('/active/:id', authenticate, async (req, res) => {
     if (sessionResult.rows.length > 0) {
       const token = sessionResult.rows[0].refresh_token;
       
-      // Delete the actual refresh token to invalidate the session
+      // Revoke the refresh token by marking it revoked (raw token no longer stored in refresh_tokens)
+      // active_user_sessions.refresh_token holds the raw token for session UI display only
       if (token) {
-        await req.db.globalQuery(`DELETE FROM refresh_tokens WHERE token = $1`, [token]);
+        const { hashToken } = await import('../utils/tokenManager.js');
+        const tokenHash = hashToken(token);
+        await req.db.globalQuery(
+          `UPDATE refresh_tokens SET revoked = TRUE, revoked_reason = 'admin_force_logout'
+            WHERE token_hash = $1`,
+          [tokenHash]
+        );
       }
       
       // Update the session tracking table
@@ -163,8 +170,10 @@ router.delete('/admin/company/:companyId', authenticate, async (req, res) => {
     }
     const { companyId } = req.params;
     const result = await query(`
-      DELETE FROM refresh_tokens
-      WHERE user_id IN (SELECT id FROM users WHERE company_id = $1)
+      UPDATE refresh_tokens
+         SET revoked = TRUE, revoked_reason = 'admin_company_revoke'
+       WHERE user_id IN (SELECT id FROM users WHERE company_id = $1)
+         AND revoked = FALSE
       RETURNING id
     `, [companyId]);
     res.json({ 
@@ -186,7 +195,10 @@ router.delete('/admin/user/:userId', authenticate, async (req, res) => {
     }
     const { userId } = req.params;
     const result = await query(
-      `DELETE FROM refresh_tokens WHERE user_id = $1 RETURNING id`,
+      `UPDATE refresh_tokens
+          SET revoked = TRUE, revoked_reason = 'admin_user_revoke'
+        WHERE user_id = $1 AND revoked = FALSE
+        RETURNING id`,
       [userId]
     );
     res.json({ 

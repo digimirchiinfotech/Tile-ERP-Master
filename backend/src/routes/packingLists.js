@@ -24,10 +24,10 @@ router.use(filterByCompany);
 router.get('/next-number', requirePermission('packing_list_management', 'all'), packingListController.getNextNumber);
 
 router.get('/', requirePermission('packing_list_management', 'all'), packingListController.getAll);
-router.post('/', requirePermission('packing_list_management', 'all'), packingListController.create);
+router.post('/export-invoice/:exportInvoiceId', requirePermission('packing_list_management', 'all'), checkDocumentLock('PACKING_LIST', { idParam: 'exportInvoiceId', idField: 'export_invoice_id' }), createAuditMiddleware('packing_list', 'UPDATE'), packingListController.createOrUpdate);
+router.put('/export-invoice/:exportInvoiceId', requirePermission('packing_list_management', 'all'), checkDocumentLock('PACKING_LIST', { idParam: 'exportInvoiceId', idField: 'export_invoice_id' }), createAuditMiddleware('packing_list', 'UPDATE'), packingListController.createOrUpdate);
 
-router.post('/export-invoice/:exportInvoiceId', requirePermission('packing_list_management', 'all'), checkDocumentLock('PACKING_LIST', { idParam: 'exportInvoiceId', idField: 'export_invoice_id' }), packingListController.createOrUpdate);
-router.put('/export-invoice/:exportInvoiceId', requirePermission('packing_list_management', 'all'), checkDocumentLock('PACKING_LIST', { idParam: 'exportInvoiceId', idField: 'export_invoice_id' }), packingListController.createOrUpdate);
+router.post('/', requirePermission('packing_list_management', 'all'), createAuditMiddleware('packing_list', 'CREATE'), packingListController.create);
 
 router.get('/export-invoice/:exportInvoiceId', requirePermission('packing_list_management', 'all'), packingListController.getByExportInvoiceId);
 

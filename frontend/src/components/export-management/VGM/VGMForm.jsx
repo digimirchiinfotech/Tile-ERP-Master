@@ -1145,7 +1145,7 @@ function VGMForm({ exportInvoiceId: propExportInvoiceId, onBack, currentUser }) 
               <h6 className="mb-0 fw-bold text-uppercase tracking-wider text-white">Activity History</h6>
             </Card.Header>
             <Card.Body className="p-0 bg-white">
-              <ModuleAuditLog resourceType="vgm" resourceId={formData.id} />
+              <ModuleAuditLog resourceType="vgm_document" resourceId={formData.id} />
             </Card.Body>
           </Card>
         )}

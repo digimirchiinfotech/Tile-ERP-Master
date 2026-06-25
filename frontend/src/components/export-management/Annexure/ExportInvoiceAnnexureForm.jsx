@@ -1497,7 +1497,7 @@ function ExportInvoiceAnnexureForm({ exportInvoiceId: initialExportInvoiceId, an
               <h6 className="mb-0 fw-bold text-uppercase tracking-wider text-white">Activity History</h6>
             </Card.Header>
             <Card.Body className="p-0 bg-white">
-              <ModuleAuditLog resourceType="export_annexure" resourceId={annexureId || formData.id} />
+              <ModuleAuditLog resourceType="export_invoice_annexure" resourceId={annexureId || formData.id} />
             </Card.Body>
           </Card>
         )}

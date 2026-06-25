@@ -11,13 +11,14 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Container, Row, Col, Card, Form, Table, Spinner, Badge } from 'react-bootstrap';
-import { Save, ChevronRight, Calculator, ArrowLeft, Percent, FileText, Plus, Trash2, X } from 'lucide-react';
+import { Save, ChevronRight, Calculator, ArrowLeft, Percent, FileText, Plus, Trash2, X, Clock, History } from 'lucide-react';
 import api from '../../../services/api';
 import igstInvoiceService from '../../../services/igstInvoiceService';
 import DoubleScrollbarWrapper from '../../shared/DoubleScrollbarWrapper.jsx';
 import { showSuccess, showError } from '../../shared/NotificationManager.jsx';
 import Button from '../../shared/Button.jsx';
 import { formatDisplayDate } from '../../../utils/formatters.js';
+import ActivityTimeline from '../../shared/ActivityTimeline.jsx';
 
 // Front-end Number to Words converter helper
 function amountToWords(amount) {
@@ -74,6 +75,8 @@ function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, current
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [exportInvoices, setExportInvoices] = useState([]);
+  const [isDirty, setIsDirty] = useState(false);
+  const [timelineKey, setTimelineKey] = useState(0); // force refresh ActivityTimeline after save
 
   useEffect(() => {
     if (isNew) {
@@ -283,6 +286,12 @@ function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, current
     await loadIGSTInvoiceData(invId);
   };
 
+  // Generic field change handler — marks form as dirty
+  const handleFieldChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    setIsDirty(true);
+  };
+
   // Live Calculation Pipeline
   const runLiveCalculations = useCallback((lines, currentExchangeRate) => {
     let totalBeforeTax = 0;
@@ -351,6 +360,7 @@ function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, current
   const handleExchangeRateChange = (newExRate) => {
     const parsedRate = parseFloat(newExRate) || 0;
     setFormData(prev => ({ ...prev, exchange_rate: newExRate }));
+    setIsDirty(true);
 
     // Dynamically recalculate display rate (INR) for each product line based on new exchange rate
     const updatedLines = formData.product_lines.map(l => {
@@ -371,6 +381,7 @@ function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, current
   const handleLineFieldChange = (index, field, value) => {
     const newLines = [...formData.product_lines];
     newLines[index][field] = value;
+    setIsDirty(true);
 
     // Recalculate unrounded usd_rate if user manually edits display rate (INR)
     if (field === 'rate') {
@@ -401,11 +412,13 @@ function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, current
       igst_amount: 0,
       total_amount: 0
     }];
+    setIsDirty(true);
     runLiveCalculations(newLines, formData.exchange_rate);
   };
 
   const handleRemoveLine = (index) => {
     const newLines = formData.product_lines.filter((_, idx) => idx !== index);
+    setIsDirty(true);
     runLiveCalculations(newLines, formData.exchange_rate);
   };
 
@@ -417,6 +430,7 @@ function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, current
 
     setSaving(true);
     try {
+      const isUpdate = !!formData.id;
       const payload = {
         ...formData,
         status: status
@@ -424,11 +438,29 @@ function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, current
 
       const res = await igstInvoiceService.createOrUpdate(formData.export_invoice_id, payload);
       if (res.data?.success) {
-        const successMsg = formData.id
+        const savedDoc = res.data?.data?.igstInvoice || res.data?.data?.igst_invoice || res.data?.data;
+        const savedId = savedDoc?.id || formData.id;
+
+        // Log document activity (CREATE or UPDATE)
+        try {
+          const activityAction = isUpdate ? 'UPDATE' : 'CREATE';
+          await api.post(`/document-activity/doc/${savedId}/action`, { action: activityAction });
+        } catch (_) { /* non-blocking */ }
+
+        // Update formData.id if this was a first-time create
+        if (!isUpdate && savedId) {
+          setFormData(prev => ({ ...prev, id: savedId }));
+        }
+
+        // Refresh activity timeline
+        setTimelineKey(k => k + 1);
+        setIsDirty(false);
+
+        const successMsg = isUpdate
           ? `IGST Invoice updated successfully!`
-          : `IGST Invoice successfully saved as ${status}!`;
+          : `IGST Invoice created and saved as ${status}!`;
         showSuccess(successMsg);
-        // Refresh local cache & return
+
         sessionStorage.setItem('igst_invoice_id', formData.export_invoice_id);
         setTimeout(() => {
           onBack();
@@ -1114,26 +1146,63 @@ function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, current
         </section>
 
         {/* Bottom Actions Container */}
-        <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top mb-4">
-          <Button
-            variant="outline-secondary"
-            onClick={onBack}
-            className="shadow-sm px-4 fw-bold d-flex align-items-center"
-            style={{ height: 48, borderRadius: 10, fontSize: '0.88rem' }}
-          >
-            <X size={18} className="me-2" /> Cancel
-          </Button>
-          <Button
-            variant="outline-primary"
-            onClick={() => handleSave('Draft')}
-            disabled={saving}
-            className="shadow-sm px-4 fw-bold"
-            style={{ height: 48, borderRadius: 10, fontSize: '0.88rem' }}
-          >
-            {saving ? <Spinner animation="border" size="sm" /> : 'Save as Draft'}
-          </Button>
+        <div className="d-flex justify-content-between align-items-center gap-2 mt-4 pt-3 border-top mb-4"
+          style={{ background: '#f8faff', borderRadius: '10px', padding: '16px 20px', border: '1px solid #e9ecef' }}>
+          <div className="d-flex align-items-center gap-2">
+            {isDirty && (
+              <span className="badge bg-warning text-dark" style={{ fontSize: '0.75rem', padding: '5px 10px', borderRadius: '6px' }}>
+                ● Unsaved Changes
+              </span>
+            )}
+            {formData.id && (
+              <span className="text-muted small">
+                Editing: <strong>{formData.igst_invoice_no || 'IGST Invoice'}</strong> · Status: <strong>{formData.status || 'Draft'}</strong>
+              </span>
+            )}
+          </div>
+          <div className="d-flex gap-2">
+            <Button
+              variant="outline-secondary"
+              onClick={onBack}
+              className="shadow-sm px-4 fw-bold d-flex align-items-center"
+              style={{ height: 44, borderRadius: 10, fontSize: '0.88rem' }}
+            >
+              <X size={16} className="me-2" /> Cancel
+            </Button>
+            <Button
+              variant={formData.id ? 'primary' : 'outline-primary'}
+              onClick={() => handleSave(formData.status || 'Draft')}
+              disabled={saving}
+              className="shadow-sm px-4 fw-bold d-flex align-items-center"
+              style={{ height: 44, borderRadius: 10, fontSize: '0.88rem' }}
+            >
+              {saving
+                ? <><Spinner animation="border" size="sm" className="me-2" /> Saving...</>
+                : formData.id
+                  ? <><Save size={16} className="me-2" /> Update Record</>
+                  : <><Save size={16} className="me-2" /> Save as Draft</>
+              }
+            </Button>
+          </div>
         </div>
       </Form>
+
+      {/* Activity History Panel — shown only when editing existing record */}
+      {formData.id && (
+        <div className="px-3 mb-5">
+          <div className="d-flex align-items-center gap-2 mb-3 mt-2">
+            <div style={{ width: 4, height: 22, background: 'linear-gradient(135deg, #1e40af, #3b82f6)', borderRadius: 3 }} />
+            <History size={18} className="text-primary" />
+            <h6 className="mb-0 fw-bold text-dark">Activity History</h6>
+            <span className="text-muted small ms-1">— all changes tracked for this document</span>
+          </div>
+          <ActivityTimeline
+            key={timelineKey}
+            resourceType="document"
+            resourceId={formData.id}
+          />
+        </div>
+      )}
 
       <style>{`
         .blue-ribbon {

@@ -25,7 +25,8 @@ import {
 import { authenticate, filterByCompany } from '../middleware/auth.js';
 import { requirePermission, requireAdminRole } from '../middleware/rbac.js';
 import { validateRequest } from '../middleware/inputValidation.js';
-import upload from '../middleware/multerConfig.js';
+import { createUpload } from '../middleware/multerConfig.js';
+import { validateFileMagicBytes } from '../middleware/fileValidator.js';
 import {
   createProductValidator,
   updateProductValidator
@@ -130,7 +131,8 @@ router.post(
   authenticate,
   filterByCompany,
   requireAdminRole,
-  upload.single('image'),
+  createUpload('PRODUCT_IMAGE').single('image'),
+  validateFileMagicBytes('PRODUCT_IMAGE'),
   uploadImage
 );
 

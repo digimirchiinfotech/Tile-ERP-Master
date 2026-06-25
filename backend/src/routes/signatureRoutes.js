@@ -11,7 +11,8 @@
 
 import express from 'express';
 import multer from 'multer';
-import crypto from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
+import { validateFileMagicBytes } from '../middleware/fileValidator.js';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -40,7 +41,7 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase().replace(/[^a-z.]/g, '') || '.png';
-    const name = `sig-${Date.now()}-${crypto.randomBytes(8).toString('hex')}${ext}`;
+    const name = `${uuidv4()}${ext}`;
     cb(null, name);
   }
 });
@@ -78,6 +79,7 @@ router.post(
   '/upload',
   adminOnly,
   signatureUpload.single('signature'),
+  validateFileMagicBytes('AVATAR_LOGO'),
   signatureController.uploadSignature
 );
 

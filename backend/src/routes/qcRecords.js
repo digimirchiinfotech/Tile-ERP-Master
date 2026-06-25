@@ -28,7 +28,8 @@ import {
   createQcRecordValidator,
   updateQcRecordValidator
 } from '../validators/qcRecordValidator.js';
-import upload from '../middleware/multerConfig.js';
+import { createUpload } from '../middleware/multerConfig.js';
+import { validateFileMagicBytes } from '../middleware/fileValidator.js';
 import { createAuditMiddleware } from '../middleware/auditLog.js';
 
 const router = express.Router();
@@ -129,7 +130,8 @@ router.post(
   authenticate,
   filterByCompany,
   requirePermission('qc_management', 'qc_inspector', 'all'),
-  upload.single('file'),
+  createUpload('QC_PHOTO').single('file'),
+  validateFileMagicBytes('QC_PHOTO'),
   uploadMedia
 );
 

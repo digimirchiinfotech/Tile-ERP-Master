@@ -26,7 +26,8 @@ import {
 import { authenticate, filterByCompany } from '../middleware/auth.js';
 import { requirePermission } from '../middleware/rbac.js';
 import { validateRequest } from '../middleware/inputValidation.js';
-import upload from '../middleware/multerConfig.js';
+import { createUpload } from '../middleware/multerConfig.js';
+import { validateFileMagicBytes } from '../middleware/fileValidator.js';
 import {
   createCatalogueValidator,
   updateCatalogueValidator,
@@ -58,10 +59,11 @@ router.post(
   authenticate,
   filterByCompany,
   requirePermission('catalogue_management', 'all'),
-  upload.fields([
+  createUpload('DOCUMENT').fields([
     { name: 'coverImage', maxCount: 1 },
     { name: 'pdfFile', maxCount: 1 }
   ]),
+  validateFileMagicBytes('DOCUMENT'),
   createCatalogueValidator,
   validateRequest,
   create
@@ -72,10 +74,11 @@ router.put(
   authenticate,
   filterByCompany,
   requirePermission('catalogue_management', 'all'),
-  upload.fields([
+  createUpload('DOCUMENT').fields([
     { name: 'coverImage', maxCount: 1 },
     { name: 'pdfFile', maxCount: 1 }
   ]),
+  validateFileMagicBytes('DOCUMENT'),
   updateCatalogueValidator,
   validateRequest,
   update

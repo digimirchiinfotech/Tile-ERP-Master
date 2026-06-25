@@ -15,7 +15,8 @@ import * as companyValidator from '../validators/companyValidator.js';
 import { authenticate } from '../middleware/auth.js';
 import { requireRole } from '../middleware/rbac.js';
 import { validateRequest } from '../middleware/inputValidation.js';
-import { upload } from '../middleware/fileUpload.js';
+import { createUpload } from '../middleware/multerConfig.js';
+import { validateFileMagicBytes } from '../middleware/fileValidator.js';
 
 const router = express.Router();
 
@@ -50,7 +51,8 @@ router.get(
 
 router.post(
   '/',
-  upload.single('logo'),
+  createUpload('AVATAR_LOGO').single('logo'),
+  validateFileMagicBytes('AVATAR_LOGO'),
   companyValidator.createCompanyValidation,
   validateRequest,
   companyController.createCompany
@@ -58,7 +60,8 @@ router.post(
 
 router.put(
   '/:id',
-  upload.single('logo'),
+  createUpload('AVATAR_LOGO').single('logo'),
+  validateFileMagicBytes('AVATAR_LOGO'),
   companyValidator.updateCompanyValidation,
   validateRequest,
   companyController.updateCompany

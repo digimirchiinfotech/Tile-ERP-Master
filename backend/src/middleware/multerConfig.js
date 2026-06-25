@@ -1,23 +1,12 @@
-/**
- * TILE EXPORTER ERP SAAS
- * 
- * COPYRIGHT © 2026. ALL RIGHTS RESERVED.
- * 
- * PROPRIETARY AND CONFIDENTIAL:
- * This source code is the strictly confidential intellectual property of the 
- * Tile Exporter system. Unauthorized copying, modification, distribution, 
- * or reverse engineering of this file, via any medium, is strictly prohibited.
- */
-
 import multer from 'multer';
 import multerS3 from 'multer-s3';
 import { S3Client } from '@aws-sdk/client-s3';
-import crypto from 'crypto';
 import path from 'path';
 import env from '../config/env.js';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import fs from 'fs';
+import { v4 as uuidv4 } from 'uuid';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -32,97 +21,89 @@ const s3Config = process.env.AWS_ACCESS_KEY_ID ? new S3Client({
 }) : null;
 
 // Local fallback setup
-const uploadsDir = join(__dirname, '../../', env.upload.dir || 'uploads');
+const uploadsDir = join(__dirname, '../../', env.upload?.dir || 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Storage Configuration (S3 preferred, fallback to Disk)
-const storage = s3Config ? multerS3({
-  s3: s3Config,
-  bucket: process.env.AWS_S3_BUCKET_NAME || 'tile-exporter-assets',
-  acl: 'private', // Enforce private bucket objects for enterprise security
-  metadata: function (req, file, cb) {
-    cb(null, { fieldName: file.fieldname });
+// Configuration Profiles for strict validation
+const UPLOAD_PROFILES = {
+  PRODUCT_IMAGE: {
+    maxSize: 5 * 1024 * 1024,
+    allowedMimes: ['image/jpeg', 'image/png', 'image/webp']
   },
-  key: function (req, file, cb) {
-    const randomHex = crypto.randomBytes(16).toString('hex');
-    const ext = path.extname(file.originalname).slice(0, 10).replace(/[^a-zA-Z0-9.]/g, '');
-    const companyId = req.headers['x-company-id'] || req.headers['x-selected-company-id'] || 'system';
-    cb(null, `tenant_${companyId}/${Date.now()}-${randomHex}${ext}`);
-  }
-}) : multer.diskStorage({
-  destination: (req, file, cb) => {
-    const companyId = req.headers['x-company-id'] || req.headers['x-selected-company-id'] || 'system';
-    const tenantDir = join(uploadsDir, `tenant_${companyId}`);
-    if (!fs.existsSync(tenantDir)) {
-      fs.mkdirSync(tenantDir, { recursive: true });
-    }
-    cb(null, tenantDir);
+  QC_PHOTO: {
+    maxSize: 10 * 1024 * 1024,
+    allowedMimes: ['image/jpeg', 'image/png']
   },
-  filename: (req, file, cb) => {
-    const randomHex = crypto.randomBytes(16).toString('hex');
-    const ext = path.extname(file.originalname).slice(0, 10).replace(/[^a-zA-Z0-9.]/g, '');
-    const safeName = `${Date.now()}-${randomHex}${ext}`;
-    cb(null, safeName);
-  }
-});
-
-// SECURITY: Strict MIME-type whitelist for all uploaded files.
-// Prevents executable/script upload disguised as allowed types.
-const ALLOWED_MIMES = {
-  image: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
-  document: ['application/pdf'],
-  spreadsheet: [
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'text/csv'
-  ]
-};
-
-const ALLOWED_ALL_MIMES = [
-  ...ALLOWED_MIMES.image,
-  ...ALLOWED_MIMES.document,
-  ...ALLOWED_MIMES.spreadsheet
-];
-
-const fileFilter = (req, file, cb) => {
-  // Image-only fields
-  if (file.fieldname === 'coverImage' || file.fieldname === 'avatar') {
-    if (ALLOWED_MIMES.image.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid image type. Only JPEG, PNG, GIF, and WebP are allowed.'));
-    }
-  }
-  // PDF-only fields
-  else if (file.fieldname === 'pdfFile') {
-    if (ALLOWED_MIMES.document.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid file type. Only PDF is allowed.'));
-    }
-  }
-  // Generic attachment fields — allow images, PDFs, and spreadsheets only
-  else {
-    if (ALLOWED_ALL_MIMES.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error(
-        'Invalid file type. Allowed types: JPEG, PNG, GIF, WebP, PDF, XLS, XLSX, CSV.'
-      ));
-    }
+  DOCUMENT: {
+    maxSize: 20 * 1024 * 1024,
+    allowedMimes: ['application/pdf', 'image/jpeg', 'image/png']
+  },
+  AVATAR_LOGO: {
+    maxSize: 2 * 1024 * 1024,
+    allowedMimes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/x-icon']
+  },
+  BACKUP: {
+    maxSize: 500 * 1024 * 1024,
+    allowedMimes: ['application/zip', 'application/x-zip-compressed', 'application/x-gzip']
+  },
+  DEFAULT: {
+    maxSize: 10 * 1024 * 1024,
+    allowedMimes: ['image/jpeg', 'image/png', 'application/pdf', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv']
   }
 };
 
-// Create multer instance
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: {
-    fileSize: env.upload.maxSize || 10 * 1024 * 1024, // Default 10MB, configurable via MAX_FILE_SIZE
-    files: 5 // SECURITY: Limit number of files per request to prevent DoS
-  }
-});
+/**
+ * Creates a configured multer instance based on the upload profile type
+ * @param {'PRODUCT_IMAGE' | 'QC_PHOTO' | 'DOCUMENT' | 'AVATAR_LOGO' | 'BACKUP' | 'DEFAULT'} type
+ */
+export const createUpload = (type = 'DEFAULT') => {
+  const profile = UPLOAD_PROFILES[type] || UPLOAD_PROFILES.DEFAULT;
 
-export default upload;
+  const storage = s3Config ? multerS3({
+    s3: s3Config,
+    bucket: process.env.AWS_S3_BUCKET_NAME || 'tile-exporter-assets',
+    acl: 'private',
+    metadata: function (req, file, cb) {
+      cb(null, { fieldName: file.fieldname, originalName: file.originalname });
+    },
+    key: function (req, file, cb) {
+      const ext = path.extname(file.originalname).slice(0, 10).replace(/[^a-zA-Z0-9.]/g, '');
+      const safeName = `${uuidv4()}${ext}`;
+      const companyId = req.headers['x-company-id'] || req.headers['x-selected-company-id'] || 'system';
+      cb(null, `tenant_${companyId}/${safeName}`);
+    }
+  }) : multer.diskStorage({
+    destination: (req, file, cb) => {
+      const companyId = req.headers['x-company-id'] || req.headers['x-selected-company-id'] || 'system';
+      const tenantDir = join(uploadsDir, `tenant_${companyId}`);
+      if (!fs.existsSync(tenantDir)) {
+        fs.mkdirSync(tenantDir, { recursive: true });
+      }
+      cb(null, tenantDir);
+    },
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname).slice(0, 10).replace(/[^a-zA-Z0-9.]/g, '');
+      const safeName = `${uuidv4()}${ext}`;
+      cb(null, safeName);
+    }
+  });
+
+  const fileFilter = (req, file, cb) => {
+    if (profile.allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`Invalid file type for ${type}. Allowed types: ${profile.allowedMimes.join(', ')}`));
+    }
+  };
+
+  return multer({
+    storage,
+    fileFilter,
+    limits: {
+      fileSize: profile.maxSize,
+      files: 5
+    }
+  });
+};

@@ -274,11 +274,16 @@ app.get('/', (req, res) => {
 app.get('/health', async (req, res) => {
   try {
     const result = await req.db.query('SELECT NOW()');
+    const warnings = [];
+    if (!process.env.CLAMAV_HOST) {
+      warnings.push('CLAMAV_HOST not configured — PDF virus scanning is disabled.');
+    }
     res.json({
       status: 'healthy',
       database: result.rows.length > 0 ? 'connected' : 'disconnected',
       timestamp: new Date().toISOString(),
-      uptime: process.uptime()
+      uptime: process.uptime(),
+      ...(warnings.length > 0 && { warnings })
     });
   } catch (error) {
     res.status(503).json({

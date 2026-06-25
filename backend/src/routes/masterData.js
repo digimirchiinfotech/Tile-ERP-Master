@@ -11,7 +11,8 @@
 
 import express from 'express';
 import { authenticate, optionalAuth, filterByCompany } from '../middleware/auth.js';
-import upload from '../middleware/multerConfig.js';
+import { createUpload } from '../middleware/multerConfig.js';
+import { validateFileMagicBytes } from '../middleware/fileValidator.js';
 import { requirePermission, requireRole, PERMISSIONS } from '../middleware/rbac.js';
 import { AppError } from '../middleware/errorHandler.js';
 import {
@@ -104,7 +105,7 @@ router.get('/', optionalAuth, filterByCompany, getAllMasterData); // Master data
 router.use(authenticate);
 
 // Image upload for master data (like Box Types)
-router.post('/upload-image', filterByCompany, requirePermission(PERMISSIONS.MASTER_DATA_MANAGEMENT), upload.single('image'), (req, res) => {
+router.post('/upload-image', filterByCompany, requirePermission(PERMISSIONS.MASTER_DATA_MANAGEMENT), createUpload('PRODUCT_IMAGE').single('image'), validateFileMagicBytes('PRODUCT_IMAGE'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'No image file provided' });
   }

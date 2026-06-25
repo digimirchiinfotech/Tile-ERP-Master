@@ -25,7 +25,8 @@ import {
 } from '../controllers/sanitarywareProductController.js';
 import { authenticate, filterByCompany } from '../middleware/auth.js';
 import { requirePermission, requireAdminRole } from '../middleware/rbac.js';
-import upload from '../middleware/multerConfig.js';
+import { createUpload } from '../middleware/multerConfig.js';
+import { validateFileMagicBytes } from '../middleware/fileValidator.js';
 
 const router = express.Router();
 
@@ -116,7 +117,8 @@ router.post(
   authenticate,
   filterByCompany,
   requireAdminRole,
-  upload.single('image'),
+  createUpload('PRODUCT_IMAGE').single('image'),
+  validateFileMagicBytes('PRODUCT_IMAGE'),
   uploadImage
 );
 

@@ -20,12 +20,10 @@ import {
   updateSettings,
   downloadBackup
 } from '../controllers/backupController.js';
-import multer from 'multer';
+import { createUpload } from '../middleware/multerConfig.js';
+import { validateFileMagicBytes } from '../middleware/fileValidator.js';
 
 const router = express.Router();
-
-// Using multer to handle backup zip uploads if user uploads manually
-const upload = multer({ dest: 'backups/temp/' });
 
 // Ensure only super admins can access these
 const requireAdmin = (req, res, next) => {
@@ -46,6 +44,6 @@ router.get('/download/:filename', downloadBackup);
 router.delete('/:filename', deleteBackup);
 
 // Allow restoring either by providing a filename of an existing backup or uploading a zip
-router.post('/restore', upload.single('file'), restoreBackup);
+router.post('/restore', createUpload('BACKUP').single('file'), validateFileMagicBytes('BACKUP'), restoreBackup);
 
 export default router;

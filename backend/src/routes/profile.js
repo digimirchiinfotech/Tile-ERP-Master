@@ -12,7 +12,8 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
 import { authenticate } from '../middleware/auth.js';
-import upload from '../middleware/multerConfig.js';
+import { createUpload } from '../middleware/multerConfig.js';
+import { validateFileMagicBytes } from '../middleware/fileValidator.js';
 import pool from '../config/database-wrapper.js';
 import { validateStrongPassword } from '../utils/passwordPolicy.js';
 
@@ -219,7 +220,7 @@ router.put('/notification-settings', authenticate, async (req, res, next) => {
 });
 
 // Upload user avatar
-router.post('/upload-avatar', authenticate, upload.single('avatar'), async (req, res, next) => {
+router.post('/upload-avatar', authenticate, createUpload('AVATAR_LOGO').single('avatar'), validateFileMagicBytes('AVATAR_LOGO'), async (req, res, next) => {
   try {
     if (!req.file) {
       return res.status(400).json({

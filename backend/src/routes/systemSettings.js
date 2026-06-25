@@ -10,7 +10,8 @@
  */
 
 import express from 'express';
-import multer from 'multer';
+import { createUpload } from '../middleware/multerConfig.js';
+import { validateFileMagicBytes } from '../middleware/fileValidator.js';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import * as systemSettingsController from '../controllers/systemSettingsController.js';
@@ -24,30 +25,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const router = express.Router();
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, join(__dirname, '../../', env.upload.dir));
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = file.originalname.split('.').pop();
-    cb(null, `${file.fieldname}-${uniqueSuffix}.${ext}`);
-  }
-});
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/x-icon'];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid file type. Only JPEG, PNG, GIF, WebP, SVG and ICO are allowed.'));
-    }
-  }
-});
 
 const validateFileSignature = (req, res, next) => {
   if (!req.file) return next();
@@ -117,7 +94,7 @@ router.post('/backup/restore', systemSettingsController.restoreBackup);
 router.get('/backup/list', systemSettingsController.listBackups);
 router.get('/backup/download', backupLimiter, systemSettingsController.downloadBackup);
 
-router.post('/upload/logo', upload.single('logo'), validateFileSignature, systemSettingsController.uploadLogo);
-router.post('/upload/favicon', upload.single('favicon'), validateFileSignature, systemSettingsController.uploadFavicon);
+router.post('/upload/logo', createUpload('AVATAR_LOGO').single('logo'), validateFileMagicBytes('AVATAR_LOGO'), validateFileSignature, systemSettingsController.uploadLogo);
+router.post('/upload/favicon', createUpload('AVATAR_LOGO').single('favicon'), validateFileMagicBytes('AVATAR_LOGO'), validateFileSignature, systemSettingsController.uploadFavicon);
 
 export default router;

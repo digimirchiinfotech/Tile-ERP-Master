@@ -21,6 +21,12 @@ import env from '../config/env.js';
 export const serveFile = async (req, res, next) => {
   try {
     const { filename } = req.params;
+
+    // Strict Input Sanitization
+    if (!filename || filename.indexOf('\0') !== -1 || filename.includes('..')) {
+      return next(new AppError('Invalid filename parameter', 400));
+    }
+
     const companyId = req.companyFilter || req.user?.companyId;
 
     // --- TOP LEVEL SAFETY CHECK ---
@@ -102,7 +108,11 @@ const sendFileResponse = (res, filename, next) => {
   const uploadsDir = path.resolve(process.cwd(), env.upload.dir || 'uploads');
   const fullPath = path.resolve(uploadsDir, filename);
 
-  if (!fullPath.startsWith(uploadsDir)) {
+  // Securely verify that the resolved path is strictly contained within the uploads directory
+  const relative = path.relative(uploadsDir, fullPath);
+  const isContained = relative && !relative.startsWith('..') && !path.isAbsolute(relative);
+
+  if (!isContained) {
     return next(new AppError('Access denied or invalid file path', 403));
   }
 

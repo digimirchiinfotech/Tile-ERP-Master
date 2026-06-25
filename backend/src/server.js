@@ -34,7 +34,7 @@ import { cleanupExpiredTokens } from './utils/tokenManager.js';
 import { initSubscriptionScheduler } from './jobs/subscriptionScheduler.js';
 import { runGlobalSchemaMigration } from './utils/globalSchemaMigration.js';
 import { initBackupScheduler } from './utils/backupScheduler.js';
-import { ensurePerformanceIndexes } from './utils/ensurePerformanceIndexes.js';
+
 
 // Import routes
 import aiRoutes from './routes/aiRoutes.js';
@@ -460,9 +460,6 @@ API Base: http://${HOST}:${PORT}/api
       logger.warn('Server', `Global schema migration warning: ${err.message}`)
     );
 
-    ensurePerformanceIndexes().catch(err =>
-      logger.warn('Server', `Performance index check warning: ${err.message}`)
-    );
 
     setTimeout(() => {
       initSubscriptionScheduler();

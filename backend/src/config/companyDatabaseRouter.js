@@ -19,6 +19,7 @@ import { syncTenantSchema } from '../utils/tenantSchemaSync.js';
 const { Pool } = pg;
 
 // Cache for company database connections - prevents repeated pool creation
+const MAX_CACHED_POOLS = parseInt(env.MAX_CACHED_POOLS || 50, 10);
 const companyDatabaseCache = new Map();
 const companyLastAccessTime = new Map();
 
@@ -46,6 +47,9 @@ export const getCompanyDatabase = async (companyId) => {
       companyDatabaseCache.delete(companyId);
       companyLastAccessTime.delete(companyId);
     } else {
+      // LRU Update: Delete and re-insert to move to end of Map (most recently used)
+      companyDatabaseCache.delete(companyId);
+      companyDatabaseCache.set(companyId, cachedPool);
       companyLastAccessTime.set(companyId, Date.now());
       return cachedPool;
     }
@@ -118,6 +122,21 @@ export const getCompanyDatabase = async (companyId) => {
 
       // Run dynamic schema synchronization once per tenant pool initialization
       await syncTenantSchema(companyPool, companyId);
+
+      // LRU Eviction Logic
+      if (companyDatabaseCache.size >= MAX_CACHED_POOLS) {
+        let oldestCompanyId = null;
+        for (const [key, pool] of companyDatabaseCache.entries()) {
+          if (pool !== masterPool && key !== companyId && !initializationPromises.has(key)) {
+            oldestCompanyId = key;
+            break; // The first one in Map insertion order is the oldest
+          }
+        }
+        if (oldestCompanyId) {
+          debugLogger.info('Router', `LRU Eviction: Maximum pool limit (${MAX_CACHED_POOLS}) reached. Evicting pool for company ${oldestCompanyId}.`);
+          await closeCompanyDatabase(oldestCompanyId);
+        }
+      }
 
       // Cache this connection pool
       companyDatabaseCache.set(companyId, companyPool);

@@ -424,7 +424,10 @@ function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, current
 
       const res = await igstInvoiceService.createOrUpdate(formData.export_invoice_id, payload);
       if (res.data?.success) {
-        showSuccess(`IGST Invoice successfully saved as ${status}!`);
+        const successMsg = formData.id
+          ? `IGST Invoice updated successfully!`
+          : `IGST Invoice successfully saved as ${status}!`;
+        showSuccess(successMsg);
         // Refresh local cache & return
         sessionStorage.setItem('igst_invoice_id', formData.export_invoice_id);
         setTimeout(() => {
@@ -451,13 +454,17 @@ function IGSTInvoiceForm({ exportInvoiceId: propExportInvoiceId, onBack, current
           </Button>
           <Percent size={18} className="text-primary" style={{ flexShrink: 0 }} />
           <div>
-            <h5 className="mb-0 fw-bold" style={{ fontSize: '1.1rem', color: '#1a1a2e' }}>IGST Invoice Editor</h5>
-            <span className="text-muted" style={{ fontSize: '0.78rem' }}>Step 4: GST & Customs Export Tax Invoice Form</span>
+            <h5 className="mb-0 fw-bold" style={{ fontSize: '1.1rem', color: '#1a1a2e' }}>
+              {formData.id ? 'Update IGST Invoice' : 'Create IGST Invoice'}
+            </h5>
+            <span className="text-muted" style={{ fontSize: '0.78rem' }}>
+              {formData.id ? `Editing: ${formData.igst_invoice_no || 'IGST Invoice'}` : 'Step 4: GST & Customs Export Tax Invoice Form'}
+            </span>
           </div>
         </div>
         <div className="d-flex gap-2" style={{ flexShrink: 0 }}>
           <Button variant="outline-primary" onClick={() => handleSave('Draft')} disabled={saving} className="fw-bold shadow-sm" style={{ borderRadius: '8px', fontSize: '0.84rem', height: '34px', padding: '0 14px' }}>
-            {saving ? <Spinner animation="border" size="sm" /> : 'Save as Draft'}
+            {saving ? <Spinner animation="border" size="sm" /> : (formData.id ? 'Update Record' : 'Save as Draft')}
           </Button>
         </div>
       </div>

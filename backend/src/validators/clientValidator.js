@@ -135,39 +135,6 @@ export const createClientValidator = [
       return true;
     }),
 
-  body('gstn')
-    .optional()
-    .isString()
-    .withMessage('GST number must be a string')
-    .custom((value) => {
-      if (!value) return true;
-      const { isValid, error } = validateGST(value);
-      if (!isValid) throw new Error(error);
-      return true;
-    }),
-
-  body('pan')
-    .optional()
-    .isString()
-    .withMessage('PAN must be a string')
-    .custom((value) => {
-      if (!value) return true;
-      const { isValid, error } = validatePAN(value);
-      if (!isValid) throw new Error(error);
-      return true;
-    }),
-
-  body('iec_no')
-    .optional()
-    .isString()
-    .withMessage('IEC number must be a string')
-    .custom((value) => {
-      if (!value) return true;
-      const { isValid, error } = validateIEC(value);
-      if (!isValid) throw new Error(error);
-      return true;
-    }),
-
   body('assigned_salesperson')
     .optional({ nullable: true })
     .custom((value) => {
@@ -319,39 +286,6 @@ export const updateClientValidator = [
       if (value === undefined || value === null) return true;
       const num = typeof value === 'string' ? parseInt(value, 10) : value;
       if (isNaN(num) || num < 0) throw new Error('Credit days must be a positive integer');
-      return true;
-    }),
-
-  body('gstn')
-    .optional()
-    .isString()
-    .withMessage('GST number must be a string')
-    .custom((value) => {
-      if (!value) return true;
-      const { isValid, error } = validateGST(value);
-      if (!isValid) throw new Error(error);
-      return true;
-    }),
-
-  body('pan')
-    .optional()
-    .isString()
-    .withMessage('PAN must be a string')
-    .custom((value) => {
-      if (!value) return true;
-      const { isValid, error } = validatePAN(value);
-      if (!isValid) throw new Error(error);
-      return true;
-    }),
-
-  body('iec_no')
-    .optional()
-    .isString()
-    .withMessage('IEC number must be a string')
-    .custom((value) => {
-      if (!value) return true;
-      const { isValid, error } = validateIEC(value);
-      if (!isValid) throw new Error(error);
       return true;
     }),
 

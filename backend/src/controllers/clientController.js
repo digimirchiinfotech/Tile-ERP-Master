@@ -128,10 +128,6 @@ export const getAll = async (req, res, next) => {
       total_order_value: parseFloat(row.total_order_value || 0),
       buyer_details: decrypt(row.buyer_details),
       consignee_details: decrypt(row.consignee_details),
-      bank_account_number: decrypt(row.bank_account_number),
-      bank_ifsc: decrypt(row.bank_ifsc),
-      gst_number: decrypt(row.gst_number),
-      iec_code: decrypt(row.iec_code),
       credit_limit: parseFloat(row.credit_limit || 0)
     }));
 
@@ -197,10 +193,6 @@ export const getById = async (req, res, next) => {
     clientData.pending_payments = parseInt(clientData.pending_payments || 0);
     clientData.buyer_details = decrypt(clientData.buyer_details);
     clientData.consignee_details = decrypt(clientData.consignee_details);
-    clientData.bank_account_number = decrypt(clientData.bank_account_number);
-    clientData.bank_ifsc = decrypt(clientData.bank_ifsc);
-    clientData.gst_number = decrypt(clientData.gst_number);
-    clientData.iec_code = decrypt(clientData.iec_code);
     clientData.credit_limit = parseFloat(clientData.credit_limit || 0);
 
     return successResponse(
@@ -220,8 +212,7 @@ export const create = async (req, res, next) => {
       client_name, contact_person_name, email_id, contact_number, address, city, country,
       business_type, credit_limit = 0, credit_days = 0,
       assigned_salesperson, status = 'Active', notes, consignee_details, buyer_details,
-      port_of_loading = 'MUNDRA PORT', port_of_discharge, final_destination, currency = 'INR',
-      bank_account_number, bank_ifsc, gst_number, iec_code
+      port_of_loading = 'MUNDRA PORT', port_of_discharge, final_destination, currency = 'INR'
     } = req.body;
 
     // Use req.companyFilter which is already validated by auth middleware
@@ -243,7 +234,6 @@ export const create = async (req, res, next) => {
        (company_id, client_id, name, contact_person_name, email, contact_number, address, 
         city, country, business_type, credit_limit, credit_days,
         assigned_salesperson, status, notes, consignee_details, buyer_details, port_of_loading, port_of_discharge, final_destination, currency, created_by,
-        bank_account_number, bank_ifsc, gst_number, iec_code,
         created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
        RETURNING *`,
@@ -253,9 +243,7 @@ export const create = async (req, res, next) => {
         credit_limit || 0, credit_days || 0,
         normalizeEmptyToNull(assigned_salesperson), status || 'Active', normalizeEmptyToNull(notes),
         encrypt(normalizeEmptyToNull(consignee_details)), encrypt(normalizeEmptyToNull(buyer_details)),
-        port_of_loading || 'MUNDRA PORT', normalizeEmptyToNull(port_of_discharge), normalizeEmptyToNull(final_destination), currency || 'INR', req.user.id,
-        encrypt(normalizeEmptyToNull(bank_account_number)), encrypt(normalizeEmptyToNull(bank_ifsc)),
-        encrypt(normalizeEmptyToNull(gst_number)), encrypt(normalizeEmptyToNull(iec_code))
+        port_of_loading || 'MUNDRA PORT', normalizeEmptyToNull(port_of_discharge), normalizeEmptyToNull(final_destination), currency || 'INR', req.user.id
       ]
     );
 
@@ -290,8 +278,7 @@ export const update = async (req, res, next) => {
       client_name, contact_person_name, email_id, contact_number, address, city, country,
       business_type, credit_limit, credit_days,
       assigned_salesperson, status, notes, consignee_details, buyer_details,
-      port_of_loading, port_of_discharge, final_destination, currency,
-      bank_account_number, bank_ifsc, gst_number, iec_code
+      port_of_loading, port_of_discharge, final_destination, currency
     } = req.body;
 
     await client.query('BEGIN');
@@ -373,30 +360,6 @@ export const update = async (req, res, next) => {
     if (credit_limit !== undefined) {
       updates.push(`credit_limit = $${paramCount}`);
       values.push(credit_limit);
-      paramCount++;
-    }
-
-    if (bank_account_number !== undefined) {
-      updates.push(`bank_account_number = $${paramCount}`);
-      values.push(encrypt(normalizeEmptyToNull(bank_account_number)));
-      paramCount++;
-    }
-
-    if (bank_ifsc !== undefined) {
-      updates.push(`bank_ifsc = $${paramCount}`);
-      values.push(encrypt(normalizeEmptyToNull(bank_ifsc)));
-      paramCount++;
-    }
-
-    if (gst_number !== undefined) {
-      updates.push(`gst_number = $${paramCount}`);
-      values.push(encrypt(normalizeEmptyToNull(gst_number)));
-      paramCount++;
-    }
-
-    if (iec_code !== undefined) {
-      updates.push(`iec_code = $${paramCount}`);
-      values.push(encrypt(normalizeEmptyToNull(iec_code)));
       paramCount++;
     }
 

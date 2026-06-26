@@ -11,12 +11,27 @@
 
 import { AppError } from './errorHandler.js';
 
+// Explicit permission matrix
+const roleModuleAccess = {
+  account: ['finance', 'export-invoices', 'payments'],
+  sales_manager: ['leads', 'clients', 'proforma-invoices']
+};
+
 // Middleware factory to check if a module is enabled for the current company
 export const checkModuleAccess = (moduleName) => {
   return async (req, res, next) => {
     try {
-      // Allow super admins to bypass module checks
-      if (req.user && req.user.role === 'super_admin') return next();
+      // Keep bypass only for super_admin and company_admin
+      if (req.user && ['super_admin', 'company_admin'].includes(req.user.role)) {
+        return next();
+      }
+
+      // Check explicit permission matrix for specific roles
+      if (req.user && roleModuleAccess[req.user.role]) {
+        if (!roleModuleAccess[req.user.role].includes(moduleName)) {
+          return next(new AppError('Role does not have access to this module', 403));
+        }
+      }
 
       // Determine company id
       const companyId = req.user?.company_id || req.user?.companyId || req.params?.companyId || req.params?.id || req.query?.companyId || req.body?.companyId;

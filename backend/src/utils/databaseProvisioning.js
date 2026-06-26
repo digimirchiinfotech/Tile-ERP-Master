@@ -152,7 +152,8 @@ export const provisionCompanyDatabase = async (company) => {
         city VARCHAR(100),
         country VARCHAR(100),
         business_type VARCHAR(100),
-        credit_limit NUMERIC DEFAULT 0,
+        -- Stored as AES-256-GCM encrypted text (decrypt at application layer)
+        credit_limit TEXT DEFAULT NULL,
         credit_days INTEGER DEFAULT 0,
         assigned_salesperson UUID,
         status VARCHAR(50) DEFAULT 'Active',
@@ -165,7 +166,12 @@ export const provisionCompanyDatabase = async (company) => {
         currency VARCHAR(10) DEFAULT 'INR',
         created_by UUID,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        -- Encrypted sensitive financial identifiers (DPDP Act 2023 compliance)
+        bank_account_number TEXT DEFAULT NULL,
+        bank_ifsc TEXT DEFAULT NULL,
+        gst_number TEXT DEFAULT NULL,
+        iec_code TEXT DEFAULT NULL
       );
 
       -- Client Orders table

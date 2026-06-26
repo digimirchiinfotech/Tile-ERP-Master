@@ -131,7 +131,12 @@ export const getRestrictionForRole = (req) => {
         'internal_notes',
         'credit_limit',
         'payment_history',
-        'other_clients_data'
+        'other_clients_data',
+        // Encrypted financial identifiers — clients must never see these
+        'bank_account_number',
+        'bank_ifsc',
+        'gst_number',
+        'iec_code'
       ]
     },
     qc_inspector: {

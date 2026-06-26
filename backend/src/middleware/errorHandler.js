@@ -118,11 +118,14 @@ const errorHandler = (err, req, res, next) => {
   // In production, show a generic message — never leak internal error info to clients.
   if (statusCode === 500) {
     const isDevelopment = env.node_env === 'development';
+    // Also expose DB column/table errors (42703, 42P01) even in production for diagnosis
+    const isDbError = err.code && ['42703', '42P01', '42601', '23502', '23503', '23505'].includes(err.code);
     return res.status(500).json({
       success: false,
-      message: isDevelopment
-        ? `Internal server error: ${error.message || err.message}`
-        : 'Something went wrong. Please contact your administrator.'
+      message: isDevelopment || isDbError
+        ? `Internal server error: ${error.message || err.message}${ err.code ? ` [PG:${err.code}]` : ''}`
+        : 'Something went wrong. Please contact your administrator.',
+      ...(isDbError ? { dbCode: err.code, detail: err.detail } : {})
     });
   }
 

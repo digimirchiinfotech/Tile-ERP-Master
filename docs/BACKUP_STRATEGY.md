@@ -1,6 +1,6 @@
 # Disaster Recovery & Backup Strategy
 
-This document outlines the disaster recovery (DR) procedures and backup strategy for the Tile ERP system. Because the system utilizes a multi-tenant database-per-tenant architecture, backups must comprehensively capture both the master orchestrator database and all isolated tenant databases.
+This document outlines the disaster recovery (DR) procedures and backup strategy for the newname system. Because the system utilizes a multi-tenant database-per-tenant architecture, backups must comprehensively capture both the master orchestrator database and all isolated tenant databases.
 
 ## 1. Backup Schedule & Retention Policy
 

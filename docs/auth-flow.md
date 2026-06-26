@@ -1,10 +1,10 @@
 # Authentication & Security Flow
 
-This document details the security architecture of the Tile ERP application, specifically focusing on authentication, authorization, and data protection.
+This document details the security architecture of the newname application, specifically focusing on authentication, authorization, and data protection.
 
 ## Authentication Strategy (Hybrid)
 
-The Tile ERP application employs a hybrid authentication strategy to support both web clients (cookies) and mobile/external API clients (bearer tokens).
+The newname application employs a hybrid authentication strategy to support both web clients (cookies) and mobile/external API clients (bearer tokens).
 
 1. **Web Clients (Browsers):**
    - The primary authentication mechanism uses HTTP-only, secure cookies (`token`).

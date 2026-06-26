@@ -1,6 +1,6 @@
 # Branch Protection Rules
 
-To maintain the security and stability of the Tile ERP application, the following branch protection rules **must** be enforced on the `master` and `main` branches in your GitHub repository settings.
+To maintain the security and stability of the newname application, the following branch protection rules **must** be enforced on the `master` and `main` branches in your GitHub repository settings.
 
 ## Required Settings
 

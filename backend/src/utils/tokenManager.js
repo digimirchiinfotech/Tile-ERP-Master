@@ -13,7 +13,7 @@
  * Token Management Utilities
  * 
  * Security model:
- *  - Access tokens:  short-lived JWT (360 min), verified in-memory
+ *  - Access tokens:  short-lived JWT (15 min), verified in-memory — DPDP Act 2023 compliant
  *  - Refresh tokens: opaque 256-bit random hex, stored ONLY as SHA-256 hash
  *  - Token families: each login creates a family UUID; all rotated tokens
  *    share the same family. Reuse of a revoked token triggers full-family
@@ -253,6 +253,28 @@ export const revokeAllUserTokens = async (db, userId, reason = 'admin_action') =
   );
 };
 
+/**
+ * Revoke ALL active refresh tokens for every user in a company.
+ * Called by company_admin via POST /api/auth/revoke-all (emergency revocation).
+ *
+ * @param {object} db
+ * @param {string} companyId
+ * @param {string} reason
+ * @returns {Promise<number>} rowcount of revoked tokens
+ */
+export const revokeAllCompanyTokens = async (db, companyId, reason = 'emergency_revocation') => {
+  const result = await db.globalQuery(
+    `UPDATE refresh_tokens rt
+        SET revoked = TRUE, revoked_reason = $2
+       FROM users u
+      WHERE rt.user_id = u.id
+        AND u.company_id = $1
+        AND rt.revoked = FALSE`,
+    [companyId, reason]
+  );
+  return result.rowCount;
+};
+
 // ─── Scheduled cleanup ────────────────────────────────────────────────────────
 
 /**
@@ -294,6 +316,7 @@ export default {
   rotateRefreshToken,
   revokeRefreshToken,
   revokeAllUserTokens,
+  revokeAllCompanyTokens,
   cleanupExpiredTokens,
   invalidateUserTokens
 };

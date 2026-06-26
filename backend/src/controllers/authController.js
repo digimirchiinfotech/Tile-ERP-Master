@@ -17,7 +17,8 @@ import {
   storeRefreshToken,
   rotateRefreshToken,
   revokeRefreshToken,
-  revokeAllUserTokens
+  revokeAllUserTokens,
+  revokeAllCompanyTokens
 } from '../utils/tokenManager.js';
 import { generateResetToken } from '../utils/jwt.js';
 import { sendPasswordResetEmail } from '../utils/emailService.js';
@@ -401,6 +402,52 @@ export const logout = async (req, res, next) => {
   }
 };
 
+/**
+ * POST /api/auth/revoke-all
+ * Emergency: revoke ALL active sessions for the caller's company.
+ * Restricted to company_admin and super_admin.
+ * After calling this, all users (including admins) will be logged out on next
+ * access token expiry — typically within 15 minutes.
+ */
+export const revokeAll = async (req, res, next) => {
+  try {
+    const { role, companyId, id: adminId } = req.user;
+
+    if (!['company_admin', 'super_admin'].includes(role)) {
+      return next(new AppError('Only company_admin or super_admin can perform emergency revocation', 403));
+    }
+
+    // super_admin can optionally target another company via body
+    const targetCompanyId = role === 'super_admin' && req.body.company_id
+      ? req.body.company_id
+      : companyId;
+
+    if (!targetCompanyId) {
+      return next(new AppError('Company context is required for revocation', 400));
+    }
+
+    const revokedCount = await revokeAllCompanyTokens(req.db, targetCompanyId, 'emergency_revocation');
+
+    insertAuditLog({
+      userId: adminId,
+      companyId: targetCompanyId,
+      action: 'EMERGENCY_REVOKE_ALL_SESSIONS',
+      resourceType: 'auth',
+      resourceId: targetCompanyId,
+      oldValues: null,
+      newValues: { revoked_sessions: revokedCount },
+      ipAddress: req.ip
+    }, req.db);
+
+    debugLogger.warn('Auth', `🚨 EMERGENCY: ${role} ${adminId} revoked all ${revokedCount} sessions for company ${targetCompanyId}`);
+
+    return successResponse(res, { revoked_sessions: revokedCount },
+      `Emergency revocation complete. ${revokedCount} active sessions terminated. All users will be logged out within 15 minutes.`);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   register,
   login,
@@ -409,5 +456,6 @@ export default {
   validateResetToken,
   resetPassword,
   getCurrentUser,
-  logout
+  logout,
+  revokeAll
 };

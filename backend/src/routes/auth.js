@@ -19,7 +19,8 @@ import {
   validateResetToken,
   resetPassword,
   getCurrentUser,
-  logout
+  logout,
+  revokeAll
 } from '../controllers/authController.js';
 import { authenticate } from '../middleware/auth.js';
 import { validateRequest } from '../middleware/inputValidation.js';
@@ -58,5 +59,8 @@ router.post('/reset-password', resetPasswordValidator, validateRequest, resetPas
 router.get('/me', authenticate, getCurrentUser);
 
 router.post('/logout', authenticate, logout);
+
+// Emergency: company_admin revokes all active sessions for their company
+router.post('/revoke-all', authenticate, revokeAll);
 
 export default router;

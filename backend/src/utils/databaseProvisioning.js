@@ -2281,6 +2281,23 @@ export const syncCompanyDatabase = async (companyId, db) => {
       await db.query(`
         -- Phase 6: Soft Delete Consistency
         ALTER TABLE clients ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+        
+        -- Phase 6.1: Self-heal missing clients columns
+        ALTER TABLE clients ADD COLUMN IF NOT EXISTS client_name VARCHAR(255);
+        ALTER TABLE clients ADD COLUMN IF NOT EXISTS email_id VARCHAR(255);
+        ALTER TABLE clients ADD COLUMN IF NOT EXISTS business_type VARCHAR(100);
+        ALTER TABLE clients ADD COLUMN IF NOT EXISTS credit_limit TEXT DEFAULT NULL;
+        ALTER TABLE clients ADD COLUMN IF NOT EXISTS credit_days INTEGER DEFAULT 0;
+        ALTER TABLE clients ADD COLUMN IF NOT EXISTS assigned_salesperson UUID;
+        ALTER TABLE clients ADD COLUMN IF NOT EXISTS notes TEXT;
+        ALTER TABLE clients ADD COLUMN IF NOT EXISTS consignee_details TEXT;
+        ALTER TABLE clients ADD COLUMN IF NOT EXISTS buyer_details TEXT;
+        ALTER TABLE clients ADD COLUMN IF NOT EXISTS port_of_loading VARCHAR(255) DEFAULT 'MUNDRA PORT';
+        ALTER TABLE clients ADD COLUMN IF NOT EXISTS port_of_discharge VARCHAR(255);
+        ALTER TABLE clients ADD COLUMN IF NOT EXISTS final_destination VARCHAR(255);
+        ALTER TABLE clients ADD COLUMN IF NOT EXISTS currency VARCHAR(10) DEFAULT 'INR';
+        ALTER TABLE clients ADD COLUMN IF NOT EXISTS created_by UUID;
+
         ALTER TABLE proforma_invoices ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
         ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
         ALTER TABLE products ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;

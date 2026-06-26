@@ -22,6 +22,7 @@ import ProductView from './ProductView.jsx';
 import SmartProductFilter from './SmartProductFilter.jsx';
 import ProductBundleManager from './ProductBundleManager.jsx';
 import ImportModal from '../shared/ImportModal.jsx';
+import SecureImage from '../shared/SecureImage.jsx';
 import { useMultiSelect } from '../../hooks/useMultiSelect.js';
 import bulkDeleteService from '../../services/bulkDeleteService.js';
 import BulkActionBar from '../shared/BulkActionBar.jsx';
@@ -764,21 +765,15 @@ function ProductDashboard({ currentUser, productsData, navigationData }) {
                       <td><StatusBadge status={product.status} /></td>
                       <td>
                         {product.images?.[0]?.url || product.images?.[0]?.path ? (
-                          <img
-                            src={`${(product.images[0].url || product.images[0].path).startsWith('http') ? '' : (import.meta.env.DEV || import.meta.env.MODE === 'development' ? '' : 'https://tile-erp-master-production.up.railway.app')}${product.images[0].url || product.images[0].path}?token=${tokenManager.getAccessToken() || ''}`}
+                          <SecureImage
+                            src={product.images[0].url || product.images[0].path}
                             alt={product.name}
-                            onError={(e) => {
-                              if (!e.target.dataset.triedToken && !e.target.src.includes('token=')) {
-                                e.target.dataset.triedToken = 'true';
-                                const token = tokenManager.getAccessToken();
-                                if (token) e.target.src = `${e.target.src.split('?')[0]}?token=${token}`;
-                              } else {
-                                e.target.onerror = null; // prevent infinite loops
-                                e.target.style.display = 'none';
-                                e.target.insertAdjacentHTML('afterend', '<div class="bg-light d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 4px;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image text-secondary opacity-50"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></div>');
-                              }
-                            }}
                             style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }}
+                            fallback={
+                              <div className="bg-light d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', borderRadius: '4px' }}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-image text-secondary opacity-50"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                              </div>
+                            }
                           />
                         ) : (
                           <div className="bg-light d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', borderRadius: '4px' }}>

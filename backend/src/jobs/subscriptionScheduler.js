@@ -19,23 +19,24 @@ import debugLogger from '../utils/debugLogger.js';
 const runWithLock = async () => {
   const client = await masterPool.connect();
   try {
+    // Use pg_try_advisory_xact_lock (transaction-level) so PgBouncer transaction
+    // pooling does not orphan the lock. The lock auto-releases at transaction end.
+    await client.query('BEGIN');
     // 1001 is the advisory lock ID for subscription expiry checks
-    const { rows } = await client.query('SELECT pg_try_advisory_lock(1001) as locked');
+    const { rows } = await client.query('SELECT pg_try_advisory_xact_lock(1001) as locked');
     if (!rows[0].locked) {
+      await client.query('ROLLBACK');
       debugLogger.info('Scheduler', 'Subscription check lock held by another instance. Skipping.');
       return;
     }
     
     debugLogger.info('Scheduler', 'Acquired subscription check lock. Running...');
     await checkSubscriptionExpiry(client);
+    await client.query('COMMIT');
   } catch (err) {
+    try { await client.query('ROLLBACK'); } catch (_) {}
     debugLogger.error('Scheduler', 'Subscription check failed', err);
   } finally {
-    try {
-      await client.query('SELECT pg_advisory_unlock(1001)');
-    } catch (e) {
-      debugLogger.error('Scheduler', 'Failed to release lock', e);
-    }
     client.release();
   }
 };

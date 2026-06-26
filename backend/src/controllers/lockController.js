@@ -12,6 +12,7 @@
 import { AppError } from '../middleware/errorHandler.js';
 import { createSnapshot } from '../services/documentSnapshotService.js';
 import { notificationService } from '../services/notificationService.js';
+import { eventBus, DomainEvents } from '../utils/eventBus.js';
 
 const TABLE_MAP = {
   PI: 'proforma_invoices',
@@ -164,6 +165,18 @@ export const lockDocument = async (req, res, next) => {
       req.user?.name || req.user?.email_id || 'Admin', 
       req.db
     ).catch(() => {});
+
+    if (documentType === 'EXPORT_INVOICE' || documentType === 'PROFORMA_INVOICE') {
+      const totalAmount = currentDoc.rows[0].total_amount || 0;
+      const clientId = currentDoc.rows[0].client_id;
+      eventBus.emit(DomainEvents.INVOICE_FINALIZED, {
+        companyId,
+        invoiceId: documentId,
+        totalAmount,
+        clientId,
+        userId
+      });
+    }
 
     res.json({ success: true, message: 'Document locked successfully' });
   } catch (error) {

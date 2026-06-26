@@ -11,9 +11,11 @@
 
 | Finding | Count |
 |---|---|
-| **Confirmed SQL Injections Fixed** | 1 |
+| **Confirmed SQL Injections Fixed** | 4 |
 | **Safe Patterns (Dynamic SQL, non-user input)** | Many |
 | **Files with No SQL / Clean** | 34 |
+
+> **Phase 8 Update (2026-06-26):** Three additional string-interpolation SQL injection vectors were discovered and fixed in `orderSheetController.js` during continued audit: `getOrderSheetSummary`, `exportFactoryAssignment`, and `getFactoryCapacity`. See below.
 
 ---
 
@@ -148,7 +150,7 @@ await req.db.query(`SELECT DISTINCT supplier_name ... ${osWhereSQL} AND ...`, qu
 | `controllers/masterDataController.js` | ✅ Clean | Table/column names come from hardcoded `TABLE_MAPPING` object. User `type` param is validated via lookup (`if (!config) return res.status(400)...`). All values are parameterized. |
 | `controllers/monitoringController.js` | ✅ Clean | Fully parameterized |
 | `controllers/notificationController.js` | ✅ Clean | Fully parameterized |
-| `controllers/orderSheetController.js` | 🔴 **FIXED** | `getFilterOptions`: companyId was directly interpolated into SQL. **Fixed:** replaced with parameterized `$1` placeholders. |
+| `controllers/orderSheetController.js` | 🔴 **FIXED (Phase 8)** | Four functions had companyId directly interpolated into SQL strings. **Fixed in two phases:** (1) `getFilterOptions` — Phase 7; (2) `getOrderSheetSummary`, `exportFactoryAssignment`, `getFactoryCapacity` — Phase 8. All replaced with parameterized `$1` placeholders and `queryParams` arrays. |
 | `controllers/packingListController.js` | ✅ Clean | Dynamic clauses built from counter; values in array |
 | `controllers/paymentController.js` | ✅ Clean | Dynamic WHERE uses hardcoded string fragments; all values in params array |
 | `controllers/pdfController.js` | ✅ Clean | No SQL |

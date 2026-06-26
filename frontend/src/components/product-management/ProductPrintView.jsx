@@ -11,7 +11,7 @@
 
 import React from 'react';
 import { Row, Col, Table } from 'react-bootstrap';
-import { tokenManager } from '../../utils/tokenManager';
+import SecureImage from '../shared/SecureImage.jsx';
 
 const ProductPrintView = ({ productData }) => {
   if (!productData) return null;
@@ -26,8 +26,8 @@ const ProductPrintView = ({ productData }) => {
       <Row className="mb-4 align-items-center">
         <Col xs={4}>
           {productData.images && productData.images.length > 0 ? (
-            <img 
-              src={`${productData.images[0].url || productData.images[0].path || productData.images[0]}?token=${tokenManager.getAccessToken() || ''}`} 
+            <SecureImage 
+              src={productData.images[0].url || productData.images[0].path || productData.images[0]} 
               alt="Product" 
               className="img-fluid rounded border shadow-sm" 
               style={{ maxHeight: '200px', objectFit: 'contain' }} 

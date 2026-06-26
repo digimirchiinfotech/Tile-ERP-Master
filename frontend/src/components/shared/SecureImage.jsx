@@ -1,65 +1,85 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../services/api';
+import { tokenManager } from '../../utils/tokenManager.js';
+import { resolveImageUrl } from '../../utils/urlHelper.js';
 
-const SecureImage = ({ src, alt, className, style, fallbackSrc = '/placeholder-image.png' }) => {
-  const [imgSrc, setImgSrc] = useState(null);
-  const [loading, setLoading] = useState(true);
+export default function SecureImage({ src, alt, className, style, onClick }) {
+  const [objectUrl, setObjectUrl] = useState(null);
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let objectUrl = null;
+    let urlToRevoke = null;
+    let isMounted = true;
 
     const fetchImage = async () => {
       if (!src) {
         setLoading(false);
         return;
       }
-
-      // If it's an external URL or data URI, no need for secure fetch
-      if (src.startsWith('http') || src.startsWith('data:')) {
-        setImgSrc(src);
-        setLoading(false);
-        return;
-      }
-
+      
       try {
-        setLoading(true);
-        // Make authenticated request to /api/files endpoint
-        const filename = src.split('/').pop();
-        const response = await api.get(`/files/${filename}`, {
-          responseType: 'blob',
-        });
+        const url = resolveImageUrl(src);
+        
+        // If it's a data URL, blob URL, or external URL not on our backend, just use it directly
+        if (url.startsWith('data:') || url.startsWith('blob:') || (!url.startsWith('/') && !url.includes(import.meta.env.VITE_API_BASE_URL || 'api'))) {
+           setObjectUrl(url);
+           setLoading(false);
+           return;
+        }
 
-        objectUrl = URL.createObjectURL(response.data);
-        setImgSrc(objectUrl);
-        setError(false);
+        const token = tokenManager.getAccessToken();
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+        const response = await fetch(url, { headers });
+        if (!response.ok) throw new Error('Network response was not ok');
+        
+        const blob = await response.blob();
+        if (isMounted) {
+          urlToRevoke = URL.createObjectURL(blob);
+          setObjectUrl(urlToRevoke);
+          setLoading(false);
+        }
       } catch (err) {
-        console.error('Error fetching secure image:', err);
-        setError(true);
-      } finally {
-        setLoading(false);
+        if (isMounted) {
+          setError(true);
+          setLoading(false);
+        }
       }
     };
 
     fetchImage();
 
-    // Cleanup object URL
     return () => {
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
+      isMounted = false;
+      if (urlToRevoke) {
+        URL.revokeObjectURL(urlToRevoke);
       }
     };
   }, [src]);
 
   if (loading) {
-    return <div className={`animate-pulse bg-gray-200 ${className}`} style={style} />;
+    return <div className={`d-flex align-items-center justify-content-center bg-light ${className}`} style={{ ...style, minHeight: '100px' }}><div className="spinner-border text-primary spinner-border-sm" /></div>;
   }
 
-  if (error || !imgSrc) {
-    return <img src={fallbackSrc} alt={alt} className={className} style={style} />;
+  if (error || !objectUrl) {
+    return (
+      <div 
+        className={`d-flex align-items-center justify-content-center bg-light text-muted ${className}`} 
+        style={style}
+        onClick={onClick}
+      >
+        <span style={{ fontSize: '12px' }}>{alt || 'Image Error'}</span>
+      </div>
+    );
   }
 
-  return <img src={imgSrc} alt={alt} className={className} style={style} />;
-};
-
-export default SecureImage;
+  return (
+    <img 
+      src={objectUrl} 
+      alt={alt} 
+      className={className} 
+      style={style} 
+      onClick={onClick}
+    />
+  );
+}

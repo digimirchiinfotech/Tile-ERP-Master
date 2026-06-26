@@ -34,6 +34,7 @@ import { requireAdminRole } from './middleware/rbac.js';
 
 import { cleanupExpiredTokens } from './utils/tokenManager.js';
 import { initSubscriptionScheduler } from './jobs/subscriptionScheduler.js';
+import { initFinanceSubscribers } from './subscribers/financeSubscriber.js';
 import { runGlobalSchemaMigration } from './utils/globalSchemaMigration.js';
 import { initBackupScheduler } from './utils/backupScheduler.js';
 
@@ -313,13 +314,10 @@ if (env.node_env === 'development') {
 }
 
 // ─── SERVE UPLOADED FILES (signatures, images, etc.) ──────────────────────────
-// Must be registered BEFORE the frontend static path so /uploads/* routes resolve correctly.
+// All static file serving for /uploads has been REMOVED.
+// File access is strictly managed via authenticated controllers below.
 const uploadsDir = join(__dirname, '..', env.upload.dir || 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
-app.use('/uploads', express.static(uploadsDir, {
-  maxAge: '1d',
-  etag: true,
-}));
 
 // Serve built frontend static files
 const frontendDistPath = join(__dirname, '..', '..', 'frontend', 'dist');
@@ -456,9 +454,9 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/import', csvImportRoutes);
 app.use('/api/csv-export', csvExportRoutes);
 app.use('/api/system-settings', systemSettingsRoutes);
-app.use('/api/admin', companyManagementRoutes);
-app.use('/api/admin', adminPasswordResetRoutes);
-app.use('/api/admin', adminConsistencyRoutes);
+app.use('/api/admin', sensitiveLimiter, companyManagementRoutes);
+app.use('/api/admin', sensitiveLimiter, adminPasswordResetRoutes);
+app.use('/api/admin', sensitiveLimiter, adminConsistencyRoutes);
 app.use('/api/email-notifications', emailNotificationRoutes);
 app.use('/api/messages', messagesRoutes);
 app.use('/api/backups', backupRoutes);

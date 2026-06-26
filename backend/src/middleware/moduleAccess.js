@@ -27,15 +27,23 @@ export const checkModuleAccess = (moduleName) => {
       }
 
       // Check explicit permission matrix for specific roles
-      if (req.user && roleModuleAccess[req.user.role]) {
+      if (req.user && roleModuleAccess[req.user.role] !== undefined) {
         if (!roleModuleAccess[req.user.role].includes(moduleName)) {
           return next(new AppError('Role does not have access to this module', 403));
         }
+      } else if (req.user && !['super_admin', 'company_admin'].includes(req.user.role)) {
+        // FAIL-CLOSED: If role is not in the matrix and not an admin, deny access.
+        return next(new AppError('Role is not authorized for any modules', 403));
       }
 
-      // Determine company id
-      const companyId = req.user?.company_id || req.user?.companyId || req.params?.companyId || req.params?.id || req.query?.companyId || req.body?.companyId;
-      if (!companyId) return next();
+      // Determine company id securely from the authenticated token ONLY
+      const companyId = req.user?.company_id || req.user?.companyId;
+      
+      if (!companyId) {
+        // If there's no company context in the token (e.g. super_admin global view), let it pass
+        // Or if the system requires a company, it should be enforced by the auth middleware
+        return next();
+      }
 
       // Use req.db.query which is context-aware
       const result = await req.db.query(

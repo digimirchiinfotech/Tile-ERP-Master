@@ -39,30 +39,46 @@ const scheduleBackup = (frequency) => {
     logger.info('Scheduler', 'Starting automated scheduled backup');
     const client = await pool.connect();
     try {
-      const { rows } = await client.query('SELECT pg_try_advisory_lock(1002) as locked');
+      // Use pg_try_advisory_xact_lock (transaction-level) so PgBouncer transaction
+      // pooling does not orphan the lock. The lock is released automatically when
+      // the transaction ends, so NO manual pg_advisory_unlock is needed.
+      await client.query('BEGIN');
+      const { rows } = await client.query('SELECT pg_try_advisory_xact_lock(1002) as locked');
       if (!rows[0].locked) {
+        await client.query('ROLLBACK');
         logger.info('Scheduler', 'Backup already in progress by another instance. Skipping.');
         return;
       }
       await createFullBackup('automated');
+      await client.query('COMMIT');
     } catch (err) {
+      try { await client.query('ROLLBACK'); } catch (_) {}
       logger.error('Scheduler', 'Automated backup failed', err);
     } finally {
-      try {
-        await client.query('SELECT pg_advisory_unlock(1002)');
-      } catch (e) {
-        logger.error('Scheduler', 'Failed to release backup lock', e);
-      }
       client.release();
     }
   });
 
   // Schedule monthly test restore (1st of every month at 3 AM)
   testRestoreJob = cron.schedule('0 3 1 * *', async () => {
+    logger.info('Scheduler', 'Starting automated scheduled test restore');
+    const client = await pool.connect();
     try {
+      // Transaction-level advisory lock: safe with PgBouncer transaction mode.
+      await client.query('BEGIN');
+      const { rows } = await client.query('SELECT pg_try_advisory_xact_lock(1003) as locked');
+      if (!rows[0].locked) {
+        await client.query('ROLLBACK');
+        logger.info('Scheduler', 'Test restore already in progress by another instance. Skipping.');
+        return;
+      }
       await testRestore();
+      await client.query('COMMIT');
     } catch (err) {
+      try { await client.query('ROLLBACK'); } catch (_) {}
       logger.error('Scheduler', 'Monthly automated test restore failed', err);
+    } finally {
+      client.release();
     }
   });
   logger.info('Scheduler', 'Monthly test restore job scheduled for 03:00 on the 1st of every month');

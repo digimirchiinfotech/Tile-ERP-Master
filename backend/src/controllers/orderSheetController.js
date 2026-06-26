@@ -490,7 +490,9 @@ export const getOrderSheetSummary = async (req, res, next) => {
   try {
 
     const companyId = req.companyFilter;
-    const wherePrefix = companyId ? `WHERE os.company_id = '${companyId}'` : 'WHERE os.company_id IS NULL';
+    // SECURITY: Use parameterized queries — no string interpolation of companyId
+    const wherePrefix = companyId ? 'WHERE os.company_id = $1' : 'WHERE os.company_id IS NULL';
+    const queryParams = companyId ? [companyId] : [];
 
     const summaryQuery = `
       SELECT
@@ -511,7 +513,7 @@ export const getOrderSheetSummary = async (req, res, next) => {
       ${wherePrefix}
     `;
 
-    const result = await req.db.query(summaryQuery);
+    const result = await req.db.query(summaryQuery, queryParams);
     const stats = result.rows[0];
     
     Object.keys(stats).forEach(key => {
@@ -643,7 +645,9 @@ export const updateOrderSheet = async (req, res, next) => {
 export const exportFactoryAssignment = async (req, res, next) => {
   try {
     const companyId = req.companyFilter;
-    const wherePrefix = companyId ? `WHERE os.company_id = '${companyId}'` : 'WHERE os.company_id IS NULL';
+    // SECURITY: Parameterized query — no string interpolation of companyId
+    const wherePrefix = companyId ? 'WHERE os.company_id = $1' : 'WHERE os.company_id IS NULL';
+    const queryParams = companyId ? [companyId] : [];
 
     const dataQuery = `
       SELECT 
@@ -663,7 +667,7 @@ export const exportFactoryAssignment = async (req, res, next) => {
       ORDER BY os.created_at DESC
     `;
 
-    const dataRes = await req.db.query(dataQuery);
+    const dataRes = await req.db.query(dataQuery, queryParams);
     
     // Fallback if the excel export service expects the old format, we just pass the joined flat list
     const buffer = await generateFactoryAssignmentSheet(dataRes.rows);
@@ -685,7 +689,10 @@ export const bulkUpdateOrderSheets = async (req, res, next) => {
 export const getFactoryCapacity = async (req, res, next) => {
   try {
     const companyId = req.companyFilter;
-    const wherePrefix = companyId ? `WHERE osl.company_id = '${companyId}'` : `WHERE osl.company_id IS NULL`;
+    // SECURITY: Use parameterized queries — no string interpolation of companyId
+    const wherePrefix = companyId ? 'WHERE osl.company_id = $1' : 'WHERE osl.company_id IS NULL';
+    const joinCondition = companyId ? 'osl.company_id = $1' : 'osl.company_id IS NULL';
+    const queryParams = companyId ? [companyId] : [];
 
     const capacityQuery = `
       SELECT 
@@ -695,12 +702,12 @@ export const getFactoryCapacity = async (req, res, next) => {
         COALESCE(SUM(osl.produced_sqm), 0) as total_produced,
         (COALESCE(SUM(osl.required_sqm), 0) - COALESCE(SUM(osl.produced_sqm), 0)) as total_pending
       FROM factory_names f
-      LEFT JOIN master_order_sheet_lines osl ON f.id = osl.factory_id AND (${companyId ? `osl.company_id = '${companyId}'` : 'osl.company_id IS NULL'})
+      LEFT JOIN master_order_sheet_lines osl ON f.id = osl.factory_id AND (${joinCondition})
       GROUP BY f.id, f.name
       ORDER BY total_pending DESC, f.name ASC
     `;
 
-    const result = await req.db.query(capacityQuery);
+    const result = await req.db.query(capacityQuery, queryParams);
     
     const data = result.rows.map(row => ({
       ...row,

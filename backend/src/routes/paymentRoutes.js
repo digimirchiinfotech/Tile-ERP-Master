@@ -1,17 +1,16 @@
 /**
  * TILE EXPORTER ERP SAAS
- * 
+ *
  * COPYRIGHT © 2026. ALL RIGHTS RESERVED.
- * 
+ *
  * PROPRIETARY AND CONFIDENTIAL:
- * This source code is the strictly confidential intellectual property of the 
- * Tile Exporter system. Unauthorized copying, modification, distribution, 
+ * This source code is the strictly confidential intellectual property of the
+ * Tile Exporter system. Unauthorized copying, modification, distribution,
  * or reverse engineering of this file, via any medium, is strictly prohibited.
  */
 
 /**
  * Payment Routes
- * All payment-related endpoints
  */
 
 import express from 'express';
@@ -28,7 +27,19 @@ import { authenticate, filterByCompany } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// All routes require authentication and company filtering
+// ─── STRIPE WEBHOOK ─────────────────────────────────────────────────────────────
+// CRITICAL: Must be registered BEFORE router.use(authenticate) because:
+//   1. Stripe does NOT send a JWT — auth middleware would reject every real Stripe call.
+//   2. Stripe requires the RAW (unparsed) request body to verify the HMAC signature.
+//      The global express.json() body parser must NOT run before this route.
+router.post(
+  '/webhook/stripe',
+  express.raw({ type: 'application/json' }),
+  handleStripeWebhook_endpoint
+);
+
+// ─── AUTHENTICATED ROUTES ────────────────────────────────────────────────────────
+// All routes below this line require a valid JWT and company context.
 router.use(authenticate, filterByCompany);
 
 /**
@@ -54,12 +65,6 @@ router.get('/status/:invoiceId', getPaymentStatus);
  * GET /api/payments/history
  */
 router.get('/history', getPaymentHistory);
-
-/**
- * Stripe webhook handler (no auth required)
- * POST /api/payments/webhook/stripe
- */
-router.post('/webhook/stripe', handleStripeWebhook_endpoint);
 
 /**
  * PayPal payment creation

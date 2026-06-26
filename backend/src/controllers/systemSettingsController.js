@@ -497,7 +497,14 @@ export const restoreBackup = async (req, res) => {
       backupFile = files[0].name;
     }
 
-    const backupPath = path.join(backupDir, backupFile);
+    const backupPath = path.resolve(backupDir, backupFile);
+    
+    // SECURITY: Prevent path traversal (Arbitrary File Read)
+    // Ensure the resolved path strictly starts with the backups directory
+    if (!backupPath.startsWith(path.resolve(backupDir))) {
+       return res.status(403).json({ success: false, message: 'Invalid backup file path' });
+    }
+
     if (!fs.existsSync(backupPath)) {
        return res.status(404).json({ success: false, message: 'Backup file not found' });
     }

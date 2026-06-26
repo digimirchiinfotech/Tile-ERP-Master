@@ -77,7 +77,42 @@ export const getPaymentStatus = async (req, res, next) => {
 
 export const handleStripeWebhook_endpoint = async (req, res, next) => {
   try {
-    await handleStripeWebhook(req.body, req.db);
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    if (!webhookSecret) {
+      // In development without a webhook secret configured, log a clear warning
+      // and reject to prevent accidental acceptance of unverified events.
+      console.error('[Stripe Webhook] STRIPE_WEBHOOK_SECRET is not configured. Rejecting request.');
+      return res.status(400).json({ success: false, message: 'Webhook secret not configured' });
+    }
+
+    const signature = req.headers['stripe-signature'];
+    if (!signature) {
+      return res.status(400).json({ success: false, message: 'Missing stripe-signature header' });
+    }
+
+    // Import Stripe lazily (same pattern as paymentService.js)
+    let stripe;
+    try {
+      const Stripe = (await import('stripe')).default;
+      stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    } catch (err) {
+      return res.status(500).json({ success: false, message: 'Payment provider not available' });
+    }
+
+    // SECURITY: Verify the webhook signature using the raw request body.
+    // req.body is a Buffer here (provided by express.raw() in the route).
+    // If this verification fails, it means the request did NOT come from Stripe.
+    let event;
+    try {
+      event = stripe.webhooks.constructEvent(req.body, signature, webhookSecret);
+    } catch (err) {
+      console.error(`[Stripe Webhook] Signature verification failed: ${err.message}`);
+      return res.status(400).json({ success: false, message: `Webhook signature verification failed: ${err.message}` });
+    }
+
+    // Only process the event after successful verification
+    await handleStripeWebhook(event, req.db);
     res.json({ received: true });
   } catch (error) {
     next(error);

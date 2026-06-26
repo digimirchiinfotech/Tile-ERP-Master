@@ -108,6 +108,8 @@ export const getAll = async (req, res, next) => {
     const result = await req.db.query(
       `SELECT 
         c.*,
+        c.name as client_name,
+        c.email as email_id,
         COUNT(pi.id) as total_orders,
         COALESCE(SUM(pi.total_amount), 0) as total_order_value
        FROM clients c
@@ -130,7 +132,7 @@ export const getAll = async (req, res, next) => {
       bank_ifsc: decrypt(row.bank_ifsc),
       gst_number: decrypt(row.gst_number),
       iec_code: decrypt(row.iec_code),
-      credit_limit: row.credit_limit ? parseFloat(decrypt(row.credit_limit) || 0) : 0
+      credit_limit: parseFloat(row.credit_limit || 0)
     }));
 
     return successResponse(
@@ -173,6 +175,8 @@ export const getById = async (req, res, next) => {
     const result = await req.db.query(
       `SELECT 
         c.*,
+        c.name as client_name,
+        c.email as email_id,
         (SELECT COUNT(*) FROM proforma_invoices WHERE client_id = c.id AND status NOT IN ('Deleted', 'Revised')) as total_orders,
         (SELECT COALESCE(SUM(total_amount * COALESCE(exchange_rate, 1.0)), 0) FROM proforma_invoices WHERE client_id = c.id AND status NOT IN ('Deleted', 'Revised')) as total_order_value,
         (SELECT COUNT(*) FROM proforma_invoices WHERE client_id = c.id AND status NOT IN ('Deleted', 'Revised', 'Completed')) as active_invoices,
@@ -197,7 +201,7 @@ export const getById = async (req, res, next) => {
     clientData.bank_ifsc = decrypt(clientData.bank_ifsc);
     clientData.gst_number = decrypt(clientData.gst_number);
     clientData.iec_code = decrypt(clientData.iec_code);
-    clientData.credit_limit = clientData.credit_limit ? parseFloat(decrypt(clientData.credit_limit) || 0) : 0;
+    clientData.credit_limit = parseFloat(clientData.credit_limit || 0);
 
     return successResponse(
       res,
@@ -236,17 +240,17 @@ export const create = async (req, res, next) => {
 
     const result = await client.query(
       `INSERT INTO clients 
-       (company_id, client_id, name, client_name, contact_person_name, email, email_id, contact_number, address, 
+       (company_id, client_id, name, contact_person_name, email, contact_number, address, 
         city, country, business_type, credit_limit, credit_days,
         assigned_salesperson, status, notes, consignee_details, buyer_details, port_of_loading, port_of_discharge, final_destination, currency, created_by,
         bank_account_number, bank_ifsc, gst_number, iec_code,
         created_at, updated_at)
-       VALUES ($1, $2, $3, $3, $4, $5, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
        RETURNING *`,
       [
         companyId, clientId, client_name, normalizeEmptyToNull(contact_person_name), normalizeEmptyToNull(email_id),
         normalizeEmptyToNull(contact_number), normalizeEmptyToNull(address), normalizeEmptyToNull(city), country, normalizeEmptyToNull(business_type),
-        encrypt(String(credit_limit || 0)), credit_days || 0,
+        credit_limit || 0, credit_days || 0,
         normalizeEmptyToNull(assigned_salesperson), status || 'Active', normalizeEmptyToNull(notes),
         encrypt(normalizeEmptyToNull(consignee_details)), encrypt(normalizeEmptyToNull(buyer_details)),
         port_of_loading || 'MUNDRA PORT', normalizeEmptyToNull(port_of_discharge), normalizeEmptyToNull(final_destination), currency || 'INR', req.user.id,
@@ -319,7 +323,7 @@ export const update = async (req, res, next) => {
     let paramCount = 1;
 
     if (client_name) {
-      updates.push(`client_name = $${paramCount}`);
+      updates.push(`name = $${paramCount}`);
       values.push(client_name);
       paramCount++;
     }
@@ -331,7 +335,7 @@ export const update = async (req, res, next) => {
     }
 
     if (email_id !== undefined) {
-      updates.push(`email_id = $${paramCount}`);
+      updates.push(`email = $${paramCount}`);
       values.push(normalizeEmptyToNull(email_id));
       paramCount++;
     }
@@ -368,7 +372,7 @@ export const update = async (req, res, next) => {
 
     if (credit_limit !== undefined) {
       updates.push(`credit_limit = $${paramCount}`);
-      values.push(encrypt(String(credit_limit)));
+      values.push(credit_limit);
       paramCount++;
     }
 

@@ -19,7 +19,7 @@ import { syncTenantSchema } from '../utils/tenantSchemaSync.js';
 const { Pool } = pg;
 
 // Cache for company database connections - prevents repeated pool creation
-const MAX_CACHED_POOLS = parseInt(env.MAX_CACHED_POOLS || 50, 10);
+const MAX_CACHED_POOLS = parseInt(env.MAX_CACHED_POOLS || 20, 10);
 const companyDatabaseCache = new Map();
 const companyLastAccessTime = new Map();
 
@@ -182,9 +182,16 @@ export const companyQuery = async (companyId, text, params = []) => {
         }
         return result;
       } finally {
-        // MUST reset the session variable before releasing back to the pool
-        await client.query(`RESET app.current_company_id`);
-        client.release();
+        // MUST reset the session variable before releasing back to the pool.
+        // Nested try/finally ensures client.release() ALWAYS executes even if RESET throws,
+        // preventing permanent connection pool exhaustion.
+        try {
+          await client.query(`RESET app.current_company_id`);
+        } catch (resetErr) {
+          debugLogger.error('Router', `Failed to reset app.current_company_id session var for company ${companyId}. Connection may be tainted.`, resetErr);
+        } finally {
+          client.release();
+        }
       }
     } else {
       // Physically isolated database - RLS is not required

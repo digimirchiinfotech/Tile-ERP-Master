@@ -36,6 +36,7 @@ import { useState } from 'react';
 import { tokenManager } from '../../utils/tokenManager.js';
 import { resolveImageUrl } from '../../utils/urlHelper.js';
 import Button from '../shared/Button.jsx';
+import SecureImage from '../shared/SecureImage.jsx';
 
 function ProductView({ product, onClose, onEdit, canEdit }) {
   const [showImageModal, setShowImageModal] = useState(false);
@@ -230,13 +231,13 @@ function ProductView({ product, onClose, onEdit, canEdit }) {
                   <span>Packing Information</span>
                 </div>
                 <div className="info-grid p-4">
-                  <InfoCell icon={Package} label="Box Pcs" value={product.boxPcs || product.box_pcs || product.boxPC || 0} />
-                  <InfoCell icon={Scale} label="Box Weight" value={(product.boxWeight || product.box_weight || product.defaultPerBoxWeight || product.default_per_box_weight) ? `${(product.boxWeight || product.box_weight || product.defaultPerBoxWeight || product.default_per_box_weight).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} kg` : '0.00 kg'} />
-                  <InfoCell icon={Grid} label="SQM per Box" value={product.sqmPerBox || product.sqm_per_box || 0} />
-                  <InfoCell icon={Layers} label="Boxes per Big Pallet" value={product.boxesPerPallet || product.defaultBoxesPerPallet || product.boxes_per_pallet || 0} />
-                  <InfoCell icon={Inbox} label="Boxes per Kathali" value={product.defaultBoxesPerKathali || product.default_boxes_per_kathali || 0} />
-                  <InfoCell icon={Scale} label="Per Box Weight" value={product.defaultPerBoxWeight || product.default_per_box_weight || product.boxWeight || product.box_weight || 0 + ' kg'} />
-                  <InfoCell icon={Scale} label="Per Pallet Weight" value={(product.defaultPerPalletWeight || product.default_per_pallet_weight || 0) + ' kg'} />
+                  <InfoCell icon={Package} label="Box Pcs" value={product.box_pcs || product.boxPcs || product.boxPC || 0} />
+                  <InfoCell icon={Scale} label="Box Weight" value={(product.box_weight || product.boxWeight || product.default_per_box_weight || product.defaultPerBoxWeight) ? `${(product.box_weight || product.boxWeight || product.default_per_box_weight || product.defaultPerBoxWeight).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} kg` : '0.00 kg'} />
+                  <InfoCell icon={Grid} label="SQM per Box" value={product.sqm_per_box || product.sqmPerBox || 0} />
+                  <InfoCell icon={Layers} label="Boxes per Big Pallet" value={product.boxes_per_pallet || product.boxesPerPallet || product.default_boxes_per_pallet || product.defaultBoxesPerPallet || 0} />
+                  <InfoCell icon={Inbox} label="Boxes per Kathali" value={product.default_boxes_per_kathali || product.defaultBoxesPerKathali || 0} />
+                  <InfoCell icon={Scale} label="Per Box Weight" value={(product.default_per_box_weight || product.defaultPerBoxWeight || product.box_weight || product.boxWeight || 0) + ' kg'} />
+                  <InfoCell icon={Scale} label="Per Pallet Weight" value={(product.default_per_pallet_weight || product.defaultPerPalletWeight || 0) + ' kg'} />
                   
                   <div className="info-cell d-flex align-items-center gap-3">
                     <div className="info-icon-wrapper rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
@@ -268,15 +269,9 @@ function ProductView({ product, onClose, onEdit, canEdit }) {
                       {product.images.map((image, index) => (
                         <Col key={index} xs={6} sm={4} md={3} lg={2}>
                           <div className="image-thumbnail-container">
-                            <img
-                              src={`${resolveImageUrl(image.url || image)}?token=${tokenManager.getAccessToken() || ''}`}
+                            <SecureImage
+                              src={image.url || image}
                               alt={`Product ${index + 1}`}
-                              onError={(e) => {
-                                 if (!e.target.src.includes('token=')) {
-                                     const t = tokenManager.getAccessToken();
-                                     if (t) e.target.src = `${e.target.src.split('?')[0]}?token=${t}`;
-                                 }
-                              }}
                               className="image-thumbnail"
                               onClick={() => openImageModal(image)}
                             />
@@ -371,15 +366,9 @@ function ProductView({ product, onClose, onEdit, canEdit }) {
         </Modal.Header>
         <Modal.Body className="text-center p-0">
           {selectedImage && (
-            <img
-              src={`${resolveImageUrl(selectedImage.url || selectedImage)}?token=${tokenManager.getAccessToken() || ''}`}
+            <SecureImage
+              src={selectedImage.url || selectedImage}
               alt="Product Preview"
-              onError={(e) => {
-                 if (!e.target.src.includes('token=')) {
-                     const t = tokenManager.getAccessToken();
-                     if (t) e.target.src = `${e.target.src.split('?')[0]}?token=${t}`;
-                 }
-              }}
               className="img-fluid rounded shadow-lg"
               style={{ maxHeight: '85vh', objectFit: 'contain' }}
             />

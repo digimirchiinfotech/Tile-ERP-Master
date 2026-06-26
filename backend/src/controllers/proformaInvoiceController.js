@@ -701,6 +701,7 @@ export const update = async (req, res, next) => {
     updates.push(`updated_at = CURRENT_TIMESTAMP`);
 
     const client = await req.db.getClient();
+    let txResult;
     try {
       await client.query('BEGIN');
 
@@ -821,73 +822,60 @@ export const update = async (req, res, next) => {
       }
 
       await client.query('COMMIT');
-
-      // PHASE 1 FIX: Sync PI Revisions to Linked Proforma Orders
-      // If the invoice_no was changed (a revision occurred), update linked POs
-      const oldInvoiceNo = existingInvoice.rows[0].invoice_no;
-      if (newRevNo !== oldInvoiceNo) {
-        try {
-          const noteText = `\n[AUTO] Linked Proforma Invoice was revised to ${newRevNo}. Please review and sync order quantities.`;
-          const poUpdateRes = await req.db.query(
-            `UPDATE proforma_orders 
-             SET invoice_ref = $1, 
-                 status = 'REVISION_REQUIRED',
-                 notes = COALESCE(notes, '') || $2,
-                 updated_at = CURRENT_TIMESTAMP
-             WHERE invoice_ref = $3 AND company_id = $4
-             RETURNING id, order_no`,
-            [newRevNo, noteText, oldInvoiceNo, req.companyFilter || result.rows[0].company_id]
-          );
-
-          if (poUpdateRes.rows.length > 0) {
-            debugLogger.info('[ProformaInvoice] Marked linked POs as REVISION_REQUIRED:', poUpdateRes.rows.map(r => r.order_no));
-            
-            // Notify purchase team about the required revision
-            await notificationService.notifyRoles(req.companyFilter || result.rows[0].company_id, ['company_admin', 'purchase_manager'], {
-              title: 'PO Revision Required',
-              message: `Linked PI was revised to ${newRevNo}. Proforma Order ${poUpdateRes.rows[0].order_no} requires review.`,
-              type: 'info',
-              redirect_url: '/proforma-orders'
-            }, req.db);
-          }
-        } catch (poErr) {
-          debugLogger.error('[ProformaInvoice] Failed to sync revision to POs:', poErr.message);
-        }
-      }
-
-      // Trigger workflow updates
-      const changedFields = Object.keys(fields).filter(k => fields[k] !== undefined);
-      if (m_product_lines) changedFields.push('product_lines');
-      syncUpdatesAcrossStages(id, 'proforma_invoice', changedFields, req.companyFilter || result.rows[0].company_id, req.db).catch(() => {});
-
-      // Add Notification for PI Updated / Revised
-      await notificationService.notifyRoles(companyId, ['company_admin', 'admin', 'sales_manager', 'export_documents'], {
-        title: newRevNo !== oldInvoiceNo ? 'Proforma Invoice Revised' : 'Proforma Invoice Updated',
-        message: `PI ${newRevNo} has been ${newRevNo !== oldInvoiceNo ? 'revised' : 'updated'} by ${req.user.name || 'a user'}`,
-        type: newRevNo !== oldInvoiceNo ? 'warning' : 'info',
-        redirect_url: `/invoice-management/${id}`,
-        module: 'Proforma',
-        reference_id: id,
-        reference_no: newRevNo,
-        priority: 'normal'
-      }, req.db);
-
-      // Audit Log
-      logAction({
-        userId: req.user.id, companyId: req.companyFilter || result.rows[0].company_id, action: 'UPDATE', entityType: 'proforma_invoice',
-        entityId: id, newValue: { invoice_no: result.rows[0].invoice_no, total_amount: result.rows[0].total_amount },
-        ipAddress: req.ip, userAgent: req.get('User-Agent'), method: req.method, url: req.originalUrl
-      }, req.db).catch(e => debugLogger.warn('Audit log failed:', e.message));
-
-      return successResponse(res, result.rows[0], 'Proforma invoice updated successfully');
+      txResult = result;
     } catch (txnError) {
       await client.query('ROLLBACK');
       throw txnError;
     } finally {
       client.release();
     }
+
+  // ── Post-Commit Side Effects (non-fatal, outside transaction) ────────────
+  const savedInvoice = txResult.rows[0];
+  const savedInvoiceNo = savedInvoice.invoice_no;
+  const effectiveCompanyId = req.companyFilter || savedInvoice.company_id;
+  const oldInvoiceNo = existingInvoice.rows[0].invoice_no;
+
+  // Sync revision to linked Proforma Orders
+  if (newRevNo !== oldInvoiceNo) {
+    req.db.query(
+      `UPDATE proforma_orders 
+       SET invoice_ref = $1, 
+           status = 'REVISION_REQUIRED',
+           notes = COALESCE(notes, '') || $2,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE invoice_ref = $3 AND company_id = $4`,
+      [newRevNo, `\n[AUTO] Linked PI revised to ${newRevNo}. Please review.`, oldInvoiceNo, effectiveCompanyId]
+    ).catch(e => debugLogger.warn('[ProformaInvoice] PO sync warning:', e.message));
+  }
+
+  // Trigger workflow updates
+  const changedFields = Object.keys(fields).filter(k => fields[k] !== undefined);
+  if (m_product_lines) changedFields.push('product_lines');
+  syncUpdatesAcrossStages(id, 'proforma_invoice', changedFields, effectiveCompanyId, req.db).catch(() => {});
+
+  // Notification (best-effort)
+  notificationService.notifyRoles(effectiveCompanyId, ['company_admin', 'admin', 'sales_manager', 'export_documents'], {
+    title: newRevNo !== oldInvoiceNo ? 'Proforma Invoice Revised' : 'Proforma Invoice Updated',
+    message: `PI ${savedInvoiceNo} has been ${newRevNo !== oldInvoiceNo ? 'revised' : 'updated'} by ${req.user.name || 'a user'}`,
+    type: newRevNo !== oldInvoiceNo ? 'warning' : 'info',
+    redirect_url: `/invoice-management/${id}`,
+    module: 'Proforma',
+    reference_id: id,
+    reference_no: savedInvoiceNo,
+    priority: 'normal'
+  }, req.db).catch(e => debugLogger.warn('[ProformaInvoice] Notification warning:', e.message));
+
+  // Audit Log (best-effort)
+  logAction({
+    userId: req.user.id, companyId: effectiveCompanyId, action: 'UPDATE', entityType: 'proforma_invoice',
+    entityId: id, newValue: { invoice_no: savedInvoiceNo, total_amount: savedInvoice.total_amount },
+    ipAddress: req.ip, userAgent: req.get('User-Agent'), method: req.method, url: req.originalUrl
+  }, req.db).catch(e => debugLogger.warn('Audit log failed:', e.message));
+
+  return successResponse(res, savedInvoice, 'Proforma invoice updated successfully');
   } catch (error) {
-    debugLogger.error('[ProformaInvoice] Update Error:', error);
+    debugLogger.error('[ProformaInvoice] Update Error:', error.message, { code: error.code, detail: error.detail });
     next(error);
   }
 };

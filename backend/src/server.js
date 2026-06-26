@@ -7,6 +7,7 @@ import fs from 'fs';
 import cookieParser from 'cookie-parser';
 import swaggerUI from 'swagger-ui-express';
 import { rateLimit } from 'express-rate-limit';
+import { slowDown } from 'express-slow-down';
 import { fileURLToPath } from 'url';
 import { dirname, join, resolve } from 'path';
 import env from './config/env.js';
@@ -187,10 +188,10 @@ app.use(dbRouter); // Global database context
 // Apply progressive backoff before rate limiting to catch repeat offenders
 app.use('/api/', progressiveBackoff);
 
-// Global limiter: Reduced to 300 req/15 min in production
+// Global limiter: 150 req/15 min in production — prevents full DB scraping
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: env.node_env === 'development' ? 2000 : 300,
+  max: env.node_env === 'development' ? 2000 : 150,
   message: { success: false, message: 'Too many requests from this IP, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -218,11 +219,45 @@ export const exportLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// ─── BULK READ PROTECTION ───────────────────────────────────────────────────────
+// Step 1: Progressive slow-down — adds 500ms delay per request after 20 req/min,
+//         up to a maximum 5s delay. Degrades scraper experience before hard block.
+const bulkReadSlowDown = slowDown({
+  windowMs: 60 * 1000, // 1 minute window
+  delayAfter: env.node_env === 'development' ? 10000 : 20, // free requests per window
+  delayMs: (used) => (used - 20) * 500, // +500ms per request over the threshold
+  maxDelayMs: 5000, // cap at 5 seconds
+  skip: (req) => req.method !== 'GET', // only apply to GET requests
+});
+
+// Step 2: Hard block — 30 GET requests per minute per IP on bulk read routes
+export const bulkReadLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: env.node_env === 'development' ? 10000 : 30,
+  message: { success: false, message: 'Too many data requests. Please slow down.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.method !== 'GET', // only throttle GET; POST/PUT/DELETE unaffected
+});
+
 app.use('/api/export-invoices/', sensitiveLimiter);
 app.use('/api/account-entries/', sensitiveLimiter);
 app.use('/api/users/', sensitiveLimiter);
 app.use('/api/reports/', exportLimiter);
 app.use('/api/csv-export/', exportLimiter);
+
+// Apply bulk-read protection to high-value scraping targets
+const BULK_READ_ROUTES = [
+  '/api/clients',
+  '/api/products',
+  '/api/export-invoices',
+  '/api/analytics',
+  '/api/leads',
+];
+for (const route of BULK_READ_ROUTES) {
+  app.use(route, bulkReadSlowDown);
+  app.use(route, bulkReadLimiter);
+}
 
 // Strict limiter for mutating operations (POST/PUT/PATCH/DELETE)
 // Applied specifically in sensitive modules via route-level middleware

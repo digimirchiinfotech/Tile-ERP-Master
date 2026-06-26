@@ -1,6 +1,7 @@
 /** @type {import('jest').Config} */
 module.exports = {
   testEnvironment: 'node',
+  transform: {},
   testMatch: [
     '**/src/__tests__/**/*.test.js',
     '**/tests/integration/**/*.test.js',

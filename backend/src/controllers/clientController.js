@@ -59,7 +59,7 @@ export const getAll = async (req, res, next) => {
     }
 
     if (search) {
-      conditions.push(`(c.client_name ILIKE $${paramCount} OR c.contact_person_name ILIKE $${paramCount} OR c.email_id ILIKE $${paramCount})`);
+      conditions.push(`(COALESCE(c.client_name, c.name) ILIKE $${paramCount} OR c.contact_person_name ILIKE $${paramCount} OR COALESCE(c.email_id, c.email) ILIKE $${paramCount})`);
       values.push(`%${search}%`);
       paramCount++;
     }
@@ -108,8 +108,8 @@ export const getAll = async (req, res, next) => {
     const result = await req.db.query(
       `SELECT 
         c.*,
-        c.name as client_name,
-        c.email as email_id,
+        COALESCE(c.client_name, c.name) as client_name,
+        COALESCE(c.email_id, c.email) as email_id,
         COUNT(pi.id) as total_orders,
         COALESCE(SUM(pi.total_amount), 0) as total_order_value
        FROM clients c
@@ -171,12 +171,12 @@ export const getById = async (req, res, next) => {
     const result = await req.db.query(
       `SELECT 
         c.*,
-        c.name as client_name,
-        c.email as email_id,
+        COALESCE(c.client_name, c.name) as client_name,
+        COALESCE(c.email_id, c.email) as email_id,
         (SELECT COUNT(*) FROM proforma_invoices WHERE client_id = c.id AND status NOT IN ('Deleted', 'Revised')) as total_orders,
         (SELECT COALESCE(SUM(total_amount * COALESCE(exchange_rate, 1.0)), 0) FROM proforma_invoices WHERE client_id = c.id AND status NOT IN ('Deleted', 'Revised')) as total_order_value,
         (SELECT COUNT(*) FROM proforma_invoices WHERE client_id = c.id AND status NOT IN ('Deleted', 'Revised', 'Completed')) as active_invoices,
-        (SELECT COUNT(*) FROM account_entries WHERE LOWER(TRIM(party_name)) = LOWER(TRIM(c.client_name)) AND status IN ('Pending', 'Overdue') AND company_id = c.company_id) as pending_payments
+        (SELECT COUNT(*) FROM account_entries WHERE LOWER(TRIM(party_name)) = LOWER(TRIM(COALESCE(c.client_name, c.name))) AND status IN ('Pending', 'Overdue') AND company_id = c.company_id) as pending_payments
        FROM clients c 
        ${whereConditions.replace('id =', 'c.id =').replace('company_id =', 'c.company_id =')}`,
       queryParams

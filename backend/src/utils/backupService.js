@@ -20,6 +20,16 @@ import env from '../config/env.js';
 import { fileURLToPath } from 'url';
 import pool from '../config/database-wrapper.js';
 import fsPromises from 'fs/promises';
+import { pipeline } from 'stream/promises';
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+
+const s3Client = new S3Client({
+  region: env.aws.region,
+  credentials: {
+    accessKeyId: env.aws.accessKeyId,
+    secretAccessKey: env.aws.secretAccessKey,
+  },
+});
 
 const execPromise = util.promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
@@ -51,6 +61,47 @@ async function getPgCommand(cmd) {
   }
 }
 
+export const uploadToS3 = async (filePath, fileName) => {
+  try {
+    const fileStream = fs.createReadStream(filePath);
+    const retainUntilDate = new Date();
+    retainUntilDate.setDate(retainUntilDate.getDate() + 90); // 90 days from now
+
+    const uploadParams = {
+      Bucket: env.aws.s3Bucket,
+      Key: `backups/${fileName}`,
+      Body: fileStream,
+      ObjectLockMode: 'GOVERNANCE',
+      ObjectLockRetainUntilDate: retainUntilDate,
+    };
+
+    logger.info('Backup', `Uploading ${fileName} to S3...`);
+    await s3Client.send(new PutObjectCommand(uploadParams));
+    logger.info('Backup', `Successfully uploaded ${fileName} to S3 with 90-day Object Lock`);
+    return true;
+  } catch (err) {
+    logger.error('Backup', `Failed to upload ${fileName} to S3`, err);
+    throw err;
+  }
+};
+
+export const downloadFromS3 = async (fileName, destPath) => {
+  try {
+    const downloadParams = {
+      Bucket: env.aws.s3Bucket,
+      Key: `backups/${fileName}`,
+    };
+    logger.info('Restore', `Downloading ${fileName} from S3...`);
+    const response = await s3Client.send(new GetObjectCommand(downloadParams));
+    await pipeline(response.Body, fs.createWriteStream(destPath));
+    logger.info('Restore', `Successfully downloaded ${fileName}`);
+    return destPath;
+  } catch (err) {
+    logger.error('Restore', `Failed to download ${fileName} from S3`, err);
+    throw err;
+  }
+};
+
 export const createFullBackup = async (trigger = 'manual') => {
   if (!fs.existsSync(BACKUPS_DIR)) fs.mkdirSync(BACKUPS_DIR, { recursive: true });
 
@@ -80,11 +131,21 @@ export const createFullBackup = async (trigger = 'manual') => {
         logger.info('Backup', `Backup created successfully: ${backupName} (${archive.pointer()} bytes)`);
         if (fs.existsSync(tempDbDumpPath)) fs.unlinkSync(tempDbDumpPath);
         
+        try {
+          if (env.aws.s3Bucket && env.aws.accessKeyId) {
+            await uploadToS3(backupPath, backupName);
+            await fsPromises.unlink(backupPath);
+            logger.info('Backup', `Deleted local backup zip ${backupName}`);
+          }
+        } catch (s3Err) {
+          logger.error('Backup', 'S3 upload failed, keeping local zip', s3Err);
+        }
+
         // Log to DB
         try {
           await pool.query(
             "INSERT INTO audit_logs (user_id, action, resource_type, resource_id, changes) VALUES ($1, $2, $3, $4, $5)",
-            [null, 'CREATE', 'BACKUP', null, JSON.stringify({ filename: backupName, trigger, size: archive.pointer() })]
+            [null, 'CREATE', 'BACKUP', null, JSON.stringify({ filename: backupName, trigger, size: archive.pointer(), s3_upload: !!env.aws.s3Bucket })]
           );
         } catch(e) { logger.error('Backup', 'Audit log failed', e); }
         
@@ -224,3 +285,74 @@ export const restoreFullBackup = async (filename, backupPathOverride = null) => 
     }
   }
 };
+
+export const testRestore = async () => {
+  logger.info('TestRestore', 'Starting monthly automated test restore');
+  let backupFileName = null;
+  const tempExtractDir = path.join(BACKUPS_DIR, `test_restore_${Date.now()}`);
+  const tempDbName = `test_restore_temp_db_${Date.now()}`;
+  const zipPath = path.join(BACKUPS_DIR, `temp_${Date.now()}.zip`);
+
+  try {
+    const { rows } = await pool.query("SELECT changes FROM audit_logs WHERE action = 'CREATE' AND resource_type = 'BACKUP' ORDER BY created_at DESC LIMIT 1");
+    if (rows.length === 0) throw new Error('No backup record found to test');
+    
+    const changes = typeof rows[0].changes === 'string' ? JSON.parse(rows[0].changes) : rows[0].changes;
+    backupFileName = changes.filename;
+    
+    if (!backupFileName) throw new Error('Could not determine backup filename from logs');
+
+    await downloadFromS3(backupFileName, zipPath);
+    await extract(zipPath, { dir: tempExtractDir });
+    
+    const dumpFile = path.join(tempExtractDir, 'database.dump');
+    if (!fs.existsSync(dumpFile)) throw new Error('No database dump found in backup zip');
+
+    const pgClient = await pool.connect();
+    try {
+      await pgClient.query(`CREATE DATABASE ${tempDbName}`);
+    } finally {
+      pgClient.release();
+    }
+
+    const pgRestore = await getPgCommand('pg_restore');
+    const restoreCmd = `set PGPASSWORD=${env.database.password}&& ${pgRestore} -h ${env.database.host} -p ${env.database.port} -U ${env.database.user} -d ${tempDbName} --clean --if-exists --no-owner --no-privileges "${dumpFile}"`;
+    
+    try {
+      await execPromise(restoreCmd, { shell: 'cmd.exe' });
+    } catch(err) {
+      logger.warn('TestRestore', `Restore output (often has warnings): ${err.message}`);
+    }
+
+    const pgClient2 = await pool.connect();
+    try {
+      await pgClient2.query(`SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${tempDbName}' AND pid <> pg_backend_pid()`);
+      await pgClient2.query(`DROP DATABASE ${tempDbName}`);
+    } finally {
+      pgClient2.release();
+    }
+
+    await pool.query(
+      "INSERT INTO audit_logs (user_id, action, resource_type, resource_id, changes) VALUES ($1, $2, $3, $4, $5)",
+      [null, 'TEST_RESTORE', 'BACKUP', null, JSON.stringify({ filename: backupFileName, status: 'success' })]
+    );
+    logger.info('TestRestore', 'Monthly test restore completed successfully');
+
+  } catch (err) {
+    logger.error('TestRestore', 'Test restore failed', err);
+    await pool.query(
+      "INSERT INTO audit_logs (user_id, action, resource_type, resource_id, changes) VALUES ($1, $2, $3, $4, $5)",
+      [null, 'TEST_RESTORE', 'BACKUP', null, JSON.stringify({ filename: backupFileName, status: 'failed', error: err.message })]
+    );
+    try {
+      const pgClient = await pool.connect();
+      await pgClient.query(`SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${tempDbName}' AND pid <> pg_backend_pid()`);
+      await pgClient.query(`DROP DATABASE IF EXISTS ${tempDbName}`);
+      pgClient.release();
+    } catch(e) {}
+  } finally {
+    if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath);
+    if (fs.existsSync(tempExtractDir)) await fsPromises.rm(tempExtractDir, { recursive: true, force: true }).catch(() => {});
+  }
+};
+

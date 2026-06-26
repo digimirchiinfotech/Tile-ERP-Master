@@ -11,14 +11,18 @@
 
 import cron from 'node-cron';
 import logger from './debugLogger.js';
-import { createFullBackup } from './backupService.js';
+import { createFullBackup, testRestore } from './backupService.js';
 import pool from '../config/database-wrapper.js';
 
 let activeJob = null;
+let testRestoreJob = null;
 
 const scheduleBackup = (frequency) => {
   if (activeJob) {
     activeJob.stop();
+  }
+  if (testRestoreJob) {
+    testRestoreJob.stop();
   }
 
   let cronExpression = '0 2 * * 0'; // Default Weekly on Sunday at 2 AM
@@ -52,6 +56,16 @@ const scheduleBackup = (frequency) => {
       client.release();
     }
   });
+
+  // Schedule monthly test restore (1st of every month at 3 AM)
+  testRestoreJob = cron.schedule('0 3 1 * *', async () => {
+    try {
+      await testRestore();
+    } catch (err) {
+      logger.error('Scheduler', 'Monthly automated test restore failed', err);
+    }
+  });
+  logger.info('Scheduler', 'Monthly test restore job scheduled for 03:00 on the 1st of every month');
 };
 
 export const initBackupScheduler = async () => {
@@ -79,8 +93,13 @@ export const initBackupScheduler = async () => {
 export const updateScheduler = (enabled, frequency) => {
   if (enabled) {
     scheduleBackup(frequency);
-  } else if (activeJob) {
-    activeJob.stop();
-    logger.info('Scheduler', 'Auto-backup stopped.');
+  } else {
+    if (activeJob) {
+      activeJob.stop();
+    }
+    if (testRestoreJob) {
+      testRestoreJob.stop();
+    }
+    logger.info('Scheduler', 'Auto-backup and scheduled restore tests stopped.');
   }
 };

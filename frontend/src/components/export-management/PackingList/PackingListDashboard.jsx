@@ -30,6 +30,7 @@ import StatusBadge from '../../common/StatusBadge';
 import ActivityTimeline from '../../shared/ActivityTimeline.jsx';
 import { useMultiSelect } from '../../../hooks/useMultiSelect.js';
 import { useMasterData } from '../../../hooks/useMasterData.js';
+import SkeletonTable from '../../shared/SkeletonTable.jsx';
 
 import PackingListPrintView from './PackingListPrintView.jsx';
 import { downloadPDF } from '../../../utils/pdfGenerator.js';
@@ -596,9 +597,13 @@ function PackingListDashboard({ currentUser, onNavigate }) {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="8" className="text-center py-5"><Spinner animation="border" variant="primary" /></td></tr>
+                  <tr>
+                    <td colSpan="10" className="p-3">
+                      <SkeletonTable columns={10} rows={5} />
+                    </td>
+                  </tr>
                 ) : paginatedPackingLists.length === 0 ? (
-                  <tr><td colSpan="9" className="text-center py-5 text-muted">No packing lists found</td></tr>
+                  <tr><td colSpan="10" className="text-center py-5 text-muted">No packing lists found</td></tr>
                 ) : paginatedPackingLists.map((pl, index) => (
                   <tr key={pl.id} className={multiSelect.isSelected(pl.id) ? 'table-active' : ''}>
                     <td data-label="Select" className="ps-4">
@@ -672,6 +677,106 @@ function PackingListDashboard({ currentUser, onNavigate }) {
                 ))}
               </tbody>
             </Table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="d-lg-none p-2">
+            {loading ? (
+              <div className="p-3"><SkeletonTable columns={4} rows={4} /></div>
+            ) : paginatedPackingLists.length === 0 ? (
+              <div className="text-center py-5 text-muted">No packing lists found</div>
+            ) : paginatedPackingLists.map((pl, index) => (
+              <Card key={pl.id} className="mb-3 border-0 shadow-sm rounded-3">
+                <Card.Body className="p-3">
+                  <div className="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <div className="fw-bold text-primary mb-1">{pl.packingListNo || pl.packing_list_no || '-'}</div>
+                      <div className="text-muted small">Sr. {index + 1 + (currentPage - 1) * PAGE_SIZE}</div>
+                    </div>
+                    <DashboardStatusDropdown 
+                      module="PackingList" 
+                      endpoint="packing-lists" 
+                      documentId={pl.id} 
+                      value={(pl.is_locked || pl.isLocked) ? 'Locked' : (pl.status || 'Draft')} 
+                      disabled={!canEdit || pl.is_locked || pl.isLocked} 
+                      onSuccess={fetchPackingLists} 
+                    />
+                  </div>
+                  
+                  <div className="d-flex justify-content-between mb-1">
+                    <span className="text-muted small">Client:</span>
+                    <span className="fw-bold small">{pl.clientName || pl.client_name || '-'}</span>
+                  </div>
+                  <div className="d-flex justify-content-between mb-1">
+                    <span className="text-muted small">EXP No:</span>
+                    <span className="fw-medium small">{(pl.exportInvoiceNo || pl.export_invoice_no) && (pl.exportInvoiceNo || pl.export_invoice_no) !== (pl.packingListNo || pl.packing_list_no) ? (pl.exportInvoiceNo || pl.export_invoice_no) : '-'}</span>
+                  </div>
+                  <div className="d-flex justify-content-between mb-2">
+                    <span className="text-muted small">Date:</span>
+                    <span className="fw-medium small">{formatDate(pl.date || pl.packingListDate || pl.packing_list_date)}</span>
+                  </div>
+
+                  <Row className="g-2 mb-3 bg-light rounded p-2 text-center mx-0">
+                    <Col xs={6} className="border-end border-white">
+                      <div className="text-muted" style={{fontSize:'0.65rem'}}>PALLETS</div>
+                      <div className="fw-bold">{pl.totalPallets || pl.total_pallets || 0}</div>
+                    </Col>
+                    <Col xs={6}>
+                      <div className="text-muted" style={{fontSize:'0.65rem'}}>WEIGHT (KG)</div>
+                      <div className="fw-bold">{parseFloat(pl.totalWeight || pl.total_weight || 0).toLocaleString()}</div>
+                    </Col>
+                  </Row>
+                  
+                  <div className="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                    <Form.Check
+                      type="checkbox"
+                      checked={multiSelect.isSelected(pl.id)}
+                      onChange={() => multiSelect.toggleSelect(pl.id)}
+                      label="Select"
+                      className="small text-muted"
+                    />
+                    <div className="d-flex gap-2 flex-wrap justify-content-end">
+                      {canEdit && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-primary border-primary-subtle p-1"
+                          onClick={() => onNavigate('packing-list-form', { packingListId: pl.id })}
+                          disabled={pl.is_locked || pl.isLocked}
+                        >
+                          <Edit size={14} />
+                        </Button>
+                      )}
+                      <Button variant="outline" size="sm" className="text-info border-info-subtle p-1" onClick={() => handleView(pl)}><Eye size={14} /></Button>
+                      <Button variant="outline" size="sm" className="text-primary border-primary-subtle p-1" onClick={() => handlePrint(pl)}><Printer size={14} /></Button>
+                      <Button variant="outline" size="sm" className="text-success border-success-subtle p-1" onClick={() => handleDownloadPDF(pl)}><Download size={14} /></Button>
+                      <Button variant="outline" size="sm" className="text-success border-success-subtle p-1" onClick={() => handleExportProductXLSX(pl)}><FileSpreadsheet size={14} /></Button>
+                      <LockDocumentButton 
+                        documentType="PACKING_LIST" 
+                        documentId={pl.id} 
+                        isLocked={pl.is_locked || pl.isLocked}
+                        onLockSuccess={fetchPackingLists} 
+                        getSnapshotData={async () => {
+                          const res = await api.get(`/packing-lists/${pl.id}`);
+                          return res.data?.data || res.data;
+                        }}
+                      />
+                      {canDelete && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-danger border-danger-subtle p-1"
+                          onClick={() => handleDeletePackingList(pl)}
+                          disabled={pl.is_locked || pl.isLocked}
+                        >
+                          <Trash2 size={14} />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </Card.Body>
+              </Card>
+            ))}
           </div>
         </Card.Body>
         <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filteredPackingLists.length} pageSize={PAGE_SIZE} />

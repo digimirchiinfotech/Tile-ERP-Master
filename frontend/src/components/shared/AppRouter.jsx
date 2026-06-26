@@ -87,6 +87,7 @@ const IGSTInvoiceForm = React.lazy(() => import('../export-management/IGSTInvoic
 
 import RoleBasedDashboard from './RoleBasedDashboard.jsx';
 import { rolePermissions } from '../../config/rolePermissions.js';
+import ErrorBoundary from './ErrorBoundary.jsx';
 
 /**
  * AppRouter component handles the conditional rendering of views
@@ -709,9 +710,11 @@ const AppRouter = ({
 
   return (
     <ModuleErrorBoundary resetKey={currentView}>
-      <Suspense fallback={<FallbackLoader />}>
-        {renderView()}
-      </Suspense>
+      <ErrorBoundary key={currentView}>
+        <Suspense fallback={<FallbackLoader />}>
+          {renderView()}
+        </Suspense>
+      </ErrorBoundary>
     </ModuleErrorBoundary>
   );
 };

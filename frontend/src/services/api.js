@@ -47,6 +47,11 @@ const api = axios.create({
 
 api.interceptors.request.use(
   async (config) => {
+    // Dispatch global loading event
+    if (!config.skipLoading) {
+      window.dispatchEvent(new CustomEvent('api:loading', { detail: { isLoading: true } }));
+    }
+
     // Multi-tenant isolation headers
     const selectedCompanyId = localStorage.getItem('selected_company_id');
     if (selectedCompanyId && selectedCompanyId !== 'null' && selectedCompanyId !== 'undefined') {
@@ -77,6 +82,11 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => {
+    // Dispatch global loading complete
+    if (!response.config?.skipLoading) {
+      window.dispatchEvent(new CustomEvent('api:loading', { detail: { isLoading: false } }));
+    }
+
     // Track slow successful responses
     const duration = response.config._startTime ? Date.now() - response.config._startTime : 0;
     if (duration > 0) trackSlowRequest(response.config.url, duration);
@@ -92,6 +102,11 @@ api.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
+
+    // Dispatch global loading complete on error
+    if (!originalRequest?.skipLoading) {
+      window.dispatchEvent(new CustomEvent('api:loading', { detail: { isLoading: false } }));
+    }
 
     // Track slow/failed API requests
     const duration = originalRequest?._startTime ? Date.now() - originalRequest._startTime : 0;
@@ -156,8 +171,8 @@ api.interceptors.response.use(
       }
     }
 
-    if (!error.response) {
-      showError('Connection lost. Check your internet.');
+    if (!error.response && !axios.isCancel(error)) {
+      showError('Network Error: Connection lost. Check your internet.');
     }
 
     return Promise.reject(error);

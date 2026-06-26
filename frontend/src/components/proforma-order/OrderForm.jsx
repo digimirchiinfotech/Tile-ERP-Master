@@ -1655,12 +1655,12 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
                     Fumigation * <Info size={12} className="ms-1" />
                   </Form.Label>
                 </OverlayTrigger>
-                <Form.Select className="premium-input"
+                <Form.Select
                   value={formData.fumigation}
                   onChange={(e) =>
                     handleInputChange('fumigation', e.target.value)
                   }
-                  className="form-control-enhanced"
+                  className="form-control-enhanced premium-input"
                 >
                   <option value="YES">YES</option>
                   <option value="NO">NO</option>
@@ -1674,12 +1674,12 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
                     Legalisation * <Info size={12} className="ms-1" />
                   </Form.Label>
                 </OverlayTrigger>
-                <Form.Select className="premium-input"
+                <Form.Select
                   value={formData.legalisation}
                   onChange={(e) =>
                     handleInputChange('legalisation', e.target.value)
                   }
-                  className="form-control-enhanced"
+                  className="form-control-enhanced premium-input"
                 >
                   <option value="YES">YES</option>
                   <option value="NO">NO</option>
@@ -1729,31 +1729,31 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
                 <Row className="g-3">
                   <Col md={4}>
                     <Form.Label className="form-label-enhanced text-muted small mb-1">LC Number</Form.Label>
-                    <Form.Control className="premium-input"
+                    <Form.Control
                       type="text"
                       placeholder="Enter LC Number"
                       value={formData.lcNumber}
                       onChange={(e) => handleInputChange('lcNumber', e.target.value)}
-                      className="form-control-enhanced"
+                      className="form-control-enhanced premium-input"
                     />
                   </Col>
                   <Col md={4}>
                     <Form.Label className="form-label-enhanced text-muted small mb-1">LC Date</Form.Label>
-                    <Form.Control className="premium-input"
+                    <Form.Control
                       type="date"
                       value={formData.lcDate}
                       onChange={(e) => handleInputChange('lcDate', e.target.value)}
-                      className="form-control-enhanced"
+                      className="form-control-enhanced premium-input"
                     />
                   </Col>
                   <Col md={4}>
                     <Form.Label className="form-label-enhanced text-muted small mb-1">EPCG No.</Form.Label>
-                    <Form.Control className="premium-input"
+                    <Form.Control
                       type="text"
                       placeholder="Enter EPCG No."
                       value={formData.epcgNo}
                       onChange={(e) => handleInputChange('epcgNo', e.target.value)}
-                      className="form-control-enhanced"
+                      className="form-control-enhanced premium-input"
                     />
                   </Col>
                 </Row>

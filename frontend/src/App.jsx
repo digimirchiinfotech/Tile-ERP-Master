@@ -38,6 +38,7 @@ function App() {
   const [resetPasswordData, setResetPasswordData] = useState(null);
   const [showSessionWarning, setShowSessionWarning] = useState(false);
   const [sessionTimeRemaining, setSessionTimeRemaining] = useState(0);
+  const [isGlobalLoading, setIsGlobalLoading] = useState(false);
 
   // 1. Session & Activity Management
   const sessionManager = useSessionManager(currentUser?.id, !!currentUser);
@@ -170,6 +171,23 @@ function App() {
     return () => window.removeEventListener('auth:logout', handleAuthLogout);
   }, []);
 
+  // Global API Loading Listener
+  useEffect(() => {
+    let timeout;
+    const handleLoading = (e) => {
+      if (e.detail.isLoading) {
+        setIsGlobalLoading(true);
+      } else {
+        timeout = setTimeout(() => setIsGlobalLoading(false), 300);
+      }
+    };
+    window.addEventListener('api:loading', handleLoading);
+    return () => {
+      window.removeEventListener('api:loading', handleLoading);
+      clearTimeout(timeout);
+    };
+  }, []);
+
   const handleLogin = (userData) => {
     const userRole = userData.role || 'client';
     const enhancedUser = { ...userData, role: userRole, loginTime: new Date().toISOString() };
@@ -191,6 +209,11 @@ function App() {
 
   return (
     <GlobalErrorBoundary>
+      {isGlobalLoading && (
+        <div className="global-progress-bar">
+          <div className="progress-bar-value"></div>
+        </div>
+      )}
       <OfflineBanner />
       <PollingManager currentUser={currentUser}>
         {({ loading, ...hooks }) => (
@@ -239,6 +262,29 @@ function App() {
         )}
       </PollingManager>
       <NotificationManager />
+      <style>{`
+        .global-progress-bar {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 3px;
+          background: transparent;
+          z-index: 9999;
+        }
+        .progress-bar-value {
+          width: 30%;
+          height: 100%;
+          background: #0d6efd;
+          animation: global-progress 1.5s infinite linear;
+          box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
+        }
+        @keyframes global-progress {
+          0% { margin-left: -30%; width: 30%; }
+          50% { margin-left: 30%; width: 50%; }
+          100% { margin-left: 100%; width: 30%; }
+        }
+      `}</style>
     </GlobalErrorBoundary>
   );
 }

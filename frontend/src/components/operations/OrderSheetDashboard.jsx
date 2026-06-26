@@ -26,6 +26,7 @@ import OrderSheetPrintView from './OrderSheetPrintView.jsx';
 import { downloadPDF } from '../../utils/pdfGenerator.js';
 import DashboardStatusDropdown from '../shared/DashboardStatusDropdown.jsx';
 import { useUserContext } from '../../contexts/UserContext.jsx';
+import SkeletonTable from '../shared/SkeletonTable.jsx';
 
 const OrderSheetDashboard = () => {
   const { user: currentUser } = useUserContext();
@@ -592,9 +593,8 @@ const OrderSheetDashboard = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="10" className="text-center py-5">
-                      <div className="spinner-border text-primary spinner-border-sm me-2" />
-                      Loading Master Sheets...
+                    <td colSpan="10" className="p-3">
+                      <SkeletonTable columns={10} rows={5} />
                     </td>
                   </tr>
                 ) : filteredOrderSheets.length === 0 ? (
@@ -790,6 +790,146 @@ const OrderSheetDashboard = () => {
                 )}
               </tbody>
             </Table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="d-lg-none p-2">
+            {loading ? (
+              <div className="p-3"><SkeletonTable columns={4} rows={3} /></div>
+            ) : filteredOrderSheets.length === 0 ? (
+              <div className="text-center py-5 text-muted">No Master Order Sheets found.</div>
+            ) : (
+              filteredOrderSheets.map((sheet) => {
+                const isExpanded = expandedRows[sheet.id];
+                let lines = sheet.lines || [];
+                
+                if (filters.factory_name) {
+                  lines = lines.filter(l => filters.factory_name === 'unassigned' ? !(l.factory_name || l.factoryName) : (l.factory_name || l.factoryName) === filters.factory_name);
+                }
+                if (filters.product) {
+                  lines = lines.filter(l => {
+                    const pCat = l.product_category || l.productCategory || 'Unknown Product';
+                    const des = l.design || '';
+                    const name = des ? `${pCat} - ${des}` : pCat;
+                    return name === filters.product;
+                  });
+                }
+                if (filters.size) {
+                  lines = lines.filter(l => l.size === filters.size);
+                }
+                if (filters.surface) {
+                  lines = lines.filter(l => (l.surface || l.finish) === filters.surface);
+                }
+                const reqBoxes = parseFloat(sheet.total_required_boxes || sheet.totalRequiredBoxes || 0);
+                const prodBoxes = parseFloat(sheet.total_produced_boxes || sheet.totalProducedBoxes || 0);
+                
+                return (
+                  <Card key={sheet.id || sheet._id} className="mb-3 border-0 shadow-sm rounded-3">
+                    <Card.Body className="p-3">
+                      <div className="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                          <div className="fw-bold text-primary mb-1 cursor-pointer" onClick={() => toggleRow(sheet.id || sheet._id)}>
+                            {isExpanded ? <ChevronDown size={16} className="me-1"/> : <ChevronRight size={16} className="me-1"/>}
+                            {sheet.production_sheet_no || sheet.productionSheetNo}
+                          </div>
+                          <div className="text-muted small">PO: {sheet.po_no || sheet.poNo}</div>
+                        </div>
+                        <DashboardStatusDropdown 
+                            module="ORDER_SHEET" 
+                            endpoint="order-sheets" 
+                            documentId={sheet.id || sheet._id} 
+                            value={sheet.status || 'Pending'} 
+                            onSuccess={fetchOrderSheets} 
+                            disabled={!['super_admin', 'company_admin', 'qc_management', 'qc_inspector', 'sales_manager', 'purchase_manager'].includes(currentUser?.role)} 
+                        />
+                      </div>
+                      
+                      <div className="d-flex justify-content-between mb-1">
+                        <span className="text-muted small">PI No:</span>
+                        <span className="fw-medium small">{sheet.pi_reference || sheet.piReference || '-'}</span>
+                      </div>
+                      <div className="d-flex justify-content-between mb-2">
+                        <span className="text-muted small">Supplier:</span>
+                        <span className="fw-bold small">{sheet.supplier_name || sheet.supplierName || '-'}</span>
+                      </div>
+
+                      <Row className="g-2 mb-3 bg-light rounded p-2 text-center mx-0">
+                        <Col xs={4}>
+                          <div className="text-muted" style={{fontSize:'0.65rem'}}>REQ BOXES</div>
+                          <div className="fw-bold">{reqBoxes.toLocaleString()}</div>
+                        </Col>
+                        <Col xs={4}>
+                          <div className="text-muted" style={{fontSize:'0.65rem'}}>COMPLETED</div>
+                          <div className="fw-bold text-success">{prodBoxes.toLocaleString()}</div>
+                        </Col>
+                        <Col xs={4}>
+                          <div className="text-muted" style={{fontSize:'0.65rem'}}>PENDING</div>
+                          <div className="fw-bold text-danger">{(reqBoxes - prodBoxes).toLocaleString()}</div>
+                        </Col>
+                      </Row>
+                      
+                      <div className="d-flex justify-content-between gap-2 border-top pt-3 mt-2">
+                        <Button variant="outline-primary" size="sm" onClick={() => handleView(sheet)}>
+                          <Eye size={14} className="me-1" /> View
+                        </Button>
+                        <Button variant="outline-warning" size="sm" onClick={() => { setSelectedSheet(sheet); setIsEditModalOpen(true); }}>
+                          <Edit size={14} className="me-1" /> Edit
+                        </Button>
+                        <Button variant="outline-success" size="sm" onClick={() => handleDownloadExcel(sheet)}>
+                          <FileSpreadsheet size={14} />
+                        </Button>
+                        <Button variant="outline-danger" size="sm" onClick={() => handleDownloadPDF(sheet)}>
+                          <Download size={14} />
+                        </Button>
+                      </div>
+
+                      {/* Nested Product Lines for Mobile */}
+                      {isExpanded && (
+                        <div className="mt-3 pt-3 border-top">
+                          <h6 className="small fw-bold text-muted text-uppercase mb-2">Product Lines Breakdown</h6>
+                          {lines.length === 0 ? (
+                            <div className="text-center text-muted small py-2">
+                              No product lines. 
+                              <br/>
+                              <Button variant="link" size="sm" onClick={() => handleSyncLines(sheet.id || sheet._id)}>Sync Lines</Button>
+                            </div>
+                          ) : (
+                            lines.map((line, idx) => {
+                              const productCategory = line.product_category || line.productCategory || 'Unknown Product';
+                              const design = line.design || '';
+                              const factoryName = line.factory_name || line.factoryName;
+                              const reqBox = parseFloat(line.total_production_boxes || line.totalProductionBoxes || 0);
+                              const compBox = parseFloat(line.production_completed_boxes || line.productionCompletedBoxes || 0);
+                              
+                              return (
+                                <div key={line.id || idx} className="bg-light p-2 mb-2 rounded border">
+                                  <div className="fw-medium text-dark small mb-1">{design ? `${productCategory} - ${design}` : productCategory}</div>
+                                  <div className="d-flex justify-content-between small text-muted mb-1">
+                                    <span>Size: {line.size}</span>
+                                    <span>{getStatusBadge(line.production_status || line.productionStatus || line.status)}</span>
+                                  </div>
+                                  <div className="d-flex justify-content-between small mb-2">
+                                    <span className={factoryName ? 'text-info' : 'text-danger'}>{factoryName || 'Unassigned Factory'}</span>
+                                    <Button size="sm" variant="link" className="p-0 text-primary" onClick={() => { setSelectedSheet(sheet); setSelectedLine(line); setLogModalOpen(true); }}>
+                                      <FileText size={14} className="me-1"/> Log Prod
+                                    </Button>
+                                  </div>
+                                  <div className="d-flex justify-content-between small px-2 py-1 bg-white rounded border-bottom">
+                                    <span>Req: {reqBox.toLocaleString()}</span>
+                                    <span className="text-success">Done: {compBox.toLocaleString()}</span>
+                                    <span className="text-danger">Pend: {(reqBox - compBox).toLocaleString()}</span>
+                                  </div>
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                      )}
+                    </Card.Body>
+                  </Card>
+                );
+              })
+            )}
           </div>
         </Card.Body>
       </Card>

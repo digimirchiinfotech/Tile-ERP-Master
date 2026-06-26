@@ -592,17 +592,32 @@ function RoleBasedDashboard({ currentUser, onNavigate }) {
 
       {/* Quick Glance Metrics - Color Coded */}
       <Row className="mb-4">
-        {dashboardData.keyMetrics?.map((metric, index) => {
-          const palette = [
-            { border: '#f97316', bg: 'linear-gradient(135deg,#fff7ed,#ffedd5)', iconBg: '#f97316', iconColor: '#fff', valueColor: '#c2410c' }, // Pending PI – Orange
-            { border: '#16a34a', bg: 'linear-gradient(135deg,#f0fdf4,#dcfce7)', iconBg: '#16a34a', iconColor: '#fff', valueColor: '#166534' }, // Confirmed PI – Green
-            { border: '#f59e0b', bg: 'linear-gradient(135deg,#fffbeb,#fef3c7)', iconBg: '#f59e0b', iconColor: '#fff', valueColor: '#92400e' }, // Pending PO – Amber
-            { border: '#2563eb', bg: 'linear-gradient(135deg,#eff6ff,#dbeafe)', iconBg: '#2563eb', iconColor: '#fff', valueColor: '#1e40af' }, // Confirmed PO – Blue
-            { border: '#0ea5e9', bg: 'linear-gradient(135deg,#f0f9ff,#e0f2fe)', iconBg: '#0ea5e9', iconColor: '#fff', valueColor: '#0369a1' }, // Ready PO – Sky
-            { border: '#8b5cf6', bg: 'linear-gradient(135deg,#faf5ff,#ede9fe)', iconBg: '#8b5cf6', iconColor: '#fff', valueColor: '#6d28d9' }, // Total QC – Purple
-            { border: '#06b6d4', bg: 'linear-gradient(135deg,#ecfeff,#cffafe)', iconBg: '#06b6d4', iconColor: '#fff', valueColor: '#0e7490' }, // Total Users – Cyan
-            { border: '#10b981', bg: 'linear-gradient(135deg,#ecfdf5,#d1fae5)', iconBg: 'linear-gradient(135deg,#059669,#10b981)', iconColor: '#fff', valueColor: '#065f46' }, // Revenue – Emerald
-          ];
+        {loading ? (
+          Array.from({ length: 4 }).map((_, idx) => (
+            <Col lg={3} md={6} key={idx} className="mb-4">
+              <Card className="h-100 border-0 shadow-sm placeholder-glow" style={{ borderRadius: '14px', background: '#f8f9fa' }}>
+                <Card.Body className="p-3 d-flex align-items-center">
+                  <div className="rounded-3 me-3 placeholder" style={{ width: '46px', height: '46px', background: '#e2e8f0' }}></div>
+                  <div className="flex-grow-1">
+                    <div className="placeholder col-8 mb-2" style={{ height: '28px', borderRadius: '6px', background: '#cbd5e1' }}></div>
+                    <div className="placeholder col-10" style={{ height: '12px', borderRadius: '4px', background: '#e2e8f0' }}></div>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))
+        ) : (
+          dashboardData.keyMetrics?.map((metric, index) => {
+            const palette = [
+              { border: '#f97316', bg: 'linear-gradient(135deg,#fff7ed,#ffedd5)', iconBg: '#f97316', iconColor: '#fff', valueColor: '#c2410c' }, // Pending PI – Orange
+              { border: '#16a34a', bg: 'linear-gradient(135deg,#f0fdf4,#dcfce7)', iconBg: '#16a34a', iconColor: '#fff', valueColor: '#166534' }, // Confirmed PI – Green
+              { border: '#f59e0b', bg: 'linear-gradient(135deg,#fffbeb,#fef3c7)', iconBg: '#f59e0b', iconColor: '#fff', valueColor: '#92400e' }, // Pending PO – Amber
+              { border: '#2563eb', bg: 'linear-gradient(135deg,#eff6ff,#dbeafe)', iconBg: '#2563eb', iconColor: '#fff', valueColor: '#1e40af' }, // Confirmed PO – Blue
+              { border: '#0ea5e9', bg: 'linear-gradient(135deg,#f0f9ff,#e0f2fe)', iconBg: '#0ea5e9', iconColor: '#fff', valueColor: '#0369a1' }, // Ready PO – Sky
+              { border: '#8b5cf6', bg: 'linear-gradient(135deg,#faf5ff,#ede9fe)', iconBg: '#8b5cf6', iconColor: '#fff', valueColor: '#6d28d9' }, // Total QC – Purple
+              { border: '#06b6d4', bg: 'linear-gradient(135deg,#ecfeff,#cffafe)', iconBg: '#06b6d4', iconColor: '#fff', valueColor: '#0e7490' }, // Total Users – Cyan
+              { border: '#10b981', bg: 'linear-gradient(135deg,#ecfdf5,#d1fae5)', iconBg: 'linear-gradient(135deg,#059669,#10b981)', iconColor: '#fff', valueColor: '#065f46' }, // Revenue – Emerald
+            ];
           const p = palette[index] || palette[0];
           const Icon = metric.icon;
           return (
@@ -651,7 +666,8 @@ function RoleBasedDashboard({ currentUser, onNavigate }) {
               </Card>
             </Col>
           );
-        })}
+        })
+        )}
       </Row>
 
       {/* Visual Charts Section */}
@@ -668,7 +684,16 @@ function RoleBasedDashboard({ currentUser, onNavigate }) {
                 </h6>
               </Card.Header>
               <Card.Body className="p-2">
-                <ResponsiveContainer width="100%" height={150} minWidth={0} minHeight={0} debounce={100}>
+                {loading ? (
+                  <div className="placeholder-glow w-100 h-100 d-flex align-items-end p-3 gap-2" style={{ height: '150px' }}>
+                    <div className="placeholder col-2" style={{ height: '40%' }}></div>
+                    <div className="placeholder col-2" style={{ height: '70%' }}></div>
+                    <div className="placeholder col-2" style={{ height: '50%' }}></div>
+                    <div className="placeholder col-2" style={{ height: '90%' }}></div>
+                    <div className="placeholder col-2" style={{ height: '60%' }}></div>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={150} minWidth={0} minHeight={0} debounce={100}>
                   <AreaChart data={Object.values(dashboardData.charts)[0]}>
                     <defs>
                       <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
@@ -683,6 +708,7 @@ function RoleBasedDashboard({ currentUser, onNavigate }) {
                     <Area type="monotone" dataKey="value" stroke="#2563eb" fillOpacity={1} fill="url(#colorValue)" />
                   </AreaChart>
                 </ResponsiveContainer>
+                )}
               </Card.Body>
             </Card>
           </Col>
@@ -697,7 +723,10 @@ function RoleBasedDashboard({ currentUser, onNavigate }) {
                 </h6>
               </Card.Header>
               <Card.Body className="p-2 d-flex justify-content-center align-items-center">
-                <ResponsiveContainer width="100%" height={150} minWidth={0} minHeight={0} debounce={100}>
+                {loading ? (
+                  <div className="placeholder-glow rounded-circle placeholder" style={{ width: '120px', height: '120px' }}></div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={150} minWidth={0} minHeight={0} debounce={100}>
                   <PieChart>
                     <Pie
                       data={Object.values(dashboardData.charts)[1]}
@@ -716,6 +745,7 @@ function RoleBasedDashboard({ currentUser, onNavigate }) {
                     <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
+                )}
               </Card.Body>
             </Card>
           </Col>
@@ -730,7 +760,16 @@ function RoleBasedDashboard({ currentUser, onNavigate }) {
                 </h6>
               </Card.Header>
               <Card.Body className="p-2">
-                <ResponsiveContainer width="100%" height={150} minWidth={0} minHeight={0} debounce={100}>
+                {loading ? (
+                  <div className="placeholder-glow w-100 h-100 d-flex align-items-end p-3 gap-2" style={{ height: '150px' }}>
+                    <div className="placeholder col-2" style={{ height: '40%' }}></div>
+                    <div className="placeholder col-2" style={{ height: '70%' }}></div>
+                    <div className="placeholder col-2" style={{ height: '50%' }}></div>
+                    <div className="placeholder col-2" style={{ height: '90%' }}></div>
+                    <div className="placeholder col-2" style={{ height: '60%' }}></div>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={150} minWidth={0} minHeight={0} debounce={100}>
                   <BarChart data={Object.values(dashboardData.charts)[2]}>
                     <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                     <XAxis dataKey="name" tick={{fontSize: 12}} />
@@ -739,6 +778,7 @@ function RoleBasedDashboard({ currentUser, onNavigate }) {
                     <Bar dataKey="value" fill="#2563eb" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
+                )}
               </Card.Body>
             </Card>
           </Col>
@@ -754,18 +794,26 @@ function RoleBasedDashboard({ currentUser, onNavigate }) {
               <h6 className="mb-0 fw-bold text-white">Quick Actions</h6>
             </div>
             <Card.Body className="p-3">
-              <div className="d-grid gap-2">
-                {dashboardData.quickActions?.map((action, index) => (
-                  <Button
-                    key={index}
-                    variant={action.color}
-                    onClick={() => onNavigate(action.action)}
-                    className={`quick-action-btn-premium btn-${action.color}`}
-                  >
-                    {action.label}
-                  </Button>
-                ))}
-              </div>
+              {loading ? (
+                <div className="placeholder-glow d-grid gap-2">
+                  <div className="placeholder w-100 rounded" style={{ height: '36px' }}></div>
+                  <div className="placeholder w-100 rounded" style={{ height: '36px' }}></div>
+                  <div className="placeholder w-100 rounded" style={{ height: '36px' }}></div>
+                </div>
+              ) : (
+                <div className="d-grid gap-2">
+                  {dashboardData.quickActions?.map((action, index) => (
+                    <Button
+                      key={index}
+                      variant={action.color}
+                      onClick={() => onNavigate(action.action)}
+                      className={`quick-action-btn-premium btn-${action.color}`}
+                    >
+                      {action.label}
+                    </Button>
+                  ))}
+                </div>
+              )}
             </Card.Body>
           </Card>
         </Col>
@@ -778,7 +826,22 @@ function RoleBasedDashboard({ currentUser, onNavigate }) {
             </div>
             <Card.Body className="p-0">
               <div className="activities-list-container">
-                {dashboardData.recentActivities && dashboardData.recentActivities.length > 0 ? (
+                {loading ? (
+                  <div className="p-3 placeholder-glow">
+                    {Array.from({ length: 3 }).map((_, idx) => (
+                      <div key={idx} className="d-flex justify-content-between mb-3 border-bottom pb-2">
+                        <div>
+                          <div className="placeholder col-8 mb-1" style={{ height: '14px' }}></div>
+                          <div className="placeholder col-5" style={{ height: '12px' }}></div>
+                        </div>
+                        <div className="text-end">
+                          <div className="placeholder col-8 mb-1" style={{ height: '14px' }}></div>
+                          <div className="placeholder col-10" style={{ height: '12px' }}></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : dashboardData.recentActivities && dashboardData.recentActivities.length > 0 ? (
                   dashboardData.recentActivities.map((activity, index) => (
                     <div key={index} className="activity-item-premium">
                       <div className="activity-content-left">

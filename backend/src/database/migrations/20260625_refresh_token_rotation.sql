@@ -28,7 +28,8 @@ UPDATE public.refresh_tokens
 
 -- 5. Make token_hash NOT NULL and UNIQUE now that all rows are populated
 ALTER TABLE public.refresh_tokens ALTER COLUMN token_hash SET NOT NULL;
-ALTER TABLE public.refresh_tokens ADD CONSTRAINT IF NOT EXISTS refresh_tokens_token_hash_key UNIQUE (token_hash);
+ALTER TABLE public.refresh_tokens DROP CONSTRAINT IF EXISTS refresh_tokens_token_hash_key;
+ALTER TABLE public.refresh_tokens ADD CONSTRAINT refresh_tokens_token_hash_key UNIQUE (token_hash);
 
 -- 6. Drop the old raw-token column — never store plaintext tokens
 ALTER TABLE public.refresh_tokens DROP COLUMN IF EXISTS token;

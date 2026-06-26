@@ -27,6 +27,7 @@ import DashboardStatusDropdown from '../shared/DashboardStatusDropdown.jsx';
 import ActivityTimeline from '../shared/ActivityTimeline.jsx';
 import PaginationControls from '../common/PaginationControls.jsx';
 import LockDocumentButton from '../shared/LockDocumentButton.jsx';
+import SkeletonTable from '../shared/SkeletonTable.jsx';
 import api from '../../services/api.js';
 import { Modal } from 'react-bootstrap';
 import QCPrintView from './QCPrintView.jsx';
@@ -286,69 +287,152 @@ function QCDashboard({ currentUser, onNavigate, navigationData }) {
             </Button>
           </div>
         </Card.Header>
-        <Card.Body className="p-0">
-          <div className="table-responsive">
-            <Table hover className="mb-0 align-middle">
-              <thead>
-                <tr className="table-light text-muted small text-uppercase">
-                  <th style={{ width: '40px' }} className="ps-4">
-                    <Form.Check
-                      type="checkbox"
-                      checked={multiSelect.selectAll}
-                      onChange={() => multiSelect.toggleSelectAll(filteredRecords)}
-                    />
-                  </th>
-                  <th style={{ width: '60px' }}>SR. NO.</th>
-                  <th>Status</th>
-                  <th className="ps-4">QC ID</th>
-                  <th>Order Number</th>
-                  <th>Supplier Name</th>
-                  <th>Product Name</th>
-                  <th>QC Date</th>
-                  <th>Assigned QC Person</th>
-                  <th className="pe-4 text-end">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan="10" className="text-center py-5"><Spinner animation="border" /></td></tr>
-                ) : paginatedRecords.length === 0 ? (
-                  <tr><td colSpan="10" className="text-center py-5 text-muted">No QC records found</td></tr>
-                ) : (
-                  paginatedRecords.map((record, index) => {
-                    const assignedUser = users?.find(u => u.id === record.inspectorId || u.id === record.inspector_id || u.id === record.assignedTo || u.id === record.assigned_to);
-                    const assignedName = assignedUser ? assignedUser.name : (record.inspector || record.assignedToName || '-');
-                    
-                    return (
-                      <tr key={record.id} className={multiSelect.isSelected(record.id) ? 'table-primary bg-opacity-10' : ''}>
-                        <td data-label="" className="ps-4">
+        <Card.Body className="p-0 bg-light bg-md-white">
+          {loading ? (
+            <div className="p-3"><SkeletonTable columns={10} rows={5} /></div>
+          ) : paginatedRecords.length === 0 ? (
+            <div className="text-center py-5 text-muted">No QC records found</div>
+          ) : (
+            <>
+              {/* Desktop Table View */}
+              <div className="table-responsive d-none d-md-block">
+                <Table hover className="mb-0 align-middle bg-white">
+                  <thead>
+                    <tr className="table-light text-muted small text-uppercase">
+                      <th style={{ width: '40px' }} className="ps-4">
+                        <Form.Check
+                          type="checkbox"
+                          checked={multiSelect.selectAll}
+                          onChange={() => multiSelect.toggleSelectAll(filteredRecords)}
+                        />
+                      </th>
+                      <th style={{ width: '60px' }}>SR. NO.</th>
+                      <th>Status</th>
+                      <th className="ps-4">QC ID</th>
+                      <th>Order Number</th>
+                      <th>Supplier Name</th>
+                      <th>Product Name</th>
+                      <th>QC Date</th>
+                      <th>Assigned QC Person</th>
+                      <th className="pe-4 text-end">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedRecords.map((record, index) => {
+                      const assignedUser = users?.find(u => u.id === record.inspectorId || u.id === record.inspector_id || u.id === record.assignedTo || u.id === record.assigned_to);
+                      const assignedName = assignedUser ? assignedUser.name : (record.inspector || record.assignedToName || '-');
+                      
+                      return (
+                        <tr key={record.id} className={multiSelect.isSelected(record.id) ? 'table-primary bg-opacity-10' : ''}>
+                          <td data-label="" className="ps-4">
+                            <Form.Check
+                              type="checkbox"
+                              checked={multiSelect.isSelected(record.id)}
+                              onChange={() => multiSelect.toggleSelect(record.id)}
+                            />
+                          </td>
+                          <td data-label="Sr." className="text-muted small">{(currentPage - 1) * PAGE_SIZE + index + 1}</td>
+                          <td data-label="Status">
+                            <div className="d-flex align-items-center gap-1">
+                              <DashboardStatusDropdown 
+                                module="QC" 
+                                endpoint="qc-records" 
+                                documentId={record.id} 
+                                value={(record.is_locked || record.isLocked) ? 'Locked' : (record.qcStatus || record.status || 'Draft')} 
+                                disabled={!(currentUser && ['super_admin', 'company_admin', 'quality_manager'].includes(currentUser?.role)) || record.is_locked || record.isLocked} 
+                                onSuccess={fetchQCRecords} 
+                              />
+                            </div>
+                          </td>
+                          <td data-label="QC ID" className="ps-4 fw-semibold text-primary">{record.qcId}</td>
+                          <td data-label="Order No.">{record.orderNumber}</td>
+                          <td data-label="Client">{record.clientName}</td>
+                          <td data-label="Product">{record.productName}</td>
+                          <td data-label="QC Date">{formatDisplayDate(record.qcDate)}</td>
+                          <td data-label="Assigned To">{assignedName}</td>
+                          <td data-label="Actions" className="pe-4 text-end">
+                            <div className="d-flex justify-content-end gap-1">
+                              <LockDocumentButton 
+                                documentType="QC" 
+                                documentId={record.id} 
+                                isLocked={record.is_locked || record.isLocked}
+                                onLockSuccess={fetchQCRecords}
+                                getSnapshotData={async () => {
+                                  const res = await api.get(`/qc-records/${record.id}`);
+                                  return res.data?.data || res.data;
+                                }}
+                              />
+                              <Button variant="outline" size="sm" className="text-info border-info-subtle" onClick={() => handleView(record)}>
+                                <Eye size={14} />
+                              </Button>
+                              <Button variant="outline" size="sm" className="text-primary border-primary-subtle" onClick={() => handleEdit(record)} disabled={record.is_locked || record.isLocked}>
+                                <Edit size={14} />
+                              </Button>
+                              <Button variant="outline" size="sm" className="text-danger border-danger-subtle" onClick={() => handleDelete(record.id)} disabled={record.is_locked || record.isLocked}>
+                                <Trash2 size={14} />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </Table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="d-md-none p-2">
+                {paginatedRecords.map((record, index) => {
+                  const assignedUser = users?.find(u => u.id === record.inspectorId || u.id === record.inspector_id || u.id === record.assignedTo || u.id === record.assigned_to);
+                  const assignedName = assignedUser ? assignedUser.name : (record.inspector || record.assignedToName || '-');
+                  
+                  return (
+                    <Card key={record.id} className="mb-3 border-0 shadow-sm rounded-3">
+                      <Card.Body className="p-3">
+                        <div className="d-flex justify-content-between align-items-start mb-2">
+                          <div>
+                            <div className="fw-bold text-primary mb-1">{record.qcId}</div>
+                            <div className="text-muted small">Sr. {(currentPage - 1) * PAGE_SIZE + index + 1}</div>
+                          </div>
+                          <DashboardStatusDropdown 
+                            module="QC" 
+                            endpoint="qc-records" 
+                            documentId={record.id} 
+                            value={(record.is_locked || record.isLocked) ? 'Locked' : (record.qcStatus || record.status || 'Draft')} 
+                            disabled={!(currentUser && ['super_admin', 'company_admin', 'quality_manager'].includes(currentUser?.role)) || record.is_locked || record.isLocked} 
+                            onSuccess={fetchQCRecords} 
+                          />
+                        </div>
+                        <div className="d-flex justify-content-between mb-1">
+                          <span className="text-muted small">Order:</span>
+                          <span className="fw-semibold small">{record.orderNumber}</span>
+                        </div>
+                        <div className="d-flex justify-content-between mb-1">
+                          <span className="text-muted small">Supplier:</span>
+                          <span className="fw-semibold small">{record.clientName}</span>
+                        </div>
+                        <div className="d-flex justify-content-between mb-1">
+                          <span className="text-muted small">Product:</span>
+                          <span className="fw-semibold small text-truncate" style={{maxWidth: '150px'}}>{record.productName}</span>
+                        </div>
+                        <div className="d-flex justify-content-between mb-1">
+                          <span className="text-muted small">QC Date:</span>
+                          <span className="fw-semibold small">{formatDisplayDate(record.qcDate)}</span>
+                        </div>
+                        <div className="d-flex justify-content-between mb-3">
+                          <span className="text-muted small">Assigned:</span>
+                          <span className="fw-semibold small">{assignedName}</span>
+                        </div>
+                        
+                        <div className="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
                           <Form.Check
                             type="checkbox"
                             checked={multiSelect.isSelected(record.id)}
                             onChange={() => multiSelect.toggleSelect(record.id)}
+                            label="Select"
+                            className="small text-muted"
                           />
-                        </td>
-                        <td data-label="Sr." className="text-muted small">{(currentPage - 1) * PAGE_SIZE + index + 1}</td>
-                        <td data-label="Status">
-                          <div className="d-flex align-items-center gap-1">
-                            <DashboardStatusDropdown 
-                              module="QC" 
-                              endpoint="qc-records" 
-                              documentId={record.id} 
-                              value={(record.is_locked || record.isLocked) ? 'Locked' : (record.qcStatus || record.status || 'Draft')} 
-                              disabled={!(currentUser && ['super_admin', 'company_admin', 'quality_manager'].includes(currentUser?.role)) || record.is_locked || record.isLocked} 
-                              onSuccess={fetchQCRecords} 
-                            />
-                          </div>
-                        </td>
-                        <td data-label="QC ID" className="ps-4 fw-semibold text-primary">{record.qcId}</td>
-                        <td data-label="Order No.">{record.orderNumber}</td>
-                        <td data-label="Client">{record.clientName}</td>
-                        <td data-label="Product">{record.productName}</td>
-                        <td data-label="QC Date">{formatDisplayDate(record.qcDate)}</td>
-                        <td data-label="Assigned To">{assignedName}</td>
-                        <td data-label="Actions" className="pe-4 text-end">
-                          <div className="d-flex justify-content-end gap-1">
+                          <div className="d-flex gap-2">
                             <LockDocumentButton 
                               documentType="QC" 
                               documentId={record.id} 
@@ -359,24 +443,24 @@ function QCDashboard({ currentUser, onNavigate, navigationData }) {
                                 return res.data?.data || res.data;
                               }}
                             />
-                            <Button variant="outline" size="sm" className="text-info border-info-subtle" onClick={() => handleView(record)}>
+                            <Button variant="outline-info" size="sm" onClick={() => handleView(record)}>
                               <Eye size={14} />
                             </Button>
-                            <Button variant="outline" size="sm" className="text-primary border-primary-subtle" onClick={() => handleEdit(record)} disabled={record.is_locked || record.isLocked}>
+                            <Button variant="outline-primary" size="sm" onClick={() => handleEdit(record)} disabled={record.is_locked || record.isLocked}>
                               <Edit size={14} />
                             </Button>
-                            <Button variant="outline" size="sm" className="text-danger border-danger-subtle" onClick={() => handleDelete(record.id)} disabled={record.is_locked || record.isLocked}>
+                            <Button variant="outline-danger" size="sm" onClick={() => handleDelete(record.id)} disabled={record.is_locked || record.isLocked}>
                               <Trash2 size={14} />
                             </Button>
                           </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </Table>
-          </div>
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  );
+                })}
+              </div>
+            </>
+          )}
           <PaginationControls
             currentPage={currentPage}
             totalPages={totalPages}

@@ -204,8 +204,26 @@ Key rules enabled:
 
 1. **Never interpolate `req.companyFilter` into SQL strings**, even though it's JWT-derived. Always use `$1` parameterization. This is defense-in-depth — a compromised signing key would otherwise lead to SQL injection.
 
-2. **`TABLE_MAP` / `TABLE_MAPPING` guard pattern is correct** — `lockController.js` and `masterDataController.js` correctly use a hardcoded allow-list with early validation. Continue this pattern for any controller that uses user-supplied type names to select a table.
+208. **`TABLE_MAP` / `TABLE_MAPPING` guard pattern is correct** — `lockController.js` and `masterDataController.js` correctly use a hardcoded allow-list with early validation. Continue this pattern for any controller that uses user-supplied type names to select a table.
+209. 
+210. **Dynamic `WHERE` builder pattern is safe** — building clause strings like `'WHERE company_id = $1'` as a string constant and appending to queries with a separate values array is correct. The interpolation risk only arises when a *value* is put in the string instead of a parameter slot.
+211. 
+212. **Run `npm run lint` as part of CI** — the ESLint security plugin will flag any new `query(...)` calls that contain template literals with `${` interpolation.
 
-3. **Dynamic `WHERE` builder pattern is safe** — building clause strings like `'WHERE company_id = $1'` as a string constant and appending to queries with a separate values array is correct. The interpolation risk only arises when a *value* is put in the string instead of a parameter slot.
+---
 
-4. **Run `npm run lint` as part of CI** — the ESLint security plugin will flag any new `query(...)` calls that contain template literals with `${` interpolation.
+## Automated Test Coverage (Document Locking Chain)
+
+> [!IMPORTANT]
+> The crown jewel of the system — the PI → EI → PL → ANX → IB → VGM → SI document locking chain — is now fully covered by automated integration tests using **Jest** and **Supertest**. 
+
+**Test Implementation Details:**
+- **File:** `backend/tests/integration/exportDocumentLockingChain.test.js`
+- **Framework:** Jest (Test Runner) + Supertest (HTTP assertions)
+- **Scope:**
+  - Validates full PI → EI document conversion.
+  - Generates PL, ANX, IB, VGM, and SI automatically.
+  - Evaluates cascading lock constraints across all tenant documents simultaneously when EI is locked via `/api/lock/lock-document`.
+  - Asserts strict rejection (`400 Bad Request` or `403 Forbidden`) on malicious modifications to locked dependency records.
+  - Ensures accurate cascading release upon EI unlock.
+- **CI/CD Integration:** Automatically enforced on the `master` branch via `.github/workflows/ci.yml`.

@@ -231,7 +231,7 @@ export const create = async (req, res, next) => {
 
     const result = await client.query(
       `INSERT INTO clients 
-       (company_id, client_id, name, contact_person_name, email, contact_number, address, 
+       (company_id, client_id, client_name, contact_person_name, email_id, contact_number, address, 
         city, country, business_type, credit_limit, credit_days,
         assigned_salesperson, status, notes, consignee_details, buyer_details, port_of_loading, port_of_discharge, final_destination, currency, created_by,
         created_at, updated_at)

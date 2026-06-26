@@ -271,10 +271,27 @@ export const runGlobalSchemaMigration = async () => {
           ALTER TABLE public.qc_records ADD COLUMN IF NOT EXISTS manufacturing_date DATE;
         END IF;
 
-        -- Soft-Delete Columns for public schema
+        -- Export Invoice Column Self-Heal (2026-06-26)
         IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'export_invoices') THEN
           ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
           ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS deleted_by UUID;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS lc_number VARCHAR(255);
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS lc_date DATE;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS epcg_no VARCHAR(255);
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS sb_no VARCHAR(100);
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS sb_date DATE;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS ftp_declaration TEXT;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS updated_by UUID;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS supplier_details TEXT;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS validity_days INTEGER DEFAULT 30;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS notes TEXT;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS subtotal NUMERIC(15,2) DEFAULT 0;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS discount NUMERIC(15,2) DEFAULT 0;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS tax NUMERIC(15,2) DEFAULT 0;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS revision_count INTEGER DEFAULT 0;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS revision_reason TEXT;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS original_invoice_no VARCHAR(255);
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS revised_from_id UUID;
         END IF;
 
         IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'leads') THEN
@@ -351,6 +368,37 @@ export const runGlobalSchemaMigration = async () => {
           ALTER TABLE public.proforma_invoices ADD COLUMN IF NOT EXISTS revised_from_id UUID;
           ALTER TABLE public.proforma_invoices ADD COLUMN IF NOT EXISTS revision_reason TEXT;
           ALTER TABLE public.proforma_invoices ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+        END IF;
+
+        -- ── 2026-06-26: Export Invoice Column Self-Heal ─────────────────────
+        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'export_invoices') THEN
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS lc_number VARCHAR(255);
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS lc_date DATE;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS epcg_no VARCHAR(255);
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS sb_no VARCHAR(100);
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS sb_date DATE;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS ftp_declaration TEXT;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS updated_by UUID;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS supplier_details TEXT;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS subtotal NUMERIC(15,2) DEFAULT 0;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS discount NUMERIC(15,2) DEFAULT 0;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS tax NUMERIC(15,2) DEFAULT 0;
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS original_invoice_no VARCHAR(255);
+          ALTER TABLE public.export_invoices ADD COLUMN IF NOT EXISTS revised_from_id UUID;
+        END IF;
+
+        -- ── 2026-06-26: Proforma Invoice Lines Column Self-Heal ─────────────
+        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'proforma_invoice_lines') THEN
+          ALTER TABLE public.proforma_invoice_lines ADD COLUMN IF NOT EXISTS product_type VARCHAR(50) DEFAULT 'tile';
+          ALTER TABLE public.proforma_invoice_lines ADD COLUMN IF NOT EXISTS sanitaryware_product_id UUID;
+          ALTER TABLE public.proforma_invoice_lines ADD COLUMN IF NOT EXISTS model_no VARCHAR(255);
+          ALTER TABLE public.proforma_invoice_lines ADD COLUMN IF NOT EXISTS category VARCHAR(100);
+          ALTER TABLE public.proforma_invoice_lines ADD COLUMN IF NOT EXISTS color VARCHAR(100);
+          ALTER TABLE public.proforma_invoice_lines ADD COLUMN IF NOT EXISTS pieces INTEGER DEFAULT 0;
+          ALTER TABLE public.proforma_invoice_lines ADD COLUMN IF NOT EXISTS cartons INTEGER DEFAULT 0;
+          ALTER TABLE public.proforma_invoice_lines ADD COLUMN IF NOT EXISTS cbm NUMERIC(10,4) DEFAULT 0;
+          ALTER TABLE public.proforma_invoice_lines ADD COLUMN IF NOT EXISTS is_foc BOOLEAN DEFAULT FALSE;
+          ALTER TABLE public.proforma_invoice_lines ADD COLUMN IF NOT EXISTS total_sqm NUMERIC(15,4) DEFAULT 0;
         END IF;
 
       END $$;
@@ -514,6 +562,39 @@ export const runGlobalSchemaMigration = async () => {
             ALTER TABLE proforma_invoices ADD COLUMN IF NOT EXISTS revised_from_id UUID;
             ALTER TABLE proforma_invoices ADD COLUMN IF NOT EXISTS revision_reason TEXT;
             ALTER TABLE proforma_invoices ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+
+            -- ── 2026-06-26: Export Invoice Column Self-Heal ─────────────────
+            ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS lc_number VARCHAR(255);
+            ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS lc_date DATE;
+            ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS epcg_no VARCHAR(255);
+            ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS sb_no VARCHAR(100);
+            ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS sb_date DATE;
+            ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS ftp_declaration TEXT;
+            ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS updated_by UUID;
+            ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS supplier_details TEXT;
+            ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS validity_days INTEGER DEFAULT 30;
+            ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS notes TEXT;
+            ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS subtotal NUMERIC(15,2) DEFAULT 0;
+            ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS discount NUMERIC(15,2) DEFAULT 0;
+            ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS tax NUMERIC(15,2) DEFAULT 0;
+            ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS revision_count INTEGER DEFAULT 0;
+            ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS revision_reason TEXT;
+            ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS original_invoice_no VARCHAR(255);
+            ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS revised_from_id UUID;
+            ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+            ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS deleted_by UUID;
+
+            -- ── 2026-06-26: Proforma Invoice Lines Column Self-Heal ──────────
+            ALTER TABLE proforma_invoice_lines ADD COLUMN IF NOT EXISTS product_type VARCHAR(50) DEFAULT 'tile';
+            ALTER TABLE proforma_invoice_lines ADD COLUMN IF NOT EXISTS sanitaryware_product_id UUID;
+            ALTER TABLE proforma_invoice_lines ADD COLUMN IF NOT EXISTS model_no VARCHAR(255);
+            ALTER TABLE proforma_invoice_lines ADD COLUMN IF NOT EXISTS category VARCHAR(100);
+            ALTER TABLE proforma_invoice_lines ADD COLUMN IF NOT EXISTS color VARCHAR(100);
+            ALTER TABLE proforma_invoice_lines ADD COLUMN IF NOT EXISTS pieces INTEGER DEFAULT 0;
+            ALTER TABLE proforma_invoice_lines ADD COLUMN IF NOT EXISTS cartons INTEGER DEFAULT 0;
+            ALTER TABLE proforma_invoice_lines ADD COLUMN IF NOT EXISTS cbm NUMERIC(10,4) DEFAULT 0;
+            ALTER TABLE proforma_invoice_lines ADD COLUMN IF NOT EXISTS is_foc BOOLEAN DEFAULT FALSE;
+            ALTER TABLE proforma_invoice_lines ADD COLUMN IF NOT EXISTS total_sqm NUMERIC(15,4) DEFAULT 0;
 
           END $$;
         `);

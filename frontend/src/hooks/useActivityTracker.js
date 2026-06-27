@@ -40,7 +40,8 @@ export function useActivityTracker(onActivity, throttleMs = 1000) {
       'scroll',
       'touchstart',
       'click',
-      'focus'
+      'focus',
+      'user:activity'
     ];
 
     // Add event listeners

@@ -160,13 +160,14 @@ function App() {
 
   // Auth Logout Listener
   useEffect(() => {
-    const handleAuthLogout = () => {
+    const handleAuthLogout = (e) => {
+      const reason = e?.detail?.reason || 'Your session has expired. Please log in again.';
       dataSyncManager.stopAllPolling();
       setCurrentUser(null);
       tokenManager.clearTokens();
       localStorage.removeItem('current_user');
       navigate('/', { replace: true });
-      showError('Your session has expired. Please log in again.');
+      showError(reason);
     };
     window.addEventListener('auth:logout', handleAuthLogout);
     return () => window.removeEventListener('auth:logout', handleAuthLogout);

@@ -12,8 +12,8 @@
 import { useEffect, useRef, useCallback } from 'react';
 import api from '../services/api.js';
 
-const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours
-const WARNING_TIME = 5 * 60 * 1000; // Warn at 5 minutes remaining
+const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 minutes
+const WARNING_TIME = 0; // No warning needed, direct logout
 
 /**
  * Manage session state persistence and timeout
@@ -99,7 +99,7 @@ export function useSessionManager(userId, isAuthenticated) {
     warningShownRef.current = true;
   }, []);
 
-  // Setup auto-save interval
+  // Setup intervals
   useEffect(() => {
     if (!isAuthenticated) return;
 
@@ -113,12 +113,31 @@ export function useSessionManager(userId, isAuthenticated) {
       saveSessionState(currentState);
     }, 2 * 60 * 1000);
 
-    return () => {
-      if (saveStateIntervalRef.current) {
-        clearInterval(saveStateIntervalRef.current);
+    // Check session timeout every minute
+    const timeoutCheckInterval = setInterval(() => {
+      const { expired } = checkSessionTimeout();
+      if (expired) {
+        window.dispatchEvent(new CustomEvent('auth:logout', { 
+          detail: { reason: 'Your session has expired due to 15 minutes of inactivity. Please log in again.' }
+        }));
       }
+    }, 60 * 1000);
+
+    // Silent token refresh every 5 minutes if user is active
+    const tokenRefreshInterval = setInterval(() => {
+      const timeElapsed = Date.now() - lastActivityRef.current;
+      // Refresh token if active in the last 5 minutes
+      if (timeElapsed < 5 * 60 * 1000) {
+        api.post('/auth/refresh-token', {}).catch(() => {});
+      }
+    }, 5 * 60 * 1000);
+
+    return () => {
+      if (saveStateIntervalRef.current) clearInterval(saveStateIntervalRef.current);
+      clearInterval(timeoutCheckInterval);
+      clearInterval(tokenRefreshInterval);
     };
-  }, [isAuthenticated, saveSessionState]);
+  }, [isAuthenticated, saveSessionState, checkSessionTimeout]);
 
   return {
     saveSessionState,

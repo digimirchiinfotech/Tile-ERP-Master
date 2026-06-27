@@ -82,9 +82,10 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => {
-    // Dispatch global loading complete
+    // Dispatch global loading complete and user activity for user-initiated requests
     if (!response.config?.skipLoading) {
       window.dispatchEvent(new CustomEvent('api:loading', { detail: { isLoading: false } }));
+      window.dispatchEvent(new CustomEvent('user:activity'));
     }
 
     // Track slow successful responses

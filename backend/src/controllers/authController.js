@@ -87,7 +87,7 @@ export const login = async (req, res, next) => {
     const result = await req.db.globalQuery(
       `SELECT u.id, u.company_id, u.name, u.email_id, u.password_hash, u.role, u.status, u.permissions,
               (to_jsonb(u)->>'must_change_password')::boolean as must_change_password,
-              c.name as company_name, c.status as company_status,
+              c.name as company_name, c.status as company_status, c.onboarding_completed,
               (SELECT COALESCE(json_agg(module_name), '[]'::json) FROM module_access WHERE company_id = u.company_id AND is_enabled = true) as enabled_modules
        FROM users u LEFT JOIN companies c ON u.company_id = c.id
        WHERE u.email_id = $1`,
@@ -341,7 +341,7 @@ export const resetPassword = async (req, res, next) => {
 export const getCurrentUser = async (req, res, next) => {
   try {
     const result = await req.db.globalQuery(
-      `SELECT u.id, u.company_id, u.name, u.email_id, u.role, u.avatar_url, u.status, u.last_login, u.created_at, u.permissions, u.contact_number, u.settings, c.name as company_name,
+      `SELECT u.id, u.company_id, u.name, u.email_id, u.role, u.avatar_url, u.status, u.last_login, u.created_at, u.permissions, u.contact_number, u.settings, c.name as company_name, c.onboarding_completed,
               (SELECT COALESCE(json_agg(module_name), '[]'::json) FROM module_access WHERE company_id = u.company_id AND is_enabled = true) as enabled_modules
        FROM users u LEFT JOIN companies c ON u.company_id = c.id WHERE u.id = $1`,
       [req.user.id]

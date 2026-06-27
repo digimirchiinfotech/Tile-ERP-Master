@@ -655,6 +655,28 @@ export const updateCompanyModules = async (req, res, next) => {
   }
 };
 
+export const completeOnboarding = async (req, res, next) => {
+  try {
+    const companyId = req.user.companyId || req.user.company_id;
+    if (!companyId) return next(new AppError('No company associated with user', 400));
+    await req.db.globalQuery('UPDATE companies SET onboarding_completed = TRUE, onboarding_step = 5 WHERE id = $1', [companyId]);
+    res.json({ success: true, message: 'Onboarding completed successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const restartOnboarding = async (req, res, next) => {
+  try {
+    const companyId = req.user.companyId || req.user.company_id;
+    if (!companyId) return next(new AppError('No company associated with user', 400));
+    await req.db.globalQuery('UPDATE companies SET onboarding_completed = FALSE, onboarding_step = 0 WHERE id = $1', [companyId]);
+    res.json({ success: true, message: 'Onboarding restarted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   getAllCompanies,
   getCompanyById,
@@ -667,5 +689,7 @@ export default {
   getAvailableModules,
   getCompanyModules,
   updateCompanyModules,
-  hardDelete
+  hardDelete,
+  completeOnboarding,
+  restartOnboarding
 };

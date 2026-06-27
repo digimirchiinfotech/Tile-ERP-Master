@@ -88,4 +88,15 @@ router.patch(
   companyController.toggleStatus
 );
 
+router.patch(
+  '/onboarding-complete',
+  companyController.completeOnboarding
+);
+
+router.patch(
+  '/onboarding-restart',
+  requireRole('company_admin'),
+  companyController.restartOnboarding
+);
+
 export default router;

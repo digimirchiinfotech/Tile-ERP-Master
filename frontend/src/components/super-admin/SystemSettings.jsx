@@ -558,6 +558,23 @@ function SystemSettings({ currentUser }) {
                         )}
                         Save General Configuration
                       </Button>
+                      <Button
+                        variant="outline-secondary"
+                        onClick={async () => {
+                          if (window.confirm("Are you sure you want to restart the setup wizard? This will prompt you to set up company details again.")) {
+                            try {
+                              await api.patch('/companies/onboarding-restart');
+                              window.location.reload();
+                            } catch (err) {
+                              showNotification(err.response?.data?.message || 'Failed to restart wizard', 'danger');
+                            }
+                          }
+                        }}
+                        className="px-4 fw-bold ms-auto"
+                      >
+                        <RefreshCw size={18} className="me-2" />
+                        Restart Setup Wizard
+                      </Button>
                     </div>
                   </Form>
                 </Col>

@@ -24,6 +24,7 @@ import GlobalErrorBoundary from './components/shared/GlobalErrorBoundary.jsx';
 import SessionWarningModal from './components/common/SessionWarningModal.jsx';
 import NotificationManager, { showSuccess, showError } from './components/shared/NotificationManager.jsx';
 import OfflineBanner from './components/shared/OfflineBanner.jsx';
+import OnboardingWizard from './components/shared/OnboardingWizard.jsx';
 
 /**
  * Main Application Component
@@ -38,6 +39,7 @@ function App() {
   const [showSessionWarning, setShowSessionWarning] = useState(false);
   const [sessionTimeRemaining, setSessionTimeRemaining] = useState(0);
   const [isGlobalLoading, setIsGlobalLoading] = useState(false);
+  const [localOnboardingDone, setLocalOnboardingDone] = useState(false);
 
   // 1. Session & Activity Management
   const sessionManager = useSessionManager(currentUser?.id, !!currentUser);
@@ -261,6 +263,14 @@ function App() {
         )}
       </PollingManager>
       <NotificationManager />
+      
+      {currentUser && currentUser.onboarding_completed === false && !localOnboardingDone && (
+        <OnboardingWizard 
+          show={true} 
+          onComplete={() => setLocalOnboardingDone(true)} 
+        />
+      )}
+
       <style>{`
         .global-progress-bar {
           position: fixed;

@@ -352,6 +352,12 @@ function QCDashboard({ currentUser, onNavigate, navigationData }) {
                           <td data-label="Assigned To">{assignedName}</td>
                           <td data-label="Actions" className="pe-4 text-end">
                             <div className="d-flex justify-content-end gap-1">
+                              <Button variant="outline" size="sm" className="text-info border-info-subtle" onClick={() => handleView(record)}>
+                                <Eye size={14} />
+                              </Button>
+                              <Button variant="outline" size="sm" className="text-primary border-primary-subtle" onClick={() => handleEdit(record)} disabled={record.is_locked || record.isLocked}>
+                                <Edit size={14} />
+                              </Button>
                               <LockDocumentButton 
                                 documentType="QC" 
                                 documentId={record.id} 
@@ -362,12 +368,6 @@ function QCDashboard({ currentUser, onNavigate, navigationData }) {
                                   return res.data?.data || res.data;
                                 }}
                               />
-                              <Button variant="outline" size="sm" className="text-info border-info-subtle" onClick={() => handleView(record)}>
-                                <Eye size={14} />
-                              </Button>
-                              <Button variant="outline" size="sm" className="text-primary border-primary-subtle" onClick={() => handleEdit(record)} disabled={record.is_locked || record.isLocked}>
-                                <Edit size={14} />
-                              </Button>
                               <Button variant="outline" size="sm" className="text-danger border-danger-subtle" onClick={() => handleDelete(record.id)} disabled={record.is_locked || record.isLocked}>
                                 <Trash2 size={14} />
                               </Button>
@@ -433,6 +433,12 @@ function QCDashboard({ currentUser, onNavigate, navigationData }) {
                             className="small text-muted"
                           />
                           <div className="d-flex gap-2">
+                            <Button variant="outline-info" size="sm" onClick={() => handleView(record)}>
+                              <Eye size={14} />
+                            </Button>
+                            <Button variant="outline-primary" size="sm" onClick={() => handleEdit(record)} disabled={record.is_locked || record.isLocked}>
+                              <Edit size={14} />
+                            </Button>
                             <LockDocumentButton 
                               documentType="QC" 
                               documentId={record.id} 
@@ -443,12 +449,6 @@ function QCDashboard({ currentUser, onNavigate, navigationData }) {
                                 return res.data?.data || res.data;
                               }}
                             />
-                            <Button variant="outline-info" size="sm" onClick={() => handleView(record)}>
-                              <Eye size={14} />
-                            </Button>
-                            <Button variant="outline-primary" size="sm" onClick={() => handleEdit(record)} disabled={record.is_locked || record.isLocked}>
-                              <Edit size={14} />
-                            </Button>
                             <Button variant="outline-danger" size="sm" onClick={() => handleDelete(record.id)} disabled={record.is_locked || record.isLocked}>
                               <Trash2 size={14} />
                             </Button>

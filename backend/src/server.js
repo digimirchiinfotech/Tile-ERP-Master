@@ -1,5 +1,17 @@
+import * as Sentry from '@sentry/node';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import express from 'express';
 import cors from 'cors';
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  integrations: [
+    nodeProfilingIntegration(),
+  ],
+  tracesSampleRate: 1.0,
+  profilesSampleRate: 1.0,
+  environment: process.env.NODE_ENV || 'development',
+});
 import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
@@ -488,6 +500,9 @@ app.use((req, res) => {
     status: 404
   });
 });
+
+// Sentry error handler must be registered before other error handlers
+Sentry.setupExpressErrorHandler(app);
 
 // Error handling
 app.use(errorHandler);

@@ -11,11 +11,7 @@
 
 import { debugLogger } from '../utils/debugLogger.js';
 import { successResponse } from '../utils/helpers.js';
-
-const dashboardCache = new Map();
-// Short TTL in dev, longer in production. NOTE: This cache is per-process.
-// In multi-process (PM2 cluster) setups, use Redis for shared caching.
-const CACHE_TTL = process.env.NODE_ENV === 'production' ? 60 * 1000 : 30 * 1000;
+import { dashboardCache, withCache } from '../utils/cache.js';
 
 /**
  * Invalidate dashboard cache for a specific user.
@@ -23,13 +19,14 @@ const CACHE_TTL = process.env.NODE_ENV === 'production' ? 60 * 1000 : 30 * 1000;
  */
 export const invalidateDashboardCache = (userId) => {
   if (!userId) {
-    dashboardCache.clear();
+    dashboardCache.flushAll();
     return;
   }
   // Remove all cache keys belonging to this user (key starts with userId)
-  for (const key of dashboardCache.keys()) {
+  const keys = dashboardCache.keys();
+  for (const key of keys) {
     if (key.startsWith(userId)) {
-      dashboardCache.delete(key);
+      dashboardCache.del(key);
     }
   }
 };
@@ -44,20 +41,12 @@ export const getDashboardData = async (req, res, next) => {
     const companyId = req.user?.companyId;
     const userRole = req.user?.role;
     const companyFilter = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : 'none';
-    const cacheKey = `${userId}-${companyId}-${userRole}-${companyFilter}`;
+    const cacheKey = `dashboard_${companyFilter}_${userRole}_${userId}`;
 
-    if (dashboardCache.has(cacheKey)) {
-      const cached = dashboardCache.get(cacheKey);
-      if (Date.now() - cached.timestamp < CACHE_TTL) {
-        return successResponse(res, cached.data, 'Dashboard data retrieved from cache');
-      } else {
-        dashboardCache.delete(cacheKey);
-      }
-    }
+    const stats = await withCache(dashboardCache, cacheKey, async () => {
+      let statsResult = {};
 
-    let stats = {};
-
-    // Super Admin - See system-wide data
+      // Super Admin - See system-wide data
     if (userRole === 'super_admin') {
       let companyConds = "";
       let vals = [];
@@ -100,7 +89,7 @@ export const getDashboardData = async (req, res, next) => {
 
       const row = unifiedRes.rows[0] || {};
 
-      stats = {
+      statsResult = {
         role: 'super_admin',
         totalCompanies: parseInt(companies.rows[0]?.count || 0),
         totalUsers: parseInt(users.rows[0]?.count || 0),
@@ -148,7 +137,7 @@ export const getDashboardData = async (req, res, next) => {
 
       const row = unifiedRes.rows[0] || {};
 
-      stats = {
+      statsResult = {
         role: userRole,
         companyId,
         invoices: parseInt(row.invoices || 0),
@@ -183,7 +172,7 @@ export const getDashboardData = async (req, res, next) => {
         req.db.query('SELECT COUNT(*) as count FROM qc_records WHERE company_id = $1 AND qc_status = $2', [companyId, 'Failed'])
       ]);
 
-      stats = {
+      statsResult = {
         role: userRole,
         companyId,
         totalQCRecords: parseInt(qcRecords.rows[0]?.count || 0),
@@ -202,7 +191,7 @@ export const getDashboardData = async (req, res, next) => {
         req.db.query('SELECT SUM(COALESCE(CAST(total_amount AS DECIMAL), 0) * COALESCE(CAST(exchange_rate AS DECIMAL), 1)) as total FROM proforma_invoices WHERE company_id = $1', [companyId])
       ]);
 
-      stats = {
+      statsResult = {
         role: userRole,
         companyId,
         totalInvoices: parseInt(invoices.rows[0]?.count || 0),
@@ -223,7 +212,7 @@ export const getDashboardData = async (req, res, next) => {
         req.db.query('SELECT COUNT(*) as count FROM products WHERE company_id = $1', [companyId])
       ]);
 
-      stats = {
+      statsResult = {
         role: userRole,
         companyId,
         orders: parseInt(orders.rows[0]?.count || 0),
@@ -242,7 +231,7 @@ export const getDashboardData = async (req, res, next) => {
         req.db.query('SELECT COUNT(DISTINCT category) as count FROM products WHERE company_id = $1', [companyId])
       ]);
 
-      stats = {
+      statsResult = {
         role: userRole,
         companyId,
         totalProducts: parseInt(products.rows[0]?.count || 0),
@@ -260,7 +249,7 @@ export const getDashboardData = async (req, res, next) => {
         req.db.query('SELECT SUM(COALESCE(CAST(total_amount AS DECIMAL), 0) * COALESCE(CAST(exchange_rate AS DECIMAL), 1)) as total FROM proforma_invoices WHERE company_id = $1', [companyId])
       ]);
 
-      stats = {
+      statsResult = {
         role: userRole,
         companyId,
         myOrders: parseInt(orders.rows[0]?.count || 0),
@@ -280,7 +269,7 @@ export const getDashboardData = async (req, res, next) => {
         req.db.query('SELECT COUNT(*) as count FROM shipping_instructions WHERE company_id = $1', [companyId])
       ]);
 
-      stats = {
+      statsResult = {
         role: userRole,
         companyId,
         exportInvoices: parseInt(invoices.rows[0]?.count || 0),
@@ -356,7 +345,7 @@ export const getDashboardData = async (req, res, next) => {
         const prevRev = parseFloat(monthlyGrowth.rows[0]?.prev_month || 0);
         const growthPercent = prevRev > 0 ? ((currentRev - prevRev) / prevRev * 100).toFixed(1) : 0;
 
-        stats.charts = {
+        statsResult.charts = {
           userActivity: activityTrend.rows,
           systemHealth: systemHealth.rows.length > 0 ? systemHealth.rows : [{ name: 'N/A', value: 1 }],
           monthlyGrowth: [
@@ -373,19 +362,21 @@ export const getDashboardData = async (req, res, next) => {
           ...recentLeads.rows
         ].sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 10);
 
-        stats.recentActivities = allActivities.map(row => ({
+        statsResult.recentActivities = allActivities.map(row => ({
           ...row,
           time: row.time ? new Date(row.time).toISOString() : new Date().toISOString()
         }));
       } catch (error) {
         debugLogger.error('[Dashboard Enhancement Error]:', error);
         // Ensure defaults are present even if enhancement fails
-        stats.charts = stats.charts || { userActivity: [], systemHealth: [], monthlyGrowth: [], growthPercent: '0%' };
-        stats.recentActivities = stats.recentActivities || [];
+        statsResult.charts = statsResult.charts || { userActivity: [], systemHealth: [], monthlyGrowth: [], growthPercent: '0%' };
+        statsResult.recentActivities = statsResult.recentActivities || [];
       }
     }
 
-    dashboardCache.set(cacheKey, { timestamp: Date.now(), data: stats });
+      return statsResult;
+    });
+
     return successResponse(res, stats, 'Dashboard data retrieved successfully');
   } catch (error) {
     next(error);

@@ -10,6 +10,7 @@
  */
 
 import { debugLogger } from '../utils/debugLogger.js';
+import { withCache, masterDataCache, invalidateMasterDataCache } from '../utils/cache.js';
 
 const TABLE_MAPPING = {
   countries: { table: 'master_countries', column: 'country_name', global: true },
@@ -95,38 +96,44 @@ const ensureTableExists = async (queryFn, config) => {
 export const getAllMasterData = async (req, res, next) => {
   try {
     const companyId = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
-    const results = {};
-    for (const [key, config] of Object.entries(TABLE_MAPPING)) {
-      let query;
-      let params;
-      if (key === 'catalogueNames') {
-        if (companyId) {
-          query = `SELECT DISTINCT id, name as value, status FROM catalogues WHERE company_id = $1 AND status = 'Active' ORDER BY name ASC`;
+    
+    const cacheKey = `master_${companyId}_all`;
+    const data = await withCache(masterDataCache, cacheKey, async () => {
+      const results = {};
+      for (const [key, config] of Object.entries(TABLE_MAPPING)) {
+        let query;
+        let params;
+        if (key === 'catalogueNames') {
+          if (companyId) {
+            query = `SELECT DISTINCT id, name as value, status FROM catalogues WHERE company_id = $1 AND status = 'Active' ORDER BY name ASC`;
+            params = [companyId];
+          } else {
+            query = `SELECT DISTINCT id, name as value, status FROM catalogues WHERE company_id IS NULL AND status = 'Active' ORDER BY name ASC`;
+            params = [];
+          }
+        } else if (config.global) {
+          query = `SELECT DISTINCT id, ${config.column} as value, status${config.table === 'box_types' ? ', image_url' : ''} FROM ${config.table} WHERE (status = 'Active' OR status IS NULL) ORDER BY value ASC`;
+          params = [];
+        } else if (companyId) {
+          query = `SELECT DISTINCT id, ${config.column} as value, status${config.table === 'box_types' ? ', image_url' : ''} FROM ${config.table} WHERE company_id = $1 AND (status = 'Active' OR status IS NULL) ORDER BY value ASC`;
           params = [companyId];
         } else {
-          query = `SELECT DISTINCT id, name as value, status FROM catalogues WHERE company_id IS NULL AND status = 'Active' ORDER BY name ASC`;
+          query = `SELECT DISTINCT id, ${config.column} as value, status${config.table === 'box_types' ? ', image_url' : ''} FROM ${config.table} WHERE company_id IS NULL AND (status = 'Active' OR status IS NULL) ORDER BY value ASC`;
           params = [];
         }
-      } else if (config.global) {
-        query = `SELECT DISTINCT id, ${config.column} as value, status${config.table === 'box_types' ? ', image_url' : ''} FROM ${config.table} WHERE (status = 'Active' OR status IS NULL) ORDER BY value ASC`;
-        params = [];
-      } else if (companyId) {
-        query = `SELECT DISTINCT id, ${config.column} as value, status${config.table === 'box_types' ? ', image_url' : ''} FROM ${config.table} WHERE company_id = $1 AND (status = 'Active' OR status IS NULL) ORDER BY value ASC`;
-        params = [companyId];
-      } else {
-        query = `SELECT DISTINCT id, ${config.column} as value, status${config.table === 'box_types' ? ', image_url' : ''} FROM ${config.table} WHERE company_id IS NULL AND (status = 'Active' OR status IS NULL) ORDER BY value ASC`;
-        params = [];
+        try {
+          const queryExecutor = config.global ? (req.db.globalQuery || req.db.query) : req.db.query;
+          await ensureTableExists(queryExecutor, config);
+          const { rows } = await queryExecutor(query, params);
+          results[key] = transformRowsToCamelCase(rows);
+        } catch (err) {
+          results[key] = [];
+        }
       }
-      try {
-        const queryExecutor = config.global ? (req.db.globalQuery || req.db.query) : req.db.query;
-        await ensureTableExists(queryExecutor, config);
-        const { rows } = await queryExecutor(query, params);
-        results[key] = transformRowsToCamelCase(rows);
-      } catch (err) {
-        results[key] = [];
-      }
-    }
-    res.json({ success: true, data: results });
+      return results;
+    });
+
+    res.json({ success: true, data });
   } catch (error) {
     next(error);
   }
@@ -140,34 +147,39 @@ export const getMasterDataByType = async (req, res, next) => {
     const config = TABLE_MAPPING[lookupType] || TABLE_MAPPING[type];
     if (!config) return res.status(400).json({ success: false, message: `Invalid type` });
 
-    let query, params;
-    if (type === 'catalogueNames') {
-      if (companyId) {
-        query = `SELECT DISTINCT id, name as value, status FROM catalogues WHERE company_id = $1 AND status = 'Active' ORDER BY name ASC`;
+    const cacheKey = `master_${companyId}_${type}`;
+    const data = await withCache(masterDataCache, cacheKey, async () => {
+      let query, params;
+      if (type === 'catalogueNames') {
+        if (companyId) {
+          query = `SELECT DISTINCT id, name as value, status FROM catalogues WHERE company_id = $1 AND status = 'Active' ORDER BY name ASC`;
+          params = [companyId];
+        } else {
+          query = `SELECT DISTINCT id, name as value, status FROM catalogues WHERE company_id IS NULL AND status = 'Active' ORDER BY name ASC`;
+          params = [];
+        }
+      } else if (config.global) {
+        if (type === 'currencies') {
+          query = `SELECT DISTINCT id, ${config.column} as value FROM ${config.table} ORDER BY value ASC`;
+        } else {
+          query = `SELECT DISTINCT id, ${config.column} as value, status${config.table === 'box_types' ? ', image_url' : ''} FROM ${config.table} WHERE (status = 'Active' OR status IS NULL) ORDER BY value ASC`;
+        }
+        params = [];
+      } else if (companyId) {
+        query = `SELECT DISTINCT id, ${config.column} as value, status${config.table === 'box_types' ? ', image_url' : ''} FROM ${config.table} WHERE company_id = $1 AND (status = 'Active' OR status IS NULL) ORDER BY value ASC`;
         params = [companyId];
       } else {
-        query = `SELECT DISTINCT id, name as value, status FROM catalogues WHERE company_id IS NULL AND status = 'Active' ORDER BY name ASC`;
+        query = `SELECT DISTINCT id, ${config.column} as value, status${config.table === 'box_types' ? ', image_url' : ''} FROM ${config.table} WHERE company_id IS NULL AND (status = 'Active' OR status IS NULL) ORDER BY value ASC`;
         params = [];
       }
-    } else if (config.global) {
-      if (type === 'currencies') {
-        query = `SELECT DISTINCT id, ${config.column} as value FROM ${config.table} ORDER BY value ASC`;
-      } else {
-        query = `SELECT DISTINCT id, ${config.column} as value, status${config.table === 'box_types' ? ', image_url' : ''} FROM ${config.table} WHERE (status = 'Active' OR status IS NULL) ORDER BY value ASC`;
-      }
-      params = [];
-    } else if (companyId) {
-      query = `SELECT DISTINCT id, ${config.column} as value, status${config.table === 'box_types' ? ', image_url' : ''} FROM ${config.table} WHERE company_id = $1 AND (status = 'Active' OR status IS NULL) ORDER BY value ASC`;
-      params = [companyId];
-    } else {
-      query = `SELECT DISTINCT id, ${config.column} as value, status${config.table === 'box_types' ? ', image_url' : ''} FROM ${config.table} WHERE company_id IS NULL AND (status = 'Active' OR status IS NULL) ORDER BY value ASC`;
-      params = [];
-    }
 
-    const queryExecutor = config.global ? (req.db.globalQuery || req.db.query) : req.db.query;
-    await ensureTableExists(queryExecutor, config);
-    const { rows } = await queryExecutor(query, params);
-    res.json({ success: true, data: transformRowsToCamelCase(rows) });
+      const queryExecutor = config.global ? (req.db.globalQuery || req.db.query) : req.db.query;
+      await ensureTableExists(queryExecutor, config);
+      const { rows } = await queryExecutor(query, params);
+      return transformRowsToCamelCase(rows);
+    });
+
+    res.json({ success: true, data });
   } catch (error) {
     next(error);
   }
@@ -272,6 +284,7 @@ export const createMasterData = async (req, res, next) => {
 
       const { rows } = await client.query(insertQuery, values);
       await client.query('COMMIT');
+      invalidateMasterDataCache(companyId);
       res.status(201).json({ success: true, message: `Added successfully`, data: transformRowsToCamelCase([rows[0]])[0] });
     } catch (innerError) {
       await client.query('ROLLBACK');
@@ -377,6 +390,7 @@ export const updateMasterData = async (req, res, next) => {
         return res.status(404).json({ success: false, message: 'Record not found' });
       }
       await client.query('COMMIT');
+      invalidateMasterDataCache(companyId);
       res.json({ success: true, message: 'Updated successfully', data: transformRowsToCamelCase([rows[0]])[0] });
     } catch (innerError) {
       await client.query('ROLLBACK');
@@ -406,6 +420,7 @@ export const deleteMasterData = async (req, res, next) => {
     }
     const { rows } = await queryExecutor(deleteQuery, deleteParams);
     if (rows.length === 0) return res.status(404).json({ success: false, message: 'Record not found' });
+    invalidateMasterDataCache(companyId);
     res.json({ success: true, message: `Deleted successfully` });
   } catch (error) {
     next(error);
@@ -429,6 +444,7 @@ export const hardDelete = async (req, res, next) => {
     }
     const { rows } = await queryExecutor(hardDeleteQuery, hardDeleteParams);
     if (rows.length === 0) return res.status(404).json({ success: false, message: 'Not found' });
+    invalidateMasterDataCache(companyId);
     res.json({ success: true, message: `Permanently deleted`, data: { id: rows[0].id } });
   } catch (error) {
     next(error);
@@ -461,6 +477,7 @@ export const toggleStatus = async (req, res, next) => {
       const newStatus = selectResult.rows[0].status === 'Active' ? 'Inactive' : 'Active';
       await client.query(`UPDATE ${config.table} SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`, [newStatus, id]);
       await client.query('COMMIT');
+      invalidateMasterDataCache(companyId);
       res.json({ success: true, message: `Status updated`, data: { id, status: newStatus } });
     } catch (innerError) {
       await client.query('ROLLBACK');

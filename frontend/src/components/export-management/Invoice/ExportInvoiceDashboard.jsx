@@ -39,6 +39,8 @@ import DateRangeFilter, { filterByDateRange } from '../../common/DateRangeFilter
 import { transformSnakeToCamelKeys } from '../../../utils/helpers';
 import { exportData, createColumnDef } from '../../../utils/exportUtils.js';
 import { exportProductDetailsToXLSX } from '../../../utils/productExportUtils.js';
+import VirtualizedTable from '../../shared/VirtualizedTable.jsx';
+import { Lock } from 'lucide-react';
 
 function ExportInvoiceDashboard({ currentUser, onCreate, onNavigate, navigationData }) {
   const [invoices, setInvoices] = useState([]);
@@ -447,6 +449,79 @@ function ExportInvoiceDashboard({ currentUser, onCreate, onNavigate, navigationD
   const totalPages = Math.ceil(filteredInvoices.length / PAGE_SIZE);
   const paginatedInvoices = filteredInvoices.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
+  const columns = [
+    {
+      key: 'select', label: (
+        <Form.Check
+          type="checkbox"
+          checked={multiSelect.selectAll}
+          onChange={() => multiSelect.toggleSelectAll(filteredInvoices)}
+        />
+      ),
+      width: '40px', sortable: false,
+      render: (_, invoice) => (
+        <div onClick={(e) => e.stopPropagation()}>
+          <Form.Check
+            type="checkbox"
+            checked={multiSelect.isSelected(invoice.id)}
+            onChange={() => multiSelect.toggleSelect(invoice.id)}
+          />
+        </div>
+      )
+    },
+    { key: 'index', label: 'SR. NO.', width: '80px', sortable: false, render: (_, __, index) => <div className="text-center">{index + 1}</div> },
+    { key: 'status', label: 'Status', width: '150px', render: (_, invoice) => (
+        <div onClick={(e) => e.stopPropagation()}>
+          <DashboardStatusDropdown 
+            module="ExportInvoice" 
+            endpoint="export-invoices" 
+            documentId={invoice.id} 
+            value={(invoice.is_locked || invoice.isLocked) ? 'Locked' : (invoice.status || 'Draft')} 
+            disabled={!canEdit || invoice.is_locked || invoice.isLocked} 
+            onSuccess={fetchInvoices} 
+          />
+        </div>
+      ) 
+    },
+    { key: 'invoice_no', label: 'EXP no.', width: '15%', render: (_, invoice) => (
+        <div className="fw-semibold text-primary d-flex align-items-center gap-2">
+          {invoice.invoice_no}
+          {(invoice.is_locked || invoice.isLocked) && (
+            <OverlayTrigger placement="top" overlay={<Tooltip><strong>Locked By:</strong> {invoice.locked_by_name}<br/><strong>Date:</strong> {invoice.locked_at ? new Date(invoice.locked_at).toLocaleDateString() : 'N/A'}</Tooltip>}>
+              <Badge bg="danger" className="d-flex align-items-center" style={{ fontSize: '0.65rem' }}>
+                <Lock size={10} className="me-1" /> LOCKED
+              </Badge>
+            </OverlayTrigger>
+          )}
+        </div>
+      )
+    },
+    { key: 'proforma_invoice_no', label: 'PI no.', width: '12%', render: (val) => val || '-' },
+    { key: 'invoice_date', label: 'Date', width: '10%', render: (val) => formatDate(val) },
+    { key: 'client_name', label: 'Client', width: '15%', render: (val) => val || '-' },
+    { key: 'total_amount', label: 'Amount', width: '10%', render: (val) => <div className="fw-bold">${val.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div> },
+    { key: 'actions', label: 'Actions', width: '220px', sortable: false, render: (_, invoice) => (
+        <div className="d-flex justify-content-end gap-1" onClick={(e) => e.stopPropagation()}>
+           {canEdit && (
+              <Button variant="outline" size="sm" className="text-primary border-primary-subtle" onClick={() => onNavigate('export-invoice-form', { invoiceId: invoice.id })} title="Edit" disabled={invoice.is_locked || invoice.isLocked}>
+                <Edit size={14} />
+              </Button>
+            )}
+            <Button variant="outline" size="sm" className="text-info border-info-subtle" onClick={() => handleView(invoice)} title="View Details"><Eye size={14} /></Button>
+            <Button variant="outline" size="sm" className="text-primary border-primary-subtle" onClick={() => handlePrint(invoice)} title="Print Document"><Printer size={14} /></Button>
+            <Button variant="outline" size="sm" className="text-success border-success-subtle" onClick={() => handleDownloadPDF(invoice)} title="Download PDF"><Download size={14} /></Button>
+            <Button variant="outline" size="sm" className="text-success border-success-subtle" onClick={() => handleExportProductXLSX(invoice)} title="Download XLSX"><FileSpreadsheet size={14} /></Button>
+            <LockDocumentButton documentType="EXPORT_INVOICE" documentId={invoice.id} isLocked={invoice.is_locked || invoice.isLocked} onLockSuccess={fetchInvoices} getSnapshotData={async () => { const res = await api.get(`/export-invoices/${invoice.id}`); return res.data?.data || res.data; }} />
+            {canDelete && (
+              <Button variant="outline" size="sm" className="text-danger border-danger-subtle" onClick={() => handleDelete(invoice.id)} title="Delete" disabled={invoice.is_locked || invoice.isLocked}>
+                <Trash2 size={14} />
+              </Button>
+            )}
+        </div>
+      )
+    }
+  ];
+
   return (
     <>
       <style>
@@ -665,125 +740,17 @@ function ExportInvoiceDashboard({ currentUser, onCreate, onNavigate, navigationD
         </Card.Header>
         <Card.Body className="p-0">
           {/* Desktop Table View */}
-          <div className="table-responsive d-none d-lg-block">
-            <Table hover className="mb-0 align-middle">
-              <thead>
-                <tr className="table-light text-muted small text-uppercase">
-                  <th style={{ width: '40px' }}>
-                    <Form.Check
-                      type="checkbox"
-                      checked={multiSelect.selectAll}
-                      onChange={() => multiSelect.toggleSelectAll(filteredInvoices)}
-                    />
-                  </th>
-                  <th className="ps-4">SR. NO.</th>
-                  <th>Status</th>
-                  <th>EXP no.</th>
-                  <th>PI no.</th>
-                  <th>Date</th>
-                  <th>Client</th>
-                  <th>Amount</th>
-                  <th className="pe-4 text-end">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan="13" className="text-center py-5"><Spinner animation="border" variant="primary" /></td></tr>
-                ) : paginatedInvoices.length > 0 ? (
-                  paginatedInvoices.map((invoice, index) => (
-                    <tr key={invoice.id} className={multiSelect.isSelected(invoice.id) ? 'table-active' : ''}>
-                      <td>
-                        <Form.Check
-                          type="checkbox"
-                          checked={multiSelect.isSelected(invoice.id)}
-                          onChange={() => multiSelect.toggleSelect(invoice.id)}
-                        />
-                      </td>
-                      <td className="ps-4 text-center">{index + 1 + (currentPage - 1) * PAGE_SIZE}</td>
-                      <td>
-                        <DashboardStatusDropdown 
-                              module="ExportInvoice" 
-                              endpoint="export-invoices" 
-                              documentId={invoice.id} 
-                              value={(invoice.is_locked || invoice.isLocked) ? 'Locked' : (invoice.status || 'Draft')} 
-                              disabled={!canEdit || invoice.is_locked || invoice.isLocked} 
-                              onSuccess={fetchInvoices} 
-                            />
-                      </td>
-                      <td className="fw-semibold text-primary">
-                        <div className="d-flex align-items-center gap-2">
-                          {invoice.invoice_no}
-                          {(invoice.is_locked || invoice.isLocked) && (
-                            <OverlayTrigger
-                              placement="top"
-                              overlay={
-                                <Tooltip>
-                                  <strong>Locked By:</strong> {invoice.locked_by_name}<br/>
-                                  <strong>Date:</strong> {invoice.locked_at ? new Date(invoice.locked_at).toLocaleDateString() : 'N/A'}
-                                </Tooltip>
-                              }
-                            >
-                              <Badge bg="danger" className="d-flex align-items-center" style={{ fontSize: '0.65rem' }}>
-                                <Lock size={10} className="me-1" /> LOCKED
-                              </Badge>
-                            </OverlayTrigger>
-                          )}
-                        </div>
-                      </td>
-                      <td>{invoice.proforma_invoice_no || '-'}</td>
-                      <td>{formatDate(invoice.invoice_date)}</td>
-                      <td>{invoice.client_name || '-'}</td>
-                      <td className="fw-bold">${invoice.total_amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-                      <td className="pe-4 text-end">
-                        <div className="d-flex justify-content-end gap-1">
-                            
-                            {canEdit && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-primary border-primary-subtle"
-                                onClick={() => onNavigate('export-invoice-form', { invoiceId: invoice.id })}
-                                title="Edit"
-                                disabled={invoice.is_locked || invoice.isLocked}
-                              >
-                                <Edit size={14} />
-                              </Button>
-                            )}
-                            <Button variant="outline" size="sm" className="text-info border-info-subtle" onClick={() => handleView(invoice)} title="View Details"><Eye size={14} /></Button>
-                            <Button variant="outline" size="sm" className="text-primary border-primary-subtle" onClick={() => handlePrint(invoice)} title="Print Document"><Printer size={14} /></Button>
-                            <Button variant="outline" size="sm" className="text-success border-success-subtle" onClick={() => handleDownloadPDF(invoice)} title="Download PDF"><Download size={14} /></Button>
-                            <Button variant="outline" size="sm" className="text-success border-success-subtle" onClick={() => handleExportProductXLSX(invoice)} title="Download XLSX"><FileSpreadsheet size={14} /></Button>
-                            <LockDocumentButton 
-                              documentType="EXPORT_INVOICE" 
-                              documentId={invoice.id} 
-                              isLocked={invoice.is_locked || invoice.isLocked}
-                              onLockSuccess={fetchInvoices} 
-                              getSnapshotData={async () => {
-                                const res = await api.get(`/export-invoices/${invoice.id}`);
-                                return res.data?.data || res.data;
-                              }}
-                            />
-                            {canDelete && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-danger border-danger-subtle"
-                                onClick={() => handleDelete(invoice.id)}
-                                title="Delete"
-                                disabled={invoice.is_locked || invoice.isLocked}
-                              >
-                                <Trash2 size={14} />
-                              </Button>
-                            )}
-                          </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr><td colSpan="12" className="text-center py-5 text-muted">No export invoices found.</td></tr>
-                )}
-              </tbody>
-            </Table>
+          <div className="d-none d-lg-block">
+            {loading ? (
+              <div className="text-center py-5"><Spinner animation="border" variant="primary" /></div>
+            ) : (
+              <VirtualizedTable
+                data={filteredInvoices}
+                columns={columns}
+                height={600}
+                rowHeight={60}
+              />
+            )}
           </div>
 
           {/* Mobile Card View */}

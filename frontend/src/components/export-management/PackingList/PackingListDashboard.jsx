@@ -31,6 +31,7 @@ import ActivityTimeline from '../../shared/ActivityTimeline.jsx';
 import { useMultiSelect } from '../../../hooks/useMultiSelect.js';
 import { useMasterData } from '../../../hooks/useMasterData.js';
 import SkeletonTable from '../../shared/SkeletonTable.jsx';
+import VirtualizedTable from '../../shared/VirtualizedTable.jsx';
 
 import PackingListPrintView from './PackingListPrintView.jsx';
 import { downloadPDF } from '../../../utils/pdfGenerator.js';
@@ -72,6 +73,68 @@ function PackingListDashboard({ currentUser, onNavigate }) {
   }), [packingLists]);
 
   const multiSelect = useMultiSelect(packingLists);
+
+  const columns = [
+    {
+      key: 'select', label: (
+        <Form.Check
+          type="checkbox"
+          checked={multiSelect.selectAll}
+          onChange={() => multiSelect.toggleSelectAll(filteredPackingLists)}
+        />
+      ),
+      width: '40px', sortable: false,
+      render: (_, pl) => (
+        <div onClick={(e) => e.stopPropagation()}>
+          <Form.Check
+            type="checkbox"
+            checked={multiSelect.isSelected(pl.id)}
+            onChange={() => multiSelect.toggleSelect(pl.id)}
+          />
+        </div>
+      )
+    },
+    { key: 'index', label: 'SR. NO.', width: '80px', sortable: false, render: (_, __, index) => <div className="text-center">{index + 1}</div> },
+    { key: 'status', label: 'Status', width: '150px', render: (_, pl) => (
+        <div onClick={(e) => e.stopPropagation()}>
+          <DashboardStatusDropdown 
+            module="PackingList" 
+            endpoint="packing-lists" 
+            documentId={pl.id} 
+            value={(pl.is_locked || pl.isLocked) ? 'Locked' : (pl.status || 'Draft')} 
+            disabled={!canEdit || pl.is_locked || pl.isLocked} 
+            onSuccess={fetchPackingLists} 
+          />
+        </div>
+      ) 
+    },
+    { key: 'packingListNo', label: 'PL No.', width: '15%', render: (_, pl) => <div className="fw-semibold text-primary">{pl.packingListNo || pl.packing_list_no || '-'}</div> },
+    { key: 'exportInvoiceNo', label: 'EXP No.', width: '15%', render: (_, pl) => <div className="text-muted">{(pl.exportInvoiceNo || pl.export_invoice_no) && (pl.exportInvoiceNo || pl.export_invoice_no) !== (pl.packingListNo || pl.packing_list_no) ? (pl.exportInvoiceNo || pl.export_invoice_no) : '-'}</div> },
+    { key: 'clientName', label: 'Client', width: '15%', render: (_, pl) => pl.clientName || pl.client_name || '-' },
+    { key: 'date', label: 'Date', width: '10%', render: (_, pl) => formatDate(pl.date || pl.packingListDate || pl.packing_list_date) },
+    { key: 'totalPallets', label: 'Pallets', width: '80px', render: (_, pl) => pl.totalPallets || pl.total_pallets || 0 },
+    { key: 'totalWeight', label: 'Weight (KG)', width: '100px', render: (_, pl) => parseFloat(pl.totalWeight || pl.total_weight || 0).toLocaleString() },
+    { key: 'actions', label: 'Actions', width: '220px', sortable: false, render: (_, pl) => (
+        <div className="d-flex justify-content-end gap-1" onClick={(e) => e.stopPropagation()}>
+           {canEdit && (
+              <Button variant="outline" size="sm" className="text-primary border-primary-subtle" onClick={() => onNavigate('packing-list-form', { packingListId: pl.id })} title="Edit" disabled={pl.is_locked || pl.isLocked}>
+                <Edit size={14} />
+              </Button>
+            )}
+            <Button variant="outline" size="sm" className="text-info border-info-subtle" onClick={() => handleView(pl)} title="View Details"><Eye size={14} /></Button>
+            <Button variant="outline" size="sm" className="text-primary border-primary-subtle" onClick={() => handlePrint(pl)} title="Print Document"><Printer size={14} /></Button>
+            <Button variant="outline" size="sm" className="text-success border-success-subtle" onClick={() => handleDownloadPDF(pl)} title="Download PDF"><Download size={14} /></Button>
+            <Button variant="outline" size="sm" className="text-success border-success-subtle" onClick={() => handleExportProductXLSX(pl)} title="Download XLSX"><FileSpreadsheet size={14} /></Button>
+            <LockDocumentButton documentType="PACKING_LIST" documentId={pl.id} isLocked={pl.is_locked || pl.isLocked} onLockSuccess={fetchPackingLists} getSnapshotData={async () => { const res = await api.get(`/packing-lists/${pl.id}`); return res.data?.data || res.data; }} />
+            {canDelete && (
+              <Button variant="outline" size="sm" className="text-danger border-danger-subtle" onClick={() => handleDeletePackingList(pl)} title="Delete" disabled={pl.is_locked || pl.isLocked}>
+                <Trash2 size={14} />
+              </Button>
+            )}
+        </div>
+      )
+    }
+  ];
 
   useEffect(() => {
     fetchPackingLists();
@@ -573,110 +636,17 @@ function PackingListDashboard({ currentUser, onNavigate }) {
         </Card.Header>
         <Card.Body className="p-0">
           {/* Desktop Table View */}
-          <div className="table-responsive">
-            <Table hover className="mb-0 align-middle">
-              <thead>
-                <tr className="table-light text-muted small text-uppercase">
-                  <th className="ps-4" style={{ width: '40px' }}>
-                    <Form.Check
-                      type="checkbox"
-                      checked={multiSelect.selectAll}
-                      onChange={() => multiSelect.toggleSelectAll(filteredPackingLists)}
-                    />
-                  </th>
-                  <th>SR. NO.</th>
-                  <th>Status</th>
-                  <th>PL No.</th>
-                  <th>EXP No.</th>
-                  <th>Client</th>
-                  <th>Date</th>
-                  <th>Pallets</th>
-                  <th>Weight (KG)</th>
-                  <th className="pe-4 text-end">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan="10" className="p-3">
-                      <SkeletonTable columns={10} rows={5} />
-                    </td>
-                  </tr>
-                ) : paginatedPackingLists.length === 0 ? (
-                  <tr><td colSpan="10" className="text-center py-5 text-muted">No packing lists found</td></tr>
-                ) : paginatedPackingLists.map((pl, index) => (
-                  <tr key={pl.id} className={multiSelect.isSelected(pl.id) ? 'table-active' : ''}>
-                    <td data-label="Select" className="ps-4">
-                      <Form.Check
-                        type="checkbox"
-                        checked={multiSelect.isSelected(pl.id)}
-                        onChange={() => multiSelect.toggleSelect(pl.id)}
-                      />
-                    </td>
-                    <td data-label="Sr." className="text-center">{index + 1 + (currentPage - 1) * PAGE_SIZE}</td>
-                    <td data-label="Status">
-                      <DashboardStatusDropdown 
-                              module="PackingList" 
-                              endpoint="packing-lists" 
-                              documentId={pl.id} 
-                              value={(pl.is_locked || pl.isLocked) ? 'Locked' : (pl.status || 'Draft')} 
-                              disabled={!canEdit || pl.is_locked || pl.isLocked} 
-                              onSuccess={fetchPackingLists} 
-                            />
-                    </td>
-                    <td data-label="PL No." className="fw-semibold text-primary">{pl.packingListNo || pl.packing_list_no || '-'}</td>
-                    <td data-label="EXP No." className="text-muted">{(pl.exportInvoiceNo || pl.export_invoice_no) && (pl.exportInvoiceNo || pl.export_invoice_no) !== (pl.packingListNo || pl.packing_list_no) ? (pl.exportInvoiceNo || pl.export_invoice_no) : '-'}</td>
-                    <td data-label="Client">{pl.clientName || pl.client_name || '-'}</td>
-                    <td data-label="Date">{formatDate(pl.date || pl.packingListDate || pl.packing_list_date)}</td>
-                    <td data-label="Pallets">{pl.totalPallets || pl.total_pallets || 0}</td>
-                    <td data-label="Weight (KG)">{parseFloat(pl.totalWeight || pl.total_weight || 0).toLocaleString()}</td>
-                    <td data-label="Actions" className="pe-4 text-end">
-                        <div className="d-flex justify-content-end gap-1">
-                            
-                            {canEdit && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-primary border-primary-subtle"
-                                onClick={() => onNavigate('packing-list-form', { packingListId: pl.id })}
-                                title="Edit"
-                                disabled={pl.is_locked || pl.isLocked}
-                              >
-                                <Edit size={14} />
-                              </Button>
-                            )}
-                            <Button variant="outline" size="sm" className="text-info border-info-subtle" onClick={() => handleView(pl)} title="View Details"><Eye size={14} /></Button>
-                            <Button variant="outline" size="sm" className="text-primary border-primary-subtle" onClick={() => handlePrint(pl)} title="Print Document"><Printer size={14} /></Button>
-                            <Button variant="outline" size="sm" className="text-success border-success-subtle" onClick={() => handleDownloadPDF(pl)} title="Download PDF"><Download size={14} /></Button>
-                            <Button variant="outline" size="sm" className="text-success border-success-subtle" onClick={() => handleExportProductXLSX(pl)} title="Download XLSX"><FileSpreadsheet size={14} /></Button>
-                            <LockDocumentButton 
-                              documentType="PACKING_LIST" 
-                              documentId={pl.id} 
-                              isLocked={pl.is_locked || pl.isLocked}
-                              onLockSuccess={fetchPackingLists} 
-                              getSnapshotData={async () => {
-                                const res = await api.get(`/packing-lists/${pl.id}`);
-                                return res.data?.data || res.data;
-                              }}
-                            />
-                            {canDelete && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-danger border-danger-subtle"
-                                onClick={() => handleDeletePackingList(pl)}
-                                title="Delete"
-                                disabled={pl.is_locked || pl.isLocked}
-                              >
-                                <Trash2 size={14} />
-                              </Button>
-                            )}
-                          </div>
-                      </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
+          <div className="d-none d-lg-block">
+            {loading ? (
+              <div className="p-3"><SkeletonTable columns={10} rows={5} /></div>
+            ) : (
+              <VirtualizedTable
+                data={filteredPackingLists}
+                columns={columns}
+                height={600}
+                rowHeight={60}
+              />
+            )}
           </div>
 
           {/* Mobile Card View */}

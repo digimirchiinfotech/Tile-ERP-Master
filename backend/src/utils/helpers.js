@@ -32,7 +32,7 @@ export const getPagination = (page = 1, limit = 25) => {
   const parsedLimit = parseInt(limit, 10);
   
   const validPage = parsedPage > 0 ? parsedPage : 1;
-  const validLimit = Math.min(parsedLimit > 0 ? parsedLimit : 25, 1000);
+  const validLimit = Math.min(parsedLimit > 0 ? parsedLimit : 25, 100); // Enforced max limit of 100
   
   const offset = (validPage - 1) * validLimit;
   

@@ -26,9 +26,9 @@ types.setTypeParser(1700, (val) => parseFloat(val));
 const connectionConfig = process.env.DATABASE_URL
   ? {
       connectionString: process.env.DATABASE_URL,
-      max: 20,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 30000,
+      max: 5,
+      idleTimeoutMillis: 10000,
+      connectionTimeoutMillis: 3000,
       ssl: { rejectUnauthorized: false }
     }
   : {
@@ -37,9 +37,9 @@ const connectionConfig = process.env.DATABASE_URL
       database: process.env.PGDATABASE || process.env.DB_NAME || 'tile_exporter_crm',
       user: process.env.PGUSER || process.env.DB_USER || 'postgres',
       password: process.env.PGPASSWORD || process.env.DB_PASSWORD || '',
-      max: 20,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 30000,
+      max: 5,
+      idleTimeoutMillis: 10000,
+      connectionTimeoutMillis: 3000,
     };
 
 const pool = new Pool(connectionConfig);

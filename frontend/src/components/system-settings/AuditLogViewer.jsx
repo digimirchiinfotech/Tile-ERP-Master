@@ -21,7 +21,8 @@ import {
   Spinner,
   Pagination,
   Collapse,
-  Alert
+  Alert,
+  Modal
 } from 'react-bootstrap';
 import {
   FileText,
@@ -37,6 +38,7 @@ import {
 import api from '../../services/api.js';
 import FilterPanel from '../shared/FilterPanel.jsx';
 import { formatDisplayDate } from '../../utils/formatters.js';
+import VirtualizedTable from '../shared/VirtualizedTable.jsx';
 
 const ACTION_COLORS = {
   CREATE: 'success',
@@ -60,6 +62,22 @@ function AuditLogViewer() {
   const [filterOptions, setFilterOptions] = useState({ actions: [], resourceTypes: [] });
   const [expandedRows, setExpandedRows] = useState(new Set());
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedLog, setSelectedLog] = useState(null);
+  const [showLogModal, setShowLogModal] = useState(false);
+
+  const handleRowClick = (log) => {
+    setSelectedLog(log);
+    setShowLogModal(false); // Quick trick to reset if fast clicking
+    setTimeout(() => setShowLogModal(true), 10);
+  };
+
+  const columns = [
+    { key: 'action', label: 'Action', width: '15%', render: (val) => <Badge bg={ACTION_COLORS[val] || 'secondary'} className="px-2 py-1 text-uppercase" style={{ fontSize: '0.7rem' }}>{val}</Badge> },
+    { key: 'resourceType', label: 'Resource', width: '20%', render: (val) => formatResourceType(val) },
+    { key: 'userName', label: 'User', width: '30%', render: (_, log) => <div className="text-primary fw-bold" style={{ fontSize: '0.9rem' }}>{log.companyName || log.company_name ? `${log.companyName || log.company_name} - ` : ''}{log.userName || log.user_name || log.userEmail || log.user_email || 'System Activity'}</div> },
+    { key: 'ipAddress', label: 'IP Address', width: '15%', render: (val) => val || '-' },
+    { key: 'createdAt', label: 'Date', width: '20%', render: (val) => <span className="text-muted small fw-medium">{formatDate(val)}</span> }
+  ];
 
   const fetchLogs = useCallback(async (page = 1) => {
     setLoading(true);
@@ -379,60 +397,59 @@ function AuditLogViewer() {
             No audit log entries found matching your criteria.
           </Alert>
         ) : (
-          <Row className="g-3">
-            {logs.map(log => (
-              <Col xs={12} key={log.id}>
-                <Card 
-                  className="border-0 shadow-sm audit-log-card hover-elevate-subtle" 
-                  style={{ borderRadius: '12px', transition: 'all 0.2s ease' }}
-                >
-                  <Card.Body className="p-3 p-md-4" onClick={() => toggleRow(log.id)} style={{ cursor: 'pointer' }}>
-                    <div className="d-flex justify-content-between align-items-start mb-3">
-                      <div>
-                        <Badge 
-                          bg={ACTION_COLORS[log.action] || 'secondary'} 
-                          className="mb-2 px-3 py-2 text-uppercase"
-                          style={{ borderRadius: '6px', fontSize: '0.7rem', letterSpacing: '0.5px' }}
-                        >
-                          {log.action}
-                        </Badge>
-                        <h5 className="fw-bold mb-0 text-dark" style={{ fontSize: '1.1rem' }}>
-                          {formatResourceType(log.resourceType)}
-                        </h5>
-                      </div>
-                      <div className="text-muted small text-end fw-medium">
-                        {formatDate(log.createdAt)}
-                      </div>
-                    </div>
-
-                    <div className="d-flex justify-content-between align-items-center">
-                      <div className="text-primary fw-bold" style={{ fontSize: '0.95rem' }}>
-                        {log.companyName || log.company_name ? `${log.companyName || log.company_name} - ` : ''}{log.userName || log.user_name || log.userEmail || log.user_email || 'System Activity'}
-                      </div>
-                      <div className="d-flex align-items-center gap-2 text-muted">
-                        <span className="extra-small d-none d-sm-inline">IP: {log.ipAddress || '-'}</span>
-                        {expandedRows.has(log.id) ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                      </div>
-                    </div>
-
-                    <Collapse in={expandedRows.has(log.id)}>
-                      <div className="mt-4 pt-3 border-top">
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                          <h6 className="mb-0 fw-bold text-primary small">
-                            <FileText size={14} className="me-2" />Detailed Changes
-                          </h6>
-                          <code className="extra-small text-muted">ID: {log.id}</code>
-                        </div>
-                        {renderJsonDiff(log.changes)}
-                      </div>
-                    </Collapse>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))}
-          </Row>
+          <div className="bg-white rounded-3 shadow-sm p-2">
+            <VirtualizedTable
+              data={logs}
+              columns={columns}
+              height={600}
+              rowHeight={65}
+              onRowClick={handleRowClick}
+            />
+          </div>
         )}
       </div>
+
+      <Modal show={showLogModal} onHide={() => setShowLogModal(false)} size="lg" centered>
+        <Modal.Header closeButton className="bg-light">
+          <Modal.Title className="fw-bold fs-5 d-flex align-items-center">
+            <FileText size={20} className="me-2 text-primary" />
+            Audit Log Details
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="p-4">
+          {selectedLog && (
+            <div>
+              <Row className="mb-4 g-3 bg-light rounded-3 p-3 mx-0">
+                <Col md={6}>
+                  <div className="text-muted small text-uppercase fw-bold mb-1">Action</div>
+                  <Badge bg={ACTION_COLORS[selectedLog.action] || 'secondary'} className="px-3 py-2 text-uppercase">{selectedLog.action}</Badge>
+                </Col>
+                <Col md={6}>
+                  <div className="text-muted small text-uppercase fw-bold mb-1">Resource Type</div>
+                  <div className="fw-bold">{formatResourceType(selectedLog.resourceType)}</div>
+                </Col>
+                <Col md={6}>
+                  <div className="text-muted small text-uppercase fw-bold mb-1">User</div>
+                  <div className="text-primary fw-bold">
+                    {selectedLog.companyName || selectedLog.company_name ? `${selectedLog.companyName || selectedLog.company_name} - ` : ''}
+                    {selectedLog.userName || selectedLog.user_name || selectedLog.userEmail || selectedLog.user_email || 'System Activity'}
+                  </div>
+                </Col>
+                <Col md={6}>
+                  <div className="text-muted small text-uppercase fw-bold mb-1">IP Address & Time</div>
+                  <div>
+                    {selectedLog.ipAddress || '-'} <span className="text-muted ms-2">({formatDate(selectedLog.createdAt)})</span>
+                  </div>
+                </Col>
+              </Row>
+              <h6 className="fw-bold mb-3 d-flex align-items-center text-primary">
+                <RefreshCw size={16} className="me-2" /> Data Changes
+              </h6>
+              {renderJsonDiff(selectedLog.changes)}
+            </div>
+          )}
+        </Modal.Body>
+      </Modal>
 
       {/* 4. Pagination */}
       <div className="mt-5 pb-5">

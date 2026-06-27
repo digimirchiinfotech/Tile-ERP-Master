@@ -61,6 +61,7 @@ export const register = async (req, res, next) => {
       httpOnly: true,
       secure: env.node_env === 'production',
       sameSite: env.node_env === 'production' ? 'none' : 'lax',
+      path: '/',
       maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
     };
 
@@ -196,8 +197,8 @@ export const login = async (req, res, next) => {
         : (user.permissions || []);
     } catch (e) { userPermissions = []; }
 
-    // Safeguard: Admins always get 'all' permission
-    if (['super_admin', 'company_admin', 'admin'].includes(user.role) && !userPermissions.includes('all')) {
+    // Safeguard: Super admin and company admin always get 'all' permission
+    if (['super_admin', 'company_admin'].includes(user.role) && !userPermissions.includes('all')) {
       userPermissions.push('all');
     }
     sanitizedUser.permissions = userPermissions;
@@ -206,6 +207,7 @@ export const login = async (req, res, next) => {
       httpOnly: true,
       secure: env.node_env === 'production',
       sameSite: env.node_env === 'production' ? 'none' : 'lax',
+      path: '/',
       maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
     };
 
@@ -263,6 +265,7 @@ export const refreshToken = async (req, res, next) => {
       httpOnly: true,
       secure: env.node_env === 'production',
       sameSite: env.node_env === 'production' ? 'none' : 'lax',
+      path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     };
 
@@ -277,8 +280,9 @@ export const refreshToken = async (req, res, next) => {
 
 export const forgotPassword = async (req, res, next) => {
   try {
-    const { email } = req.body;
-    const userResult = await req.db.globalQuery('SELECT id, name, email_id, status FROM users WHERE email_id = $1', [email]);
+    const { email, email_id } = req.body;
+    const emailAddress = email_id || email;
+    const userResult = await req.db.globalQuery('SELECT id, name, email_id, status FROM users WHERE email_id = $1', [emailAddress]);
     if (userResult.rows.length === 0 || userResult.rows[0].status === 'Deleted') return successResponse(res, {}, 'Reset link sent if email exists');
 
     const user = userResult.rows[0];
@@ -351,8 +355,8 @@ export const getCurrentUser = async (req, res, next) => {
         : (user.permissions || []);
     } catch (e) { userPermissions = []; }
 
-    // Safeguard: Admins always get 'all' permission
-    if (['super_admin', 'company_admin', 'admin'].includes(user.role) && !userPermissions.includes('all')) {
+    // Safeguard: Super admin and company admin always get 'all' permission
+    if (['super_admin', 'company_admin'].includes(user.role) && !userPermissions.includes('all')) {
       userPermissions.push('all');
     }
     sanitizedUser.permissions = userPermissions;
@@ -383,8 +387,8 @@ export const logout = async (req, res, next) => {
     }, req.db);
 
     try {
-      if (refreshToken) {
-        await req.db.globalQuery('UPDATE active_user_sessions SET status = $1 WHERE refresh_token = $2', ['Inactive', refreshToken]);
+      if (rawRefreshToken) {
+        await req.db.globalQuery('UPDATE active_user_sessions SET status = $1 WHERE refresh_token = $2', ['Inactive', rawRefreshToken]);
       }
     } catch (err) {
       debugLogger.error('Auth', 'Error updating active session on logout', err);
@@ -393,8 +397,14 @@ export const logout = async (req, res, next) => {
     // Invalidate this user's dashboard cache on logout
     try { invalidateDashboardCache(req.user.id); } catch (_) {}
 
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
+    const clearCookieOptions = {
+      httpOnly: true,
+      secure: env.node_env === 'production',
+      sameSite: env.node_env === 'production' ? 'none' : 'lax',
+      path: '/'
+    };
+    res.clearCookie('accessToken', clearCookieOptions);
+    res.clearCookie('refreshToken', clearCookieOptions);
 
     return successResponse(res, {}, 'Logout successful');
   } catch (error) {

@@ -41,6 +41,6 @@ export default defineConfig({
       },
     },
     chunkSizeWarningLimit: 1500,
-    sourcemap: true,
+    sourcemap: false, // SECURITY: Never expose source maps in production (proprietary code)
   },
 })

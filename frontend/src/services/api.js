@@ -19,7 +19,7 @@ import { showError } from '../components/shared/NotificationManager';
 // In production, ignore Vercel environment variables because they contain the dead .up.railway.app domain
 const API_BASE_URL = '/api';
 
-console.log("API_BASE_URL =", API_BASE_URL);
+
 
 let isRefreshing = false;
 let failedQueue = [];
@@ -42,7 +42,7 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
   withCredentials: true,
-  timeout: 24 * 60 * 60 * 1000,
+  timeout: 30000, // 30 seconds — override per-request for bulk exports via config.timeout
 });
 
 api.interceptors.request.use(

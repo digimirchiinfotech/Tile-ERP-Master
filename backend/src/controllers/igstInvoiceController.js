@@ -566,7 +566,7 @@ export const createOrUpdate = async (req, res, next) => {
            VALUES ($1, $2, 'Update', 'igst_invoice', $3, $4)`,
           [companyId, req.user?.id, targetId, JSON.stringify(fields)]
         );
-      } catch (err) {}
+      } catch (err) { debugLogger.warn('[IGST] Audit log write failed:', err.message); }
     } else {
       // Perform Insert
       const columns = ['company_id', 'export_invoice_id', 'created_by', ...Object.keys(fields)].join(', ');
@@ -585,7 +585,7 @@ export const createOrUpdate = async (req, res, next) => {
            VALUES ($1, $2, 'Create', 'igst_invoice', $3, $4)`,
           [companyId, req.user?.id, result.rows[0].id, JSON.stringify(fields)]
         );
-      } catch (err) {}
+      } catch (err) { debugLogger.warn('[IGST] Audit log write failed:', err.message); }
     }
 
     return successResponse(res, result.rows[0], 'IGST Invoice saved successfully');
@@ -704,7 +704,7 @@ export const getById = async (req, res, next) => {
           }
         };
       }
-    } catch (err) {}
+    } catch (err) { debugLogger.warn('[IGST] Company info fetch failed:', err.message); }
 
     return successResponse(res, { ...igstInvoice, company_info: companyInfo }, 'IGST Invoice retrieved successfully');
   } catch (error) {
@@ -737,7 +737,7 @@ export const remove = async (req, res, next) => {
          VALUES ($1, $2, 'Delete', 'igst_invoice', $3)`,
         [companyId, req.user?.id, result.rows[0].id]
       );
-    } catch (err) {}
+    } catch (err) { debugLogger.warn('[IGST] Audit log write failed:', err.message); }
 
     res.locals.auditResourceId = result.rows[0]?.id;
     return successResponse(res, null, 'IGST Invoice deleted successfully');
@@ -771,7 +771,7 @@ export const removeById = async (req, res, next) => {
          VALUES ($1, $2, 'Delete', 'igst_invoice', $3)`,
         [companyId, req.user?.id, id]
       );
-    } catch (err) {}
+    } catch (err) { debugLogger.warn('[IGST] Audit log write failed:', err.message); }
 
     res.locals.auditResourceId = result.rows[0]?.id;
     return successResponse(res, null, 'IGST Invoice deleted successfully');
@@ -862,7 +862,7 @@ export const toggleStatus = async (req, res, next) => {
          VALUES ($1, $2, 'Update', 'igst_invoice', $3, $4)`,
         [companyId, req.user?.id, id, JSON.stringify({ status: newStatus })]
       );
-    } catch (err) {}
+    } catch (err) { debugLogger.warn('[IGST] Audit log write failed:', err.message); }
 
     return successResponse(res, result.rows[0], `Status updated to ${newStatus}`);
   } catch (error) {

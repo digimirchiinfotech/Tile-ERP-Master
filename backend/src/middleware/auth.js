@@ -79,8 +79,9 @@ export const authenticate = async (req, res, next) => {
         userPermissions = [];
       }
 
-      // Safeguard: Admins always get 'all' permission
-      if (['super_admin', 'company_admin', 'admin'].includes(user.role) && !userPermissions.includes('all')) {
+      // Safeguard: Super admin and company admin always get 'all' permission
+      // Note: 'admin' role intentionally excluded — uses scoped permissions from RBAC middleware
+      if (['super_admin', 'company_admin'].includes(user.role) && !userPermissions.includes('all')) {
         userPermissions.push('all');
       }
 
@@ -144,8 +145,9 @@ export const optionalAuth = async (req, res, next) => {
             : (user.permissions || []);
         } catch (e) { userPermissions = []; }
 
-        // Safeguard: Admins always get 'all' permission
-        if (['super_admin', 'company_admin', 'admin'].includes(user.role) && !userPermissions.includes('all')) {
+        // Safeguard: Super admin and company admin always get 'all' permission
+        // Note: 'admin' role intentionally excluded — uses scoped permissions from RBAC middleware
+        if (['super_admin', 'company_admin'].includes(user.role) && !userPermissions.includes('all')) {
           userPermissions.push('all');
         }
 

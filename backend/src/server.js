@@ -192,7 +192,7 @@ app.use('/api/', progressiveBackoff);
 // Global limiter: 150 req/15 min in production — prevents full DB scraping
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: env.node_env === 'development' ? 2000 : 150,
+  max: env.node_env === 'development' ? 2000 : 500, // 500 req/15min — ERP users need higher limits; offices behind NAT share IPs
   message: { success: false, message: 'Too many requests from this IP, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,

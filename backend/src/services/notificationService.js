@@ -22,12 +22,14 @@ const healedPools = new Set();
 /**
  * Ensure the notifications table has all required columns.
  * Runs once per database connection (tenant).
+ * @param {object} db - The database query wrapper (req.db)
+ * @param {string} companyId - The company/tenant ID (used as cache key)
  */
-const ensureNotificationSchema = async (db) => {
+const ensureNotificationSchema = async (db, companyId) => {
   if (!db || !db.query) return;
   
-  // Use a stable identifier for the pool
-  const poolKey = db._poolId || db._companyId || 'default';
+  // Use the company ID as the stable cache key for tenant-aware self-healing
+  const poolKey = companyId || 'global';
   if (healedPools.has(poolKey)) return;
 
   try {
@@ -115,7 +117,7 @@ const ensureNotificationSchema = async (db) => {
 export const notifyUser = async (companyId, userId, notification, db) => {
   try {
     if (!db || !userId) return null;
-    await ensureNotificationSchema(db);
+    await ensureNotificationSchema(db, companyId);
 
     let {
       title,
@@ -528,7 +530,7 @@ export const notifyPOCreated = async (companyId, order, db) => {
  */
 export const getUserNotifications = async (userId, unreadOnly = false, db, companyId = null) => {
   try {
-    await ensureNotificationSchema(db);
+    await ensureNotificationSchema(db, companyId);
     let query = `SELECT * FROM notifications WHERE user_id = $1`;
     const params = [userId];
 

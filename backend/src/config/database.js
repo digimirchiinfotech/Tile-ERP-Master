@@ -22,12 +22,12 @@ const { Pool, types } = pg;
 types.setTypeParser(20, (val) => parseInt(val, 10));
 types.setTypeParser(1700, (val) => parseFloat(val));
 
-// Use DATABASE_URL if available (Replit provisioned), otherwise fall back to individual settings
+// Use DATABASE_URL if available (Replit provisioned), otherwise fall back to env.js config
 const connectionConfig = process.env.DATABASE_URL
   ? {
       connectionString: process.env.DATABASE_URL,
-      max: 10,
-      idleTimeoutMillis: 10000,
+      max: 20,
+      idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 30000,
       ssl: { rejectUnauthorized: false }
     }
@@ -37,8 +37,8 @@ const connectionConfig = process.env.DATABASE_URL
       database: process.env.PGDATABASE || process.env.DB_NAME || 'tile_exporter_crm',
       user: process.env.PGUSER || process.env.DB_USER || 'postgres',
       password: process.env.PGPASSWORD || process.env.DB_PASSWORD || '',
-      max: 10,
-      idleTimeoutMillis: 10000,
+      max: 20,
+      idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 30000,
     };
 

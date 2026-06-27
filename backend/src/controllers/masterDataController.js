@@ -40,7 +40,7 @@ const TABLE_MAPPING = {
   paymentTerms: { table: 'payment_terms', column: 'term', global: false },
   tariffCodes: { table: 'tariff_codes', column: 'code', global: false },
   authorizedSignatories: { table: 'authorized_signatories', column: 'name', global: false },
-  contactDetails: { table: 'contact_details', column: 'name', global: false },
+  contactDetails: { table: 'contact_details', column: 'detail', global: false },
   maxPermissibleWeights: { table: 'max_permissible_weights', column: 'weight', global: false },
   sanitarywareCategories: { table: 'sanitaryware_categories', column: 'name', global: false },
   sanitarywareBrands: { table: 'sanitaryware_brands', column: 'name', global: false },

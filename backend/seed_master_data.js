@@ -219,7 +219,17 @@ async function seedCountriesAndCities(pool, dbName, companyId) {
       for (const c of allCountries) {
         if (countryMap[c.isoCode]) {
           const countryCities = City.getCitiesOfCountry(c.isoCode) || [];
-          topCities.push(...countryCities.slice(0, 100));
+          
+          const uniqueCitiesMap = new Map();
+          for (const city of countryCities) {
+            const key = city.name.trim().toLowerCase();
+            if (!uniqueCitiesMap.has(key)) {
+              uniqueCitiesMap.set(key, city);
+            }
+          }
+          
+          const uniqueCities = Array.from(uniqueCitiesMap.values());
+          topCities.push(...uniqueCities.slice(0, 100));
         }
       }
 

@@ -527,7 +527,7 @@ export const getCitiesByCountry = async (req, res, next) => {
     const { countryCode } = req.params;
     const companyId = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
     let query = `
-      SELECT mc.id, mc.city_name, mc.state_province, mc.status,
+      SELECT DISTINCT ON (LOWER(mc.city_name)) mc.id, mc.city_name, mc.state_province, mc.status,
              mcn.country_name, mcn.country_code, mcn.id as country_id
       FROM master_cities mc
       LEFT JOIN (
@@ -544,7 +544,7 @@ export const getCitiesByCountry = async (req, res, next) => {
     } else {
       query += ` AND mc.company_id IS NULL`;
     }
-    query += ` ORDER BY mc.city_name`;
+    query += ` ORDER BY LOWER(mc.city_name), mc.id`;
     const result = await req.db.globalQuery(query, params);
     res.json({ success: true, data: transformRowsToCamelCase(result.rows) });
   } catch (error) {
@@ -556,7 +556,7 @@ export const getAllCities = async (req, res, next) => {
   try {
     const companyId = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
     let query = `
-      SELECT mc.id, mc.city_name, mc.state_province, mc.status,
+      SELECT DISTINCT ON (mcn.country_name, LOWER(mc.city_name)) mc.id, mc.city_name, mc.state_province, mc.status,
              mcn.country_name, mcn.country_code, mcn.id as country_id
       FROM master_cities mc
       LEFT JOIN (
@@ -572,7 +572,7 @@ export const getAllCities = async (req, res, next) => {
     } else {
       query += ` WHERE mc.company_id IS NULL`;
     }
-    query += ` ORDER BY mcn.country_name, mc.city_name`;
+    query += ` ORDER BY mcn.country_name, LOWER(mc.city_name), mc.id`;
     const result = await req.db.globalQuery(query, params);
     res.json({ success: true, data: transformRowsToCamelCase(result.rows) });
   } catch (error) {
@@ -585,7 +585,7 @@ export const searchCities = async (req, res, next) => {
     const { query: searchQuery } = req.query;
     const companyId = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
     let sql = `
-      SELECT mc.id, mc.city_name, mc.state_province, mc.status,
+      SELECT DISTINCT ON (mcn.country_name, LOWER(mc.city_name)) mc.id, mc.city_name, mc.state_province, mc.status,
              mcn.country_name, mcn.country_code, mcn.id as country_id
       FROM master_cities mc
       LEFT JOIN (
@@ -602,7 +602,7 @@ export const searchCities = async (req, res, next) => {
     } else {
       sql += ` AND mc.company_id IS NULL`;
     }
-    sql += ` ORDER BY mcn.country_name, mc.city_name LIMIT 50`;
+    sql += ` ORDER BY mcn.country_name, LOWER(mc.city_name), mc.id LIMIT 50`;
     const result = await req.db.globalQuery(sql, params);
     res.json({ success: true, data: transformRowsToCamelCase(result.rows) });
   } catch (error) {

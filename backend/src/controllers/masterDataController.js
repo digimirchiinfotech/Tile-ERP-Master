@@ -224,8 +224,13 @@ export const createMasterData = async (req, res, next) => {
 
       let checkQuery, checkParams;
       if (config.global) {
-        checkQuery = `SELECT id FROM ${config.table} WHERE LOWER(${config.column}) = LOWER($1)`;
-        checkParams = [trimmedValue];
+        if ((config.table === 'master_cities' || config.table === 'master_countries') && companyId) {
+          checkQuery = `SELECT id FROM ${config.table} WHERE LOWER(${config.column}) = LOWER($1) AND (company_id IS NULL OR company_id = $2)`;
+          checkParams = [trimmedValue, companyId];
+        } else {
+          checkQuery = `SELECT id FROM ${config.table} WHERE LOWER(${config.column}) = LOWER($1)`;
+          checkParams = [trimmedValue];
+        }
       } else {
         checkQuery = `SELECT id FROM ${config.table} WHERE company_id = $1 AND LOWER(${config.column}) = LOWER($2)`;
         checkParams = [companyId, trimmedValue];
@@ -274,6 +279,12 @@ export const createMasterData = async (req, res, next) => {
 
       let insertQuery;
       if (config.global) {
+        if ((config.table === 'master_cities' || config.table === 'master_countries') && companyId) {
+          // Store custom cities/countries as tenant-scoped
+          columns.push('company_id');
+          values.push(companyId);
+          placeholders += `, $${paramCount++}`;
+        }
         insertQuery = `INSERT INTO ${config.table} (${columns.join(', ')}) VALUES (${placeholders}) RETURNING id, ${config.column} as value, status${config.table === 'box_types' ? ', image_url' : ''}`;
       } else {
         columns.push('company_id');
@@ -514,6 +525,7 @@ export const getAllCountries = async (req, res, next) => {
 export const getCitiesByCountry = async (req, res, next) => {
   try {
     const { countryCode } = req.params;
+    const companyId = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
     let query = `
       SELECT mc.id, mc.city_name, mc.state_province, mc.status,
              mcn.country_name, mcn.country_code, mcn.id as country_id
@@ -524,9 +536,16 @@ export const getCitiesByCountry = async (req, res, next) => {
         WHERE country_code IS NOT NULL OR iso_alpha_2 IS NOT NULL
       ) mcn ON mc.country_code = mcn.country_code
       WHERE (mcn.country_code = $1 OR mcn.iso_alpha_2 = $1)
-      ORDER BY mc.city_name
     `;
-    const result = await req.db.globalQuery(query, [countryCode.toUpperCase()]);
+    let params = [countryCode.toUpperCase()];
+    if (companyId) {
+      query += ` AND (mc.company_id IS NULL OR mc.company_id = $2)`;
+      params.push(companyId);
+    } else {
+      query += ` AND mc.company_id IS NULL`;
+    }
+    query += ` ORDER BY mc.city_name`;
+    const result = await req.db.globalQuery(query, params);
     res.json({ success: true, data: transformRowsToCamelCase(result.rows) });
   } catch (error) {
     next(error);
@@ -535,6 +554,7 @@ export const getCitiesByCountry = async (req, res, next) => {
 
 export const getAllCities = async (req, res, next) => {
   try {
+    const companyId = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
     let query = `
       SELECT mc.id, mc.city_name, mc.state_province, mc.status,
              mcn.country_name, mcn.country_code, mcn.id as country_id
@@ -544,9 +564,16 @@ export const getAllCities = async (req, res, next) => {
         FROM master_countries 
         WHERE country_code IS NOT NULL
       ) mcn ON mc.country_code = mcn.country_code
-      ORDER BY mcn.country_name, mc.city_name
     `;
-    const result = await req.db.globalQuery(query, []);
+    let params = [];
+    if (companyId) {
+      query += ` WHERE mc.company_id IS NULL OR mc.company_id = $1`;
+      params.push(companyId);
+    } else {
+      query += ` WHERE mc.company_id IS NULL`;
+    }
+    query += ` ORDER BY mcn.country_name, mc.city_name`;
+    const result = await req.db.globalQuery(query, params);
     res.json({ success: true, data: transformRowsToCamelCase(result.rows) });
   } catch (error) {
     next(error);
@@ -556,6 +583,7 @@ export const getAllCities = async (req, res, next) => {
 export const searchCities = async (req, res, next) => {
   try {
     const { query: searchQuery } = req.query;
+    const companyId = Object.hasOwn(req, 'companyFilter') ? req.companyFilter : (req.user?.companyId || req.user?.company_id || null);
     let sql = `
       SELECT mc.id, mc.city_name, mc.state_province, mc.status,
              mcn.country_name, mcn.country_code, mcn.id as country_id
@@ -566,10 +594,16 @@ export const searchCities = async (req, res, next) => {
         WHERE country_code IS NOT NULL
       ) mcn ON mc.country_code = mcn.country_code
       WHERE (LOWER(mc.city_name) LIKE LOWER($1) OR LOWER(COALESCE(mc.state_province,'')) LIKE LOWER($1))
-      ORDER BY mcn.country_name, mc.city_name
-      LIMIT 50
     `;
-    const result = await req.db.globalQuery(sql, [`%${searchQuery}%`]);
+    let params = [`%${searchQuery}%`];
+    if (companyId) {
+      sql += ` AND (mc.company_id IS NULL OR mc.company_id = $2)`;
+      params.push(companyId);
+    } else {
+      sql += ` AND mc.company_id IS NULL`;
+    }
+    sql += ` ORDER BY mcn.country_name, mc.city_name LIMIT 50`;
+    const result = await req.db.globalQuery(sql, params);
     res.json({ success: true, data: transformRowsToCamelCase(result.rows) });
   } catch (error) {
     next(error);

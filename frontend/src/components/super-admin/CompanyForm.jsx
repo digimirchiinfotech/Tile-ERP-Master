@@ -24,6 +24,7 @@ import { convertToSnakeCase } from '../../utils/dataTransformers.js';
 import { useSubscriptions } from '../../hooks/useSubscriptions';
 import ValidationErrorModal from '../shared/ValidationErrorModal.jsx';
 import { scrollToFirstError } from '../../utils/validationUIHelper.js';
+import AddableDropdown from '../shared/AddableDropdown.jsx';
 
 const STEPS = [
   { id: 1, title: 'Company Profile', icon: Building },
@@ -592,27 +593,29 @@ function CompanyForm({ company, onSave, onCancel, saving = false }) {
                             Country * <Info size={12} className="ms-1" />
                           </Form.Label>
                         </OverlayTrigger>
-                        <Form.Select
+                        <AddableDropdown
                           value={formData.country}
-                          onChange={(e) => handleInputChange('country', e.target.value)}
-                          className="bg-light-subtle"
+                          onChange={(val) => handleInputChange('country', val)}
+                          options={(Array.isArray(countries) ? countries : []).map(c => String(c.countryName || c.name || c).toUpperCase())}
+                          masterDataType="countries"
+                          label="Country"
+                          placeholder="Select Country"
                           isInvalid={!!errors.country}
-                        >
-                          <option value="">Select Country</option>
-                          {(Array.isArray(countries) ? countries : []).map(c => <option key={c.id} value={c.countryName}>{c.countryName}</option>)}
-                        </Form.Select>
+                          disableAutoFetch={true}
+                        />
                       </div>
                       <div className="mb-0">
                         <Form.Label className="small fw-bold text-muted">City</Form.Label>
-                        <Form.Select
+                        <AddableDropdown
                           value={formData.city}
-                          onChange={(e) => handleInputChange('city', e.target.value)}
-                          className="bg-light-subtle"
+                          onChange={(val) => handleInputChange('city', val)}
+                          options={(Array.isArray(cities) ? cities : []).map(c => String(c.cityName || c.city_name || c.value || c).toUpperCase())}
+                          masterDataType="cities"
+                          label="City"
+                          placeholder="Select City"
                           disabled={!formData.country}
-                        >
-                          <option value="">Select City</option>
-                          {(Array.isArray(cities) ? cities : []).map(c => <option key={c.id} value={c.cityName}>{c.cityName}</option>)}
-                        </Form.Select>
+                          disableAutoFetch={true}
+                        />
                       </div>
                     </Card.Body>
                   </Card>

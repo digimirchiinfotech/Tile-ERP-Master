@@ -115,8 +115,16 @@ router.post('/upload-image', filterByCompany, requirePermission(PERMISSIONS.MAST
   res.json({ success: true, imageUrl });
 });
 
+const requireMasterDataPermission = (req, res, next) => {
+  if (req.method === 'POST' && (req.params.type === 'cities' || req.params.type === 'countries')) {
+    // Allow any authenticated user to add cities and countries
+    return next();
+  }
+  return requirePermission(PERMISSIONS.MASTER_DATA_MANAGEMENT)(req, res, next);
+};
+
 router.get('/:type', filterByCompany, getMasterDataByType);
-router.post('/:type', filterByCompany, requireSuperAdminForGlobalMasterData, requirePermission(PERMISSIONS.MASTER_DATA_MANAGEMENT), validateCreateMasterData, createMasterData);
+router.post('/:type', filterByCompany, requireSuperAdminForGlobalMasterData, requireMasterDataPermission, validateCreateMasterData, createMasterData);
 router.put('/:type/:id', filterByCompany, requireSuperAdminForGlobalMasterData, requirePermission(PERMISSIONS.MASTER_DATA_MANAGEMENT), validateUpdateMasterData, updateMasterData);
 router.delete('/:type/:id', filterByCompany, requireSuperAdminForGlobalMasterData, requirePermission(PERMISSIONS.MASTER_DATA_MANAGEMENT), deleteMasterData);
 router.delete('/:type/:id/hard-delete', filterByCompany, requireSuperAdminForGlobalMasterData, requirePermission(PERMISSIONS.MASTER_DATA_MANAGEMENT), hardDelete);

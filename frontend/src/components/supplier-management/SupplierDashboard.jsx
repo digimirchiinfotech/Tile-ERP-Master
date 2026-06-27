@@ -69,8 +69,6 @@ function SupplierDashboard({ currentUser, navigationData }) {
     'super_admin',
     'company_admin',
     'purchase',
-    'sales_manager',
-    'sales_executive',
   ].includes(currentUser?.role);
   
   const canDelete = ['super_admin', 'company_admin'].includes(

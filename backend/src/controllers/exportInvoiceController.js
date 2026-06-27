@@ -824,7 +824,7 @@ export const create = async (req, res, next) => {
       other_instructions, bl_no, bl_date, shipping_bill_no, shipping_bill_date, lut_bond_ref,
       pre_carriage_by, vessel_flight_no, place_of_receipt, net_weight, gross_weight,
       buyers_order_no, buyers_order_date, booking_no, lut_date, country_of_origin,
-      supply_declaration, ftp_incentive_declaration
+      supply_declaration, ftp_incentive_declaration, lc_number, lc_date, epcg_no
     } = req.body;
 
     // Use req.companyFilter which is already validated by auth middleware
@@ -894,11 +894,11 @@ export const create = async (req, res, next) => {
           vessel_flight_no, place_of_receipt, net_weight, gross_weight,
           buyers_order_no, buyers_order_date, status, created_by, created_at, updated_at,
           currency, exchange_rate, is_locked, lut_date, country_of_origin,
-          supply_declaration, ftp_incentive_declaration)
+          supply_declaration, ftp_incentive_declaration, lc_number, lc_date, epcg_no)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
                 $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
                 $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
-                $42, $43, $44, $45, $46, $47, $48)
+                $42, $43, $44, $45, $46, $47, $48, $49, $50, $51)
         RETURNING *`,
         [
           companyId,                                    // $1  = company_id
@@ -948,7 +948,10 @@ export const create = async (req, res, next) => {
           lut_date || null,                             // $45 = lut_date
           country_of_origin || 'INDIA',                  // $46 = country_of_origin
           supply_declaration || 'SUPPLY MEANT FOR EXPORT WITHOUT PAYMENT OF INTEGRATED TAX UNDER LUT BOND', // $47 = supply_declaration
-          ftp_incentive_declaration || '"I/WE SHALL CLAIM UNDER CHAPTER 3 INCENTIVE OF FTP AS ADMISSIBLE AT TIME POLICY IN FORCE I.E. RODTEP"' // $48 = ftp_incentive_declaration
+          ftp_incentive_declaration || '"I/WE SHALL CLAIM UNDER CHAPTER 3 INCENTIVE OF FTP AS ADMISSIBLE AT TIME POLICY IN FORCE I.E. RODTEP"', // $48 = ftp_incentive_declaration
+          lc_number || null,                            // $49 = lc_number
+          lc_date || null,                              // $50 = lc_date
+          epcg_no || null                               // $51 = epcg_no
         ]
       );
 
@@ -1192,7 +1195,8 @@ export const update = async (req, res, next) => {
       'shipping_bill_date', 'lut_bond_ref', 'pre_carriage_by', 'vessel_flight_no',
       'place_of_receipt', 'net_weight', 'gross_weight', 'buyers_order_no',
       'buyers_order_date', 'booking_no', 'status', 'currency', 'exchange_rate', 'is_locked', 'lut_date', 'country_of_origin',
-      'supply_declaration', 'ftp_incentive_declaration', 'bl_no', 'bl_date'
+      'supply_declaration', 'ftp_incentive_declaration', 'bl_no', 'bl_date',
+      'lc_number', 'lc_date', 'epcg_no'
     ];
 
     const updates = [];

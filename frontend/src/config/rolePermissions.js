@@ -74,9 +74,8 @@ export const rolePermissions = {
   ],
   sales_executive: [
     'lead_management',
-    'client_management',
     'client_order',
-    'proforma_invoice',
+    'supplier_management',
     'proforma_order',
     'product_management',
     'catalogue_management',

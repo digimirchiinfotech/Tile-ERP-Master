@@ -328,7 +328,7 @@ export const getById = async (req, res, next) => {
 export const create = async (req, res, next) => {
   try {
     // SECURITY: Only non-client roles can create proforma invoices
-    const allowedRoles = ['super_admin', 'company_admin', 'admin', 'sales_manager', 'sales_executive', 'account', 'export_documents'];
+    const allowedRoles = ['super_admin', 'company_admin', 'admin', 'sales_manager', 'account', 'export_documents'];
     if (!allowedRoles.includes(req.user.role)) {
       return next(new AppError('You do not have permission to create proforma invoices', 403));
     }
@@ -537,7 +537,7 @@ export const update = async (req, res, next) => {
     const companyId = req.companyFilter;
 
     // SECURITY: Only non-client roles can update proforma invoices
-    const allowedRoles = ['super_admin', 'company_admin', 'admin', 'sales_manager', 'sales_executive', 'account', 'export_documents'];
+    const allowedRoles = ['super_admin', 'company_admin', 'admin', 'sales_manager', 'account', 'export_documents'];
     if (!allowedRoles.includes(req.user.role)) {
       return next(new AppError('You do not have permission to modify proforma invoices', 403));
     }
@@ -892,7 +892,7 @@ export const update = async (req, res, next) => {
 export const remove = async (req, res, next) => {
   try {
     // SECURITY: Only non-client roles can delete proforma invoices
-    const allowedRoles = ['super_admin', 'company_admin', 'admin', 'sales_manager', 'sales_executive', 'account', 'export_documents'];
+    const allowedRoles = ['super_admin', 'company_admin', 'admin', 'sales_manager', 'account', 'export_documents'];
     if (!allowedRoles.includes(req.user.role)) {
       return next(new AppError('You do not have permission to delete proforma invoices', 403));
     }

@@ -628,7 +628,7 @@ function InvoiceDashboard({ onAddNew, onEdit, invoicesData, productsData, client
     }
   };
 
-  const canEdit = currentUser && ['super_admin', 'company_admin', 'sales_manager', 'sales_executive'].includes(currentUser?.role);
+  const canEdit = currentUser && ['super_admin', 'company_admin', 'sales_manager'].includes(currentUser?.role);
   const canDelete = currentUser && ['super_admin', 'company_admin'].includes(currentUser?.role);
 
   const totalPages = Math.ceil(filteredInvoices.length / PAGE_SIZE);

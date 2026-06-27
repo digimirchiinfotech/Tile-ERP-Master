@@ -19,6 +19,7 @@ import {
   UserCheck,
   ShoppingCart,
   Calculator,
+  Truck,
   Layers} from 'lucide-react';
 
 function QuickActions({ currentUser, onNavigate }) {
@@ -104,19 +105,9 @@ function QuickActions({ currentUser, onNavigate }) {
           action: () => onNavigate('lead-management'),
         },
         {
-          label: 'Create Invoice',
-          icon: FileText,
-          action: () => onNavigate('invoice-form'),
-        },
-        {
-          label: 'Proforma Invoice',
-          icon: FileText,
-          action: () => onNavigate('invoice-dashboard'),
-        },
-        {
-          label: 'Create Client',
-          icon: Building,
-          action: () => onNavigate('client-management'),
+          label: 'Create Supplier',
+          icon: Truck,
+          action: () => onNavigate('supplier-management'),
         },
       ],
       qc: [

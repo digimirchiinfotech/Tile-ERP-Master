@@ -208,7 +208,7 @@ function RoleBasedDashboard({ currentUser, onNavigate }) {
             keyMetrics: [
               { label: 'My Leads', value: baseData.activeLeads, trend: '', color: 'success', icon: Users },
               { label: 'Open Orders', value: baseData.openOrders, trend: '', color: 'info', icon: ShoppingCart },
-              { label: 'Client Base', value: baseData.totalClients, trend: '', color: 'primary', icon: Users },
+              { label: 'Suppliers', value: baseData.supplierDeadlines || 0, trend: '', color: 'primary', icon: Users },
               { label: 'Tasks', value: '5', trend: '', color: 'warning', icon: CheckCircle },
             ],
             charts: {
@@ -219,7 +219,7 @@ function RoleBasedDashboard({ currentUser, onNavigate }) {
             quickActions: [
               { label: 'Create Lead', action: 'lead-form', color: 'success' },
               { label: 'Create Order', action: 'order-form', color: 'primary' },
-              { label: 'View Clients', action: 'client-management', color: 'info' },
+              { label: 'View Suppliers', action: 'supplier-management', color: 'info' },
             ],
             recentActivities: activities,
           };

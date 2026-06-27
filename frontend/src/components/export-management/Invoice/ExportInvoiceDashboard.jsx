@@ -13,7 +13,7 @@ import DashboardStatusDropdown from '../../shared/DashboardStatusDropdown.jsx';
 import LockDocumentButton from '../../shared/LockDocumentButton.jsx';
 import { generateEnterpriseFilename } from '../../../utils/fileNamingUtils';
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Row, Col, Card, Table, Form, Badge, Spinner, Modal, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Button as BsButton, Row, Col, Card, Table, Form, Badge, Spinner, Modal, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import Button from '../../shared/Button.jsx';
 import '../../shared/DashboardButtons.css';
 import { Power, BarChart3, Plus, Edit, Trash2, Eye, FileText, Printer, Search, FileInput, ClipboardList, FileCheck, Package, Download, Upload, Filter, Calendar, RefreshCcw, RotateCcw, Truck, Clock, FileSpreadsheet, Check } from 'lucide-react';
@@ -503,19 +503,19 @@ function ExportInvoiceDashboard({ currentUser, onCreate, onNavigate, navigationD
     { key: 'actions', label: 'Actions', width: '220px', sortable: false, render: (_, invoice) => (
         <div className="d-flex justify-content-end gap-1" onClick={(e) => e.stopPropagation()}>
            {canEdit && (
-              <Button variant="outline" size="sm" className="text-primary border-primary-subtle" onClick={() => onNavigate('export-invoice-form', { invoiceId: invoice.id })} title="Edit" disabled={invoice.is_locked || invoice.isLocked}>
+              <BsButton variant="outline-primary" size="sm" className="border-primary-subtle p-2" onClick={() => onNavigate('export-invoice-form', { invoiceId: invoice.id })} title="Edit" disabled={invoice.is_locked || invoice.isLocked}>
                 <Edit size={14} />
-              </Button>
+              </BsButton>
             )}
-            <Button variant="outline" size="sm" className="text-info border-info-subtle" onClick={() => handleView(invoice)} title="View Details"><Eye size={14} /></Button>
-            <Button variant="outline" size="sm" className="text-primary border-primary-subtle" onClick={() => handlePrint(invoice)} title="Print Document"><Printer size={14} /></Button>
-            <Button variant="outline" size="sm" className="text-success border-success-subtle" onClick={() => handleDownloadPDF(invoice)} title="Download PDF"><Download size={14} /></Button>
-            <Button variant="outline" size="sm" className="text-success border-success-subtle" onClick={() => handleExportProductXLSX(invoice)} title="Download XLSX"><FileSpreadsheet size={14} /></Button>
+            <BsButton variant="outline-info" size="sm" className="border-info-subtle p-2" onClick={() => handleView(invoice)} title="View Details"><Eye size={14} /></BsButton>
+            <BsButton variant="outline-primary" size="sm" className="border-primary-subtle p-2" onClick={() => handlePrint(invoice)} title="Print Document"><Printer size={14} /></BsButton>
+            <BsButton variant="outline-success" size="sm" className="border-success-subtle p-2" onClick={() => handleDownloadPDF(invoice)} title="Download PDF"><Download size={14} /></BsButton>
+            <BsButton variant="outline-success" size="sm" className="border-success-subtle p-2" onClick={() => handleExportProductXLSX(invoice)} title="Download XLSX"><FileSpreadsheet size={14} /></BsButton>
             <LockDocumentButton documentType="EXPORT_INVOICE" documentId={invoice.id} isLocked={invoice.is_locked || invoice.isLocked} onLockSuccess={fetchInvoices} getSnapshotData={async () => { const res = await api.get(`/export-invoices/${invoice.id}`); return res.data?.data || res.data; }} />
             {canDelete && (
-              <Button variant="outline" size="sm" className="text-danger border-danger-subtle" onClick={() => handleDelete(invoice.id)} title="Delete" disabled={invoice.is_locked || invoice.isLocked}>
+              <BsButton variant="outline-danger" size="sm" className="border-danger-subtle p-2" onClick={() => handleDelete(invoice.id)} title="Delete" disabled={invoice.is_locked || invoice.isLocked}>
                 <Trash2 size={14} />
-              </Button>
+              </BsButton>
             )}
         </div>
       )

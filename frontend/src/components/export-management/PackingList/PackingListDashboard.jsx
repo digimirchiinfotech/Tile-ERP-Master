@@ -13,7 +13,7 @@ import DashboardStatusDropdown from '../../shared/DashboardStatusDropdown.jsx';
 import LockDocumentButton from '../../shared/LockDocumentButton.jsx';
 import { generateEnterpriseFilename } from '../../../utils/fileNamingUtils';
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Row, Col, Card, Table, Badge, Spinner, Form, InputGroup, Modal, Button as BsButton } from 'react-bootstrap';
+import { Button as BsButton, Row, Col, Card, Table, Form, Badge, Spinner, Modal, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import Button from '../../shared/Button.jsx';
 import { Power, BarChart3, Eye, Edit, FileText, Search, Plus, Trash2, RefreshCcw, Package, FileCheck, Download, Upload, Truck, Clock, X, MapPin, Calendar, RotateCcw, Printer, FileSpreadsheet, Check } from 'lucide-react';
 import ConfirmationModal from '../../shared/ConfirmationModal.jsx';
@@ -117,19 +117,19 @@ function PackingListDashboard({ currentUser, onNavigate }) {
     { key: 'actions', label: 'Actions', width: '220px', sortable: false, render: (_, pl) => (
         <div className="d-flex justify-content-end gap-1" onClick={(e) => e.stopPropagation()}>
            {canEdit && (
-              <Button variant="outline" size="sm" className="text-primary border-primary-subtle" onClick={() => onNavigate('packing-list-form', { packingListId: pl.id })} title="Edit" disabled={pl.is_locked || pl.isLocked}>
+              <BsButton variant="outline-primary" size="sm" className="border-primary-subtle p-2" onClick={() => onNavigate('packing-list-form', { packingListId: pl.id })} title="Edit" disabled={pl.is_locked || pl.isLocked}>
                 <Edit size={14} />
-              </Button>
+              </BsButton>
             )}
-            <Button variant="outline" size="sm" className="text-info border-info-subtle" onClick={() => handleView(pl)} title="View Details"><Eye size={14} /></Button>
-            <Button variant="outline" size="sm" className="text-primary border-primary-subtle" onClick={() => handlePrint(pl)} title="Print Document"><Printer size={14} /></Button>
-            <Button variant="outline" size="sm" className="text-success border-success-subtle" onClick={() => handleDownloadPDF(pl)} title="Download PDF"><Download size={14} /></Button>
-            <Button variant="outline" size="sm" className="text-success border-success-subtle" onClick={() => handleExportProductXLSX(pl)} title="Download XLSX"><FileSpreadsheet size={14} /></Button>
+            <BsButton variant="outline-info" size="sm" className="border-info-subtle p-2" onClick={() => handleView(pl)} title="View Details"><Eye size={14} /></BsButton>
+            <BsButton variant="outline-primary" size="sm" className="border-primary-subtle p-2" onClick={() => handlePrint(pl)} title="Print Document"><Printer size={14} /></BsButton>
+            <BsButton variant="outline-success" size="sm" className="border-success-subtle p-2" onClick={() => handleDownloadPDF(pl)} title="Download PDF"><Download size={14} /></BsButton>
+            <BsButton variant="outline-success" size="sm" className="border-success-subtle p-2" onClick={() => handleExportProductXLSX(pl)} title="Download XLSX"><FileSpreadsheet size={14} /></BsButton>
             <LockDocumentButton documentType="PACKING_LIST" documentId={pl.id} isLocked={pl.is_locked || pl.isLocked} onLockSuccess={fetchPackingLists} getSnapshotData={async () => { const res = await api.get(`/packing-lists/${pl.id}`); return res.data?.data || res.data; }} />
             {canDelete && (
-              <Button variant="outline" size="sm" className="text-danger border-danger-subtle" onClick={() => handleDeletePackingList(pl)} title="Delete" disabled={pl.is_locked || pl.isLocked}>
+              <BsButton variant="outline-danger" size="sm" className="border-danger-subtle p-2" onClick={() => handleDeletePackingList(pl)} title="Delete" disabled={pl.is_locked || pl.isLocked}>
                 <Trash2 size={14} />
-              </Button>
+              </BsButton>
             )}
         </div>
       )

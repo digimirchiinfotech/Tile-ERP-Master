@@ -199,7 +199,7 @@ function CompanyForm({ company, onSave, onCancel, saving = false }) {
   useEffect(() => {
     const fetchCitiesData = async () => {
       if (formData.country) {
-        const selectedCountry = countries.find(c => c.countryName === formData.country);
+        const selectedCountry = countries.find(c => String(c.countryName || c.name || c).toUpperCase() === String(formData.country).toUpperCase());
         if (selectedCountry) {
           try {
             const data = await getCitiesByCountry(selectedCountry.countryCode);

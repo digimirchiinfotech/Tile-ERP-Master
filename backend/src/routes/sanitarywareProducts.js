@@ -24,7 +24,7 @@ import {
   validateImport
 } from '../controllers/sanitarywareProductController.js';
 import { authenticate, filterByCompany } from '../middleware/auth.js';
-import { requirePermission, requirePermission } from '../middleware/rbac.js';
+import { requirePermission } from '../middleware/rbac.js';
 import { createUpload } from '../middleware/multerConfig.js';
 import { validateFileMagicBytes } from '../middleware/fileValidator.js';
 

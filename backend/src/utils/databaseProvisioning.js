@@ -2026,6 +2026,22 @@ export const syncCompanyDatabase = async (companyId, db) => {
         )`
       },
       {
+        name: 'catalogues',
+        sql: `CREATE TABLE IF NOT EXISTS catalogues (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          company_id UUID NOT NULL,
+          catalogue_id VARCHAR(100),
+          name VARCHAR(255),
+          description TEXT,
+          cover_image_path TEXT,
+          pdf_file_path TEXT,
+          status VARCHAR(50) DEFAULT 'Active',
+          created_by UUID,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`
+      },
+      {
         name: 'catalogue_products',
         sql: `CREATE TABLE IF NOT EXISTS catalogue_products (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

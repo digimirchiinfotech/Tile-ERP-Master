@@ -116,6 +116,21 @@ export const runGlobalSchemaMigration = async () => {
         );
         CREATE INDEX IF NOT EXISTS idx_module_access_company ON public.module_access (company_id);
 
+        -- Onboarding fields
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'companies' AND column_name = 'onboarding_completed'
+        ) THEN
+          ALTER TABLE companies ADD COLUMN onboarding_completed BOOLEAN DEFAULT FALSE;
+        END IF;
+
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'companies' AND column_name = 'onboarding_step'
+        ) THEN
+          ALTER TABLE companies ADD COLUMN onboarding_step INTEGER DEFAULT 0;
+        END IF;
+
         -- Users Table: Ensure username and sales tracking columns exist
         IF NOT EXISTS (
           SELECT 1 FROM information_schema.columns

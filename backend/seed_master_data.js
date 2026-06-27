@@ -206,7 +206,7 @@ async function seedCountriesAndCities(pool, dbName, companyId) {
     }
 
     // Seed Cities if empty
-    const ciCountRes = await pool.query(`SELECT COUNT(*) FROM master_cities`);
+    const ciCountRes = await pool.query(`SELECT COUNT(*) FROM master_cities WHERE company_id IS NULL`);
     if (parseInt(ciCountRes.rows[0].count) === 0) {
       console.log(`  [SEED] Seeding master_cities (this may take a moment)...`);
       
@@ -214,12 +214,20 @@ async function seedCountriesAndCities(pool, dbName, companyId) {
       const countryMap = {};
       countriesRes.rows.forEach(r => { countryMap[r.country_code] = r.country_code; });
 
-      const cities = City.getAllCities();
+      const allCountries = Country.getAllCountries();
+      let topCities = [];
+      for (const c of allCountries) {
+        if (countryMap[c.isoCode]) {
+          const countryCities = City.getCitiesOfCountry(c.isoCode) || [];
+          topCities.push(...countryCities.slice(0, 100));
+        }
+      }
+
       let values = [];
       let params = [];
       let i = 1;
       let insertedCount = 0;
-      for (const c of cities) {
+      for (const c of topCities) {
         const countryCode = countryMap[c.countryCode];
         if (!countryCode) continue;
         

@@ -104,19 +104,9 @@ function QuickActions({ currentUser, onNavigate }) {
           action: () => onNavigate('lead-management'),
         },
         {
-          label: 'Create Invoice',
-          icon: FileText,
-          action: () => onNavigate('invoice-form'),
-        },
-        {
-          label: 'Proforma Invoice',
-          icon: FileText,
-          action: () => onNavigate('invoice-dashboard'),
-        },
-        {
-          label: 'Create Client',
+          label: 'Create Supplier',
           icon: Building,
-          action: () => onNavigate('client-management'),
+          action: () => onNavigate('supplier-management'),
         },
       ],
       qc: [

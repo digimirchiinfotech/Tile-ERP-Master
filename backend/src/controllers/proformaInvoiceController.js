@@ -578,6 +578,7 @@ export const update = async (req, res, next) => {
     const m_client_id = client_id !== undefined ? client_id : req.body.clientId;
     const m_client_name = client_name !== undefined ? client_name : req.body.clientName;
     const m_total_sqm = total_sqm !== undefined ? total_sqm : req.body.totalSqm;
+    const m_total_amount = total_amount !== undefined ? total_amount : req.body.totalAmount;
     let parsedLines = product_lines !== undefined ? product_lines : (req.body.productLines !== undefined ? req.body.productLines : req.body.line_items);
     if (typeof parsedLines === 'string') {
       try { parsedLines = JSON.parse(parsedLines); } catch (e) { parsedLines = null; }

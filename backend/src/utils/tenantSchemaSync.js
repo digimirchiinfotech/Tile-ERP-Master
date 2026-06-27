@@ -98,7 +98,13 @@ export const syncTenantSchema = async (pool, companyId) => {
       { name: 'approval_remarks', type: 'TEXT' },
       { name: 'lc_number', type: 'VARCHAR(255)' },
       { name: 'lc_date', type: 'DATE' },
-      { name: 'epcg_no', type: 'VARCHAR(255)' }
+      { name: 'epcg_no', type: 'VARCHAR(255)' },
+      { name: 'original_invoice_no', type: 'VARCHAR(255)' },
+      { name: 'revision_no', type: 'VARCHAR(255)' },
+      { name: 'revision_count', type: 'INTEGER DEFAULT 0' },
+      { name: 'revised_from_id', type: 'UUID' },
+      { name: 'revision_reason', type: 'TEXT' },
+      { name: 'deleted_at', type: 'TIMESTAMP' }
     ];
     await ensureColumnsExist('proforma_invoices', piColumns);
 
@@ -143,7 +149,13 @@ export const syncTenantSchema = async (pool, companyId) => {
       { name: 'currency', type: 'VARCHAR(50) DEFAULT \'INR (₹)\'' },
       { name: 'lc_number', type: 'VARCHAR(255)' },
       { name: 'lc_date', type: 'DATE' },
-      { name: 'epcg_no', type: 'VARCHAR(255)' }
+      { name: 'epcg_no', type: 'VARCHAR(255)' },
+      { name: 'original_order_no', type: 'VARCHAR(255)' },
+      { name: 'revision_no', type: 'VARCHAR(255)' },
+      { name: 'revision_count', type: 'INTEGER DEFAULT 0' },
+      { name: 'revised_from_id', type: 'UUID' },
+      { name: 'revision_reason', type: 'TEXT' },
+      { name: 'deleted_at', type: 'TIMESTAMP' }
     ];
     await ensureColumnsExist('proforma_orders', poColumns);
 

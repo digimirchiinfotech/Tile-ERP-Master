@@ -73,8 +73,6 @@ export const rolePermissions = {
     'reports_analytics'
   ],
   sales_executive: [
-    'lead_management',
-    'client_order',
     'supplier_management',
     'proforma_order',
     'product_management',

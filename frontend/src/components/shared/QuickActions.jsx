@@ -100,14 +100,14 @@ function QuickActions({ currentUser, onNavigate }) {
       ],
       sales_executive: [
         {
-          label: 'Create Lead',
-          icon: UserCheck,
-          action: () => onNavigate('lead-management'),
-        },
-        {
           label: 'Create Supplier',
           icon: Truck,
           action: () => onNavigate('supplier-management'),
+        },
+        {
+          label: 'Create Product',
+          icon: Package,
+          action: () => onNavigate('product-management'),
         },
       ],
       qc: [

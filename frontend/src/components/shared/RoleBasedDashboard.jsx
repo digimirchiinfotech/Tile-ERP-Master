@@ -206,8 +206,8 @@ function RoleBasedDashboard({ currentUser, onNavigate }) {
           return {
             ...baseData,
             keyMetrics: [
-              { label: 'My Leads', value: baseData.activeLeads, trend: '', color: 'success', icon: Users },
-              { label: 'Open Orders', value: baseData.openOrders, trend: '', color: 'info', icon: ShoppingCart },
+              { label: 'Proforma Orders', value: baseData.pendingProformaOrders || '0', trend: '', color: 'success', icon: FileText },
+              { label: 'Total Products', value: baseData.totalProducts || '0', trend: '', color: 'info', icon: Package },
               { label: 'Suppliers', value: baseData.supplierDeadlines || 0, trend: '', color: 'primary', icon: Users },
               { label: 'Tasks', value: '5', trend: '', color: 'warning', icon: CheckCircle },
             ],
@@ -217,8 +217,8 @@ function RoleBasedDashboard({ currentUser, onNavigate }) {
               dailyActivity: generateBarData()
             },
             quickActions: [
-              { label: 'Create Lead', action: 'lead-form', color: 'success' },
-              { label: 'Create Order', action: 'order-form', color: 'primary' },
+              { label: 'Create Product', action: 'product-management', color: 'success' },
+              { label: 'Create Proforma', action: 'order-form', color: 'primary' },
               { label: 'View Suppliers', action: 'supplier-management', color: 'info' },
             ],
             recentActivities: activities,

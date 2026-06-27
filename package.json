@@ -13,7 +13,8 @@
     "start:backend": "cd backend && npm start",
     "start:frontend": "cd frontend && npm run dev -- --host 0.0.0.0 --port 5000",
     "setup": "cd backend && npm install && npm run db:setup",
-    "install:all": "cd backend && npm install && cd ../frontend && npm install"
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "e2e": "playwright test"
   },
   "keywords": [
     "export-management",
@@ -26,5 +27,8 @@
   "license": "UNLICENSED",
   "dependencies": {
     "pg": "^8.21.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1"
   }
 }

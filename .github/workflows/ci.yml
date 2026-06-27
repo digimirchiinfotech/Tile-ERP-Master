@@ -1,58 +1,68 @@
-name: Enterprise ERP CI/CD Pipeline
-
+name: CI — Tile ERP Master
 on:
   push:
-    branches: [ "master", "main" ]
+    branches: [master]
   pull_request:
-    branches: [ "master", "main" ]
+    branches: [master]
 
 jobs:
-  build-and-test:
+  backend-test:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [20.x]
-
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: tile_erp_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - run: cd backend && npm ci
+      - run: cd backend && npm test -- --coverage
+        env:
+          TEST_DATABASE_URL: postgres://postgres:testpass@localhost:5432/tile_erp_test
+          JWT_SECRET: test-secret-minimum-32-characters-xxxxx
+          NODE_ENV: test
 
-    - name: Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        cache-dependency-path: |
-          backend/package-lock.json
-          frontend/package-lock.json
+  frontend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - run: cd frontend && npm ci
+      - run: cd frontend && npm run test
+      - run: cd frontend && npm run build
 
-    - name: Install Backend Dependencies
-      working-directory: ./backend
-      run: npm ci
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm run lint
 
-    - name: Install Frontend Dependencies
-      working-directory: ./frontend
-      run: npm ci
-
-    - name: Lint Backend Code
-      working-directory: ./backend
-      run: npm run lint
-
-    - name: Lint Frontend Code
-      working-directory: ./frontend
-      run: npm run lint
-
-    - name: Build Frontend
-      working-directory: ./frontend
-      run: npm run build
-
-    # - name: Run Backend Tests
-    #   working-directory: ./backend
-    #   run: npm test
-
-    # E2E Tests would be run here if a display server is available, 
-    # but we will just ensure the scripts pass syntactically.
-    # - name: Run Frontend Tests
-    #   working-directory: ./frontend
-    #   run: npm run test
+  e2e-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: npm ci
+      - run: npx playwright install chromium
+      - run: npm run e2e

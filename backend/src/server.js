@@ -231,10 +231,10 @@ const bulkReadSlowDown = slowDown({
   skip: (req) => req.method !== 'GET', // only apply to GET requests
 });
 
-// Step 2: Hard block — 30 GET requests per minute per IP on bulk read routes
+// Step 2: Hard block — 150 GET requests per minute per IP on bulk read routes
 export const bulkReadLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: env.node_env === 'development' ? 10000 : 30,
+  max: env.node_env === 'development' ? 10000 : 150,
   message: { success: false, message: 'Too many data requests. Please slow down.' },
   standardHeaders: true,
   legacyHeaders: false,

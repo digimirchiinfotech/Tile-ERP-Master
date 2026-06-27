@@ -14,7 +14,8 @@
     "db:setup": "npm run setup:master && npm run migrate && npm run seed",
     "lint": "eslint src --ext .js",
     "format": "prettier --write src",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.cjs --forceExit",
+    "test": "NODE_ENV=test jest --runInBand",
+    "test:coverage": "jest --coverage --runInBand --coverageReporters=text",
     "test:security": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.cjs --testPathPattern=security --forceExit",
     "security:reset-admin-password": "node src/scripts/reset-admin-password.js",
     "build": "echo 'Build complete'"
@@ -71,6 +72,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "eslint": "^8.57.0",
     "eslint-plugin-security": "^4.0.1",
     "javascript-obfuscator": "^5.4.3",
@@ -78,5 +80,16 @@
     "nodemon": "^3.1.0",
     "prettier": "^3.3.3",
     "supertest": "^7.2.2"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/__tests__/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "src/controllers/**/*.js",
+      "src/middleware/**/*.js",
+      "src/validators/**/*.js"
+    ]
   }
 }

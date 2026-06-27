@@ -361,6 +361,9 @@ function PackingListForm({ exportInvoiceId, packingList, packingListData, packin
 				buyers_order_date: formatInputDate(dataToLoad.buyers_order_date || dataToLoad.buyersOrderDate || ''),
 				proforma_invoice_date: formatInputDate(dataToLoad.proforma_invoice_date || dataToLoad.proforma_date || dataToLoad.proformaInvoiceDate || ''),
 				export_invoice_date: formatInputDate(dataToLoad.export_invoice_date || dataToLoad.invoice_date || dataToLoad.exportInvoiceDate || ''),
+				lcNumber: dataToLoad.lc_number || dataToLoad.lcNumber || '',
+				lcDate: dataToLoad.lc_date || dataToLoad.lcDate || '',
+				epcgNo: dataToLoad.epcg_no || dataToLoad.epcgNo || '',
 				container_details: dataToLoad.container_details || dataToLoad.containerDetails || [],
 				ei_updated_at: dataToLoad.ei_updated_at || '',
 				updated_at: dataToLoad.updated_at || ''
@@ -397,6 +400,9 @@ function PackingListForm({ exportInvoiceId, packingList, packingListData, packin
 				// Ensure dates are correctly set even if mapper has slight mismatches
 				proforma_invoice_date: formatInputDate(mapped.proforma_invoice_date || inv.proformaInvoiceDate || inv.proforma_date || inv.proformaDate || inv.pi_date || ''),
 				export_invoice_date: formatInputDate(mapped.export_invoice_date || inv.invoice_date || inv.invoiceDate || inv.date || ''),
+				lcNumber: mapped.lc_number || mapped.lcNumber || prev.lcNumber || '',
+				lcDate: mapped.lc_date || mapped.lcDate || prev.lcDate || '',
+				epcgNo: mapped.epcg_no || mapped.epcgNo || prev.epcgNo || '',
 				// Only update product lines if we don't have them yet or if specifically forced
 				...(!hasExistingProducts && {
 					product_lines: mapped.product_lines,

@@ -450,6 +450,9 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
               proforma_invoice_no: snakeData.proforma_invoice_no || (snakeData.proforma_data && snakeData.proforma_data.invoice_no) || prev.proforma_invoice_no,
               lut_bond_ref: snakeData.lut_bond_ref || (snakeData.company_info && snakeData.company_info.lut_arn_no) || (snakeData.proforma_data && snakeData.proforma_data.company_info && snakeData.proforma_data.company_info.lut_arn_no) || prev.lut_bond_ref,
               lut_date: snakeData.lut_date || (snakeData.company_info && snakeData.company_info.lut_date) || (snakeData.proforma_data && snakeData.proforma_data.company_info && snakeData.proforma_data.company_info.lut_date) || prev.lut_date,
+              lcNumber: snakeData.lc_number || prev.lcNumber || '',
+              lcDate: snakeData.lc_date || prev.lcDate || '',
+              epcgNo: snakeData.epcg_no || prev.epcgNo || '',
               country_of_origin: snakeData.country_of_origin || prev.country_of_origin || 'INDIA',
               supply_declaration: snakeData.supply_declaration || prev.supply_declaration || 'SUPPLY MEANT FOR EXPORT WITHOUT PAYMENT OF INTEGRATED TAX UNDER LUT BOND',
               ftp_incentive_declaration: snakeData.ftp_incentive_declaration || prev.ftp_incentive_declaration || '"I/WE SHALL CLAIM UNDER CHAPTER 3 INCENTIVE OF FTP AS ADMISSIBLE AT TIME POLICY IN FORCE I.E. RODTEP"',
@@ -864,7 +867,10 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
           proforma_date: snakeData.proforma_date || (snakeData.proforma_data && snakeData.proforma_data.date) || prev.proforma_date,
           proforma_invoice_no: snakeData.proforma_invoice_no || (snakeData.proforma_data && snakeData.proforma_data.invoice_no) || prev.proforma_invoice_no,
           lut_bond_ref: prev.lut_bond_ref || snakeData.lut_bond_ref || snakeData.lut_arn_no,
-          lut_date: prev.lut_date || snakeData.lut_date
+          lut_date: prev.lut_date || snakeData.lut_date,
+          lcNumber: snakeData.lc_number || prev.lcNumber || '',
+          lcDate: snakeData.lc_date || prev.lcDate || '',
+          epcgNo: snakeData.epcg_no || prev.epcgNo || ''
         }));
       }
     } catch (err) {

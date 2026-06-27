@@ -12,6 +12,7 @@ import { orderService } from './services/orderService.js';
 import { useActivityTracker } from './hooks/useActivityTracker.js';
 import { useSessionManager } from './hooks/useSessionManager.js';
 import { useAppNavigation } from './hooks/useAppNavigation.js';
+import { rolePermissions } from './config/rolePermissions.js';
 import useKeyboardShortcuts from './hooks/useKeyboardShortcuts.js';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -98,6 +99,9 @@ function App() {
       if (savedUser) {
         try {
           authenticatedUser = JSON.parse(savedUser);
+          if (rolePermissions[authenticatedUser.role]) {
+             authenticatedUser.permissions = rolePermissions[authenticatedUser.role];
+          }
           setCurrentUser(authenticatedUser);
           setContextUser(authenticatedUser);
 
@@ -105,6 +109,9 @@ function App() {
           authAPI.getCurrentUser().then(response => {
             const latestUser = response.data || response;
             if (latestUser) {
+              if (rolePermissions[latestUser.role]) {
+                 latestUser.permissions = rolePermissions[latestUser.role];
+              }
               localStorage.setItem('current_user', JSON.stringify(latestUser));
               setCurrentUser(latestUser);
               setContextUser(latestUser);

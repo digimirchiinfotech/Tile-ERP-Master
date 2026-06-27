@@ -582,7 +582,7 @@ export const update = async (req, res, next) => {
     if (typeof parsedLines === 'string') {
       try { parsedLines = JSON.parse(parsedLines); } catch (e) { parsedLines = null; }
     }
-    const m_product_lines = Array.isArray(parsedLines) && parsedLines.length > 0 ? parsedLines : null;
+    const m_product_lines = Array.isArray(parsedLines) ? parsedLines : null;
 
     const m_currency = currency !== undefined ? currency : req.body.currency;
     const m_pre_carriage_by = pre_carriage_by !== undefined ? pre_carriage_by : req.body.preCarriageBy;
@@ -667,8 +667,8 @@ export const update = async (req, res, next) => {
     let paramCount = 1;
 
     const fields = {
-      date, client_id: m_client_id, client_name: m_client_name, country, subtotal, discount, tax, total_amount,
-      pallets, total_sqm: m_total_sqm, payment_terms: m_payment_terms, delivery_terms: m_delivery_terms, 
+      date, client_id: m_client_id, client_name: m_client_name, country, subtotal, discount, tax, total_amount: m_total_amount,
+      pallets, total_sqm: m_total_sqm, status: incomingStatus || docStatus, payment_terms: m_payment_terms, delivery_terms: m_delivery_terms, 
       port_of_loading: m_port_of_loading, port_of_discharge: m_port_of_discharge,
       validity_days: m_validity_days, notes, tariff_code: m_tariff_code, final_destination: m_final_destination, 
       consignee_details: m_consignee_details, buyer_details: m_buyer_details,

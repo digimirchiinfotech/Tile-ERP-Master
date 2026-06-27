@@ -350,9 +350,11 @@ export const create = async (req, res, next) => {
     const m_discount = parseFloat(discount || req.body.discount || 0) || 0;
     const m_tax = parseFloat(tax || req.body.tax || 0) || 0;
     const m_total_amount = parseFloat(total_amount || req.body.totalAmount || 0) || 0;
-    const m_product_lines = Array.isArray(product_lines) && product_lines.length > 0 
-      ? product_lines 
-      : (Array.isArray(req.body.productLines) ? req.body.productLines : (Array.isArray(req.body.line_items) ? req.body.line_items : []));
+    let parsedLinesCreate = product_lines !== undefined ? product_lines : (req.body.productLines !== undefined ? req.body.productLines : req.body.line_items);
+    if (typeof parsedLinesCreate === 'string') {
+      try { parsedLinesCreate = JSON.parse(parsedLinesCreate); } catch (e) { parsedLinesCreate = []; }
+    }
+    const m_product_lines = Array.isArray(parsedLinesCreate) && parsedLinesCreate.length > 0 ? parsedLinesCreate : [];
     const m_consignee_details = consignee_details || req.body.consigneeDetails;
     const m_buyer_details = buyer_details || req.body.buyerDetails;
     const m_final_destination = final_destination || req.body.finalDestination;
@@ -576,9 +578,11 @@ export const update = async (req, res, next) => {
     const m_client_id = client_id !== undefined ? client_id : req.body.clientId;
     const m_client_name = client_name !== undefined ? client_name : req.body.clientName;
     const m_total_sqm = total_sqm !== undefined ? total_sqm : req.body.totalSqm;
-    const m_product_lines = Array.isArray(product_lines) && product_lines.length > 0 
-      ? product_lines 
-      : (Array.isArray(req.body.productLines) ? req.body.productLines : (Array.isArray(req.body.line_items) ? req.body.line_items : null));
+    let parsedLines = product_lines !== undefined ? product_lines : (req.body.productLines !== undefined ? req.body.productLines : req.body.line_items);
+    if (typeof parsedLines === 'string') {
+      try { parsedLines = JSON.parse(parsedLines); } catch (e) { parsedLines = null; }
+    }
+    const m_product_lines = Array.isArray(parsedLines) && parsedLines.length > 0 ? parsedLines : null;
 
     const m_currency = currency !== undefined ? currency : req.body.currency;
     const m_pre_carriage_by = pre_carriage_by !== undefined ? pre_carriage_by : req.body.preCarriageBy;
@@ -678,7 +682,8 @@ export const update = async (req, res, next) => {
       original_invoice_no: baseDocNo,
       revision_count: nextRevisionCount,
       revision_reason: effectiveRevisionReason,
-      updated_by: req.user.id
+      updated_by: req.user.id,
+      status: incomingStatus || docStatus
     };
 
     Object.entries(fields).forEach(([key, value]) => {

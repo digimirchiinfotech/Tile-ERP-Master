@@ -24,7 +24,7 @@ import {
   validateImport
 } from '../controllers/sanitarywareProductController.js';
 import { authenticate, filterByCompany } from '../middleware/auth.js';
-import { requirePermission, requireAdminRole } from '../middleware/rbac.js';
+import { requirePermission, requirePermission } from '../middleware/rbac.js';
 import { createUpload } from '../middleware/multerConfig.js';
 import { validateFileMagicBytes } from '../middleware/fileValidator.js';
 
@@ -52,7 +52,7 @@ router.post(
   '/',
   authenticate,
   filterByCompany,
-  requireAdminRole,
+  requirePermission('product_management', 'all'),
   create
 );
 
@@ -61,7 +61,7 @@ router.post(
   '/bulk',
   authenticate,
   filterByCompany,
-  requireAdminRole,
+  requirePermission('product_management', 'all'),
   createAuditMiddleware('sanitaryware_product', 'BULK_UPSERT'),
   bulkUpsert
 );
@@ -71,7 +71,7 @@ router.post(
   '/validate-import',
   authenticate,
   filterByCompany,
-  requireAdminRole,
+  requirePermission('product_management', 'all'),
   validateImport
 );
 
@@ -80,7 +80,7 @@ router.put(
   '/:id',
   authenticate,
   filterByCompany,
-  requireAdminRole,
+  requirePermission('product_management', 'all'),
   update
 );
 
@@ -89,7 +89,7 @@ router.delete(
   '/:id',
   authenticate,
   filterByCompany,
-  requireAdminRole,
+  requirePermission('product_management', 'all'),
   remove
 );
 
@@ -98,7 +98,7 @@ router.delete(
   '/:id/hard-delete',
   authenticate,
   filterByCompany,
-  requireAdminRole,
+  requirePermission('product_management', 'all'),
   hardDelete
 );
 
@@ -107,7 +107,7 @@ router.patch(
   '/:id/toggle-status',
   authenticate,
   filterByCompany,
-  requireAdminRole,
+  requirePermission('product_management', 'all'),
   toggleStatus
 );
 
@@ -116,7 +116,7 @@ router.post(
   '/:id/upload-image',
   authenticate,
   filterByCompany,
-  requireAdminRole,
+  requirePermission('product_management', 'all'),
   createUpload('PRODUCT_IMAGE').single('image'),
   validateFileMagicBytes('PRODUCT_IMAGE'),
   uploadImage

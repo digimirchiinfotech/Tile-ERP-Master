@@ -23,7 +23,7 @@ import {
   validateImport
 } from '../controllers/productController.js';
 import { authenticate, filterByCompany } from '../middleware/auth.js';
-import { requirePermission, requireAdminRole } from '../middleware/rbac.js';
+import { requirePermission, requirePermission } from '../middleware/rbac.js';
 import { validateRequest } from '../middleware/inputValidation.js';
 import { createUpload } from '../middleware/multerConfig.js';
 import { validateFileMagicBytes } from '../middleware/fileValidator.js';
@@ -57,7 +57,7 @@ router.post(
   '/',
   authenticate,
   filterByCompany,
-  requireAdminRole,
+  requirePermission('product_management', 'all'),
   createProductValidator,
   validateRequest,
   createAuditMiddleware('product', 'CREATE'),
@@ -69,7 +69,7 @@ router.post(
   '/bulk',
   authenticate,
   filterByCompany,
-  requireAdminRole,
+  requirePermission('product_management', 'all'),
   createAuditMiddleware('product', 'BULK_UPSERT'),
   bulkUpsert
 );
@@ -79,7 +79,7 @@ router.post(
   '/validate-import',
   authenticate,
   filterByCompany,
-  requireAdminRole,
+  requirePermission('product_management', 'all'),
   validateImport
 );
 
@@ -88,7 +88,7 @@ router.put(
   '/:id',
   authenticate,
   filterByCompany,
-  requireAdminRole,
+  requirePermission('product_management', 'all'),
   updateProductValidator,
   validateRequest,
   createAuditMiddleware('product', 'UPDATE'),
@@ -100,7 +100,7 @@ router.delete(
   '/:id',
   authenticate,
   filterByCompany,
-  requireAdminRole,
+  requirePermission('product_management', 'all'),
   createAuditMiddleware('product', 'DELETE'),
   remove
 );
@@ -110,7 +110,7 @@ router.delete(
   '/:id/hard-delete',
   authenticate,
   filterByCompany,
-  requireAdminRole,
+  requirePermission('product_management', 'all'),
   createAuditMiddleware('product', 'DELETE'),
   hardDelete
 );
@@ -120,7 +120,7 @@ router.patch(
   '/:id/toggle-status',
   authenticate,
   filterByCompany,
-  requireAdminRole,
+  requirePermission('product_management', 'all'),
   createAuditMiddleware('product', 'STATUS_CHANGE'),
   toggleStatus
 );
@@ -130,7 +130,7 @@ router.post(
   '/:id/upload-image',
   authenticate,
   filterByCompany,
-  requireAdminRole,
+  requirePermission('product_management', 'all'),
   createUpload('PRODUCT_IMAGE').single('image'),
   validateFileMagicBytes('PRODUCT_IMAGE'),
   uploadImage

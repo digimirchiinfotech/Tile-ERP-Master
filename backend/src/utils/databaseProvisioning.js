@@ -1980,6 +1980,17 @@ export const syncCompanyDatabase = async (companyId, db) => {
     // Ensure new master data tables exist
     const tablesToCreate = [
       {
+        name: 'contact_details',
+        sql: `CREATE TABLE IF NOT EXISTS contact_details (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          company_id UUID,
+          detail TEXT NOT NULL,
+          status VARCHAR(20) DEFAULT 'Active',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`
+      },
+      {
         name: 'sanitaryware_products',
         sql: `CREATE TABLE IF NOT EXISTS sanitaryware_products (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -347,8 +347,18 @@ export const createCompany = async (req, res, next) => {
     }
   } catch (error) {
     if (error.code === '23505') {
-      debugLogger.error(CONTEXT, 'Duplicate email_id', error);
-      return next(new AppError('Company with this email_id already exists', 400));
+      debugLogger.error(CONTEXT, 'Duplicate constraint violation', error);
+      const constraintMap = {
+        'companies_name_key': 'Company with this name already exists',
+        'companies_email_id_key': 'Company with this email already exists',
+        'companies_contact_number_key': 'Company with this contact number already exists',
+        'companies_gstn_key': 'Company with this GSTN already exists',
+        'companies_pan_key': 'Company with this PAN already exists',
+        'companies_iec_no_key': 'Company with this IEC No already exists',
+        'users_email_id_key': 'User with this admin email already exists'
+      };
+      const message = constraintMap[error.constraint] || 'A record with this information already exists';
+      return next(new AppError(message, 400));
     }
     debugLogger.error(CONTEXT, 'createCompany failed', error);
     next(error);
@@ -465,7 +475,19 @@ export const updateCompany = async (req, res, next) => {
       client.release();
     }
   } catch (error) {
-    if (error.code === '23505') return next(new AppError('Company with this email_id already exists', 400));
+    if (error.code === '23505') {
+      const constraintMap = {
+        'companies_name_key': 'Company with this name already exists',
+        'companies_email_id_key': 'Company with this email already exists',
+        'companies_contact_number_key': 'Company with this contact number already exists',
+        'companies_gstn_key': 'Company with this GSTN already exists',
+        'companies_pan_key': 'Company with this PAN already exists',
+        'companies_iec_no_key': 'Company with this IEC No already exists',
+        'users_email_id_key': 'User with this admin email already exists'
+      };
+      const message = constraintMap[error.constraint] || 'A record with this information already exists';
+      return next(new AppError(message, 400));
+    }
     next(error);
   }
 };
@@ -604,7 +626,19 @@ export const registerCompany = async (req, res, next) => {
     }
   } catch (error) {
     debugLogger.error(CONTEXT, 'registerCompany failed', error);
-    if (error.code === '23505') return next(new AppError('Email already exists', 400));
+    if (error.code === '23505') {
+      const constraintMap = {
+        'companies_name_key': 'Company with this name already exists',
+        'companies_email_id_key': 'Company with this email already exists',
+        'companies_contact_number_key': 'Company with this contact number already exists',
+        'companies_gstn_key': 'Company with this GSTN already exists',
+        'companies_pan_key': 'Company with this PAN already exists',
+        'companies_iec_no_key': 'Company with this IEC No already exists',
+        'users_email_id_key': 'User with this admin email already exists'
+      };
+      const message = constraintMap[error.constraint] || 'A record with this information already exists';
+      return next(new AppError(message, 400));
+    }
     next(error);
   }
 };

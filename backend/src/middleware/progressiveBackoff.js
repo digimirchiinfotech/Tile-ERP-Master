@@ -38,9 +38,10 @@ export const progressiveBackoff = (req, res, next) => {
   const ip = req.ip;
   const now = Date.now();
   const record = failedRequests.get(ip);
+  const isLogin = req.path === '/auth/login' || req.path === '/login';
 
-  // Check if IP is currently blocked
-  if (record && record.blockedUntil > now) {
+  // Check if IP is currently blocked (bypass for login to allow authLimiter to handle it)
+  if (!isLogin && record && record.blockedUntil > now) {
     const remainingSeconds = Math.ceil((record.blockedUntil - now) / 1000);
     res.setHeader('Retry-After', remainingSeconds);
     return res.status(429).json({
@@ -81,6 +82,9 @@ export const progressiveBackoff = (req, res, next) => {
       }
 
       failedRequests.set(ip, current);
+    } else if (res.statusCode === 200 && isLogin) {
+      // Clear global block on successful login
+      failedRequests.delete(ip);
     }
   };
 

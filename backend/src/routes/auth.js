@@ -44,9 +44,17 @@ const refreshTokenLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const loginLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 10,
+  message: { success: false, message: 'Too many login attempts. Please try again after 5 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 router.post('/register', registerValidator, validateRequest, register);
 
-router.post('/login', loginValidator, validateRequest, login);
+router.post('/login', loginLimiter, loginValidator, validateRequest, login);
 
 router.post('/refresh-token', refreshTokenLimiter, refreshTokenValidator, validateRequest, refreshToken);
 

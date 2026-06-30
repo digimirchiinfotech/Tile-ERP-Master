@@ -24,17 +24,7 @@ export const packingListService = {
     return await api.post(`/packing-lists/export-invoice/${exportInvoiceId}`, data);
   },
 
-  delete: async (id) => {
-    return await api.delete(`/packing-lists/${id}`);
-  },
 
-  hardDelete: async (id) => {
-    return await api.delete(`/packing-lists/${id}/hard-delete`);
-  },
-
-  toggleStatus: async (id) => {
-    return await api.patch(`/packing-lists/${id}/toggle-status`);
-  },
 
   getById: async (id) => {
     return await api.get(`/packing-lists/${id}`);

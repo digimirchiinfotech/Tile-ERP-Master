@@ -39,7 +39,7 @@ import DynamicDropdown from '../shared/DynamicDropdown.jsx';
 import AddableDropdown from '../shared/AddableDropdown.jsx';
 import api from '../../services/api.js';
 
-import { Save, X, Info, Edit } from 'lucide-react';
+import { Save, X, Info, Edit, Check } from 'lucide-react';
 
 function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
   const [formData, setFormData] = useState({
@@ -60,7 +60,6 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
     notes: '',
     portOfLoading: '',
     portOfDischarge: '',
-    finalDestination: '',
     finalDestination: '',
     currency: '',
     gstin: '',

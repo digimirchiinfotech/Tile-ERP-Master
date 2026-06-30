@@ -11,7 +11,7 @@
 
 import ActivityTimeline from '../shared/ActivityTimeline.jsx';
 import { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Table, Spinner, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Card, Table, Spinner, Alert, Badge } from 'react-bootstrap';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { TrendingUp, Package, DollarSign, Users, Clock, CheckCircle } from 'lucide-react';
 import api from '../../services/api';

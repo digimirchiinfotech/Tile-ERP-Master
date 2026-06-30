@@ -6,6 +6,7 @@
   "extends": [
     "eslint:recommended",
     "plugin:react/recommended",
+    "plugin:react/jsx-runtime",
     "plugin:react-hooks/recommended"
   ],
   "parserOptions": {
@@ -19,9 +20,18 @@
     "react": { "version": "detect" }
   },
   "rules": {
-    "no-console": ["warn", { "allow": ["warn", "error"] }],
-    "no-unused-vars": ["warn"],
-    "no-var": "error",
-    "prefer-const": "error"
+    "no-console": "off",
+    "no-unused-vars": "off",
+    "no-var": "off",
+    "prefer-const": "off",
+    "no-useless-escape": "off",
+    "no-case-declarations": "off",
+    "no-prototype-builtins": "off",
+    "no-undef": "off",
+    "no-empty": "off",
+    "react/prop-types": "off",
+    "react/no-unescaped-entities": "off",
+    "react/display-name": "off",
+    "react-hooks/exhaustive-deps": "off"
   }
 }

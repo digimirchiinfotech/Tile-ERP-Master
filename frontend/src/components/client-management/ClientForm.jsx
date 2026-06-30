@@ -236,6 +236,10 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
       [field]: filteredValue,
     }));
 
+    if (field === 'gstin') {
+      setGstinStatus(null);
+    }
+
     if (errors[field]) {
       setErrors((prev) => ({
         ...prev,

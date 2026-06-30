@@ -399,7 +399,10 @@ function SupplierForm({ supplier, onSave, onCancel }) {
                                   type="text" 
                                   maxLength={15}
                                   {...field}
-                                  onChange={(e) => field.onChange(e.target.value.toUpperCase())} 
+                                  onChange={(e) => {
+                                    field.onChange(e.target.value.toUpperCase());
+                                    setGstinStatus(null);
+                                  }} 
                                   placeholder="15-digit GSTIN" 
                                   isInvalid={!!errors.gstn}
                                 />

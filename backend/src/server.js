@@ -118,6 +118,8 @@ import inventoryRoutes from './routes/inventoryRoutes.js';
 import pdfRoutes from './routes/pdf.js';
 import lockRoutes from './routes/lockRoutes.js';
 import documentActivityRoutes from './routes/documentActivity.js';
+import tallyRoutes from './routes/tallyRoutes.js';
+import gstinRoutes from './routes/gstinRoutes.js';
 
 const app = express();
 
@@ -483,6 +485,8 @@ app.use('/api/size-packing-master', sizePackingMasterRoutes);
 app.use('/api/factory-master', factoryMasterRoutes);
 app.use('/api/production-sheets', productionSheetRoutes);
 app.use('/api/signatures', authenticate, signatureRoutes);
+app.use('/api/tally', tallyRoutes);
+app.use('/api/gstin', gstinRoutes);
 
 // SPA catch-all: serve frontend index.html for all non-API GET routes
 app.get('*', (req, res, next) => {

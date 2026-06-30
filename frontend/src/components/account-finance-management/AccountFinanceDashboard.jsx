@@ -16,6 +16,7 @@ import Button from '../shared/Button.jsx';
 import { Plus, Search, Edit, Trash2, Eye, Download, Upload, RotateCcw, Power, Printer, Check } from 'lucide-react';
 import { useAccountEntries } from '../../hooks/useAccountEntries';
 import { accountEntryService } from '../../services/accountEntryService';
+import { authAPI } from '../../services/authAPI';
 import AccountEntryForm from './AccountEntryForm.jsx';
 import ImportModal from '../shared/ImportModal.jsx';
 import AccountPrintView from './AccountPrintView.jsx';
@@ -267,6 +268,26 @@ function AccountFinanceDashboard({ currentUser }) {
     return <Badge bg={variants[type] || 'secondary'}>{type}</Badge>;
   };
 
+  const exportTallyXml = async () => {
+    try {
+      const start = filters.dateRange?.start || '2020-01-01';
+      const end = filters.dateRange?.end || new Date().toISOString().split('T')[0];
+      
+      const response = await authAPI.get(`/tally/export-sales?from_date=${start}&to_date=${end}`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `tally_sales_${start}_to_${end}.xml`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      showSuccess('Tally XML downloaded successfully');
+    } catch (error) {
+      console.error(error);
+      showError('Failed to export Tally XML');
+    }
+  };
+
   const exportEntries = () => {
     const csvContent =
       'data:text/csv;charset=utf-8,' +
@@ -479,6 +500,16 @@ function AccountFinanceDashboard({ currentUser }) {
         <Card.Header className="bg-primary text-white d-flex flex-row justify-content-between align-items-center p-3 border-0">
           <h5 className="mb-0 fw-bold text-nowrap me-2">Accounts & Finance ({filteredEntries.length})</h5>
           <div className="d-flex gap-2 flex-nowrap align-items-center">
+            <Button
+              variant="outline-light"
+              size="sm"
+              onClick={exportTallyXml}
+              className="d-flex align-items-center flex-shrink-0"
+              style={{ width: 'auto' }}
+            >
+              <Download size={14} className="me-1" />
+              <span className="d-none d-md-inline small">Tally XML</span>
+            </Button>
             <Button
               variant="outline-light"
               size="sm"

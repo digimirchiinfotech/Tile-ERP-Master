@@ -2352,6 +2352,95 @@ export const syncCompanyDatabase = async (companyId, db) => {
 
     try {
       await db.query(`
+        -- Inventory Module schemas
+        CREATE TABLE IF NOT EXISTS warehouses (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          company_id UUID NOT NULL,
+          warehouse_name VARCHAR(200) NOT NULL,
+          warehouse_code VARCHAR(50),
+          address TEXT,
+          city VARCHAR(100),
+          state VARCHAR(100),
+          pincode VARCHAR(10),
+          is_primary BOOLEAN DEFAULT FALSE,
+          is_active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          updated_at TIMESTAMPTZ DEFAULT NOW()
+        );
+
+        CREATE TABLE IF NOT EXISTS stock_transactions (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          company_id UUID NOT NULL,
+          product_id UUID NOT NULL,
+          warehouse_id UUID,
+          transaction_type VARCHAR(50) NOT NULL,
+          reference_type VARCHAR(50),
+          reference_id UUID,
+          reference_number VARCHAR(100),
+          boxes_quantity NUMERIC(12,3) NOT NULL DEFAULT 0,
+          sqm_quantity NUMERIC(12,3) NOT NULL DEFAULT 0,
+          unit_price NUMERIC(12,4),
+          lot_number VARCHAR(100),
+          batch_number VARCHAR(100),
+          shade_number VARCHAR(50),
+          notes TEXT,
+          transaction_date DATE NOT NULL DEFAULT CURRENT_DATE,
+          created_by UUID,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        );
+
+        CREATE OR REPLACE VIEW stock_balances AS
+        SELECT
+          company_id,
+          product_id,
+          warehouse_id,
+          SUM(CASE WHEN transaction_type IN ('GRN','PRODUCTION_IN','TRANSFER_IN','ADJUSTMENT_IN','RETURN_IN')
+              THEN boxes_quantity ELSE -boxes_quantity END) AS boxes_available,
+          SUM(CASE WHEN transaction_type IN ('GRN','PRODUCTION_IN','TRANSFER_IN','ADJUSTMENT_IN','RETURN_IN')
+              THEN sqm_quantity ELSE -sqm_quantity END) AS sqm_available
+        FROM stock_transactions
+        GROUP BY company_id, product_id, warehouse_id;
+
+        CREATE INDEX IF NOT EXISTS idx_stock_txn_company_product ON stock_transactions(company_id, product_id, warehouse_id);
+        CREATE INDEX IF NOT EXISTS idx_stock_txn_company_date ON stock_transactions(company_id, transaction_date DESC);
+        CREATE INDEX IF NOT EXISTS idx_warehouses_company ON warehouses(company_id) WHERE is_active = TRUE;
+
+        -- Alter tables for Inventory
+        ALTER TABLE products ADD COLUMN IF NOT EXISTS reorder_point_boxes NUMERIC(10,2) DEFAULT 0;
+        ALTER TABLE products ADD COLUMN IF NOT EXISTS preferred_warehouse_id UUID;
+
+        -- Multi-currency Schema
+        ALTER TABLE proforma_invoices ADD COLUMN IF NOT EXISTS invoice_currency VARCHAR(3) NOT NULL DEFAULT 'USD';
+        ALTER TABLE proforma_invoices ADD COLUMN IF NOT EXISTS forex_rate NUMERIC(12,4) NOT NULL DEFAULT 83.5000;
+        ALTER TABLE proforma_invoices ADD COLUMN IF NOT EXISTS forex_rate_date DATE DEFAULT CURRENT_DATE;
+        ALTER TABLE proforma_invoices ADD COLUMN IF NOT EXISTS total_amount_fcy NUMERIC(15,2);
+        ALTER TABLE proforma_invoices ADD COLUMN IF NOT EXISTS total_amount_inr NUMERIC(15,2);
+
+        ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS invoice_currency VARCHAR(3) NOT NULL DEFAULT 'USD';
+        ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS forex_rate NUMERIC(12,4) NOT NULL DEFAULT 83.5000;
+        ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS forex_rate_date DATE DEFAULT CURRENT_DATE;
+        ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS forex_rate_source VARCHAR(50) DEFAULT 'Manual';
+        ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS total_amount_fcy NUMERIC(15,2);
+        ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS total_amount_inr NUMERIC(15,2);
+        ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS customs_assessable_value NUMERIC(15,2);
+        ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS duty_drawback_amount NUMERIC(15,2);
+        ALTER TABLE export_invoices ADD COLUMN IF NOT EXISTS realization_status VARCHAR(50) DEFAULT 'Pending';
+
+        -- GST Compliance Schema
+        ALTER TABLE clients ADD COLUMN IF NOT EXISTS gstin VARCHAR(15);
+        ALTER TABLE clients ADD COLUMN IF NOT EXISTS gstin_verified BOOLEAN DEFAULT FALSE;
+        ALTER TABLE clients ADD COLUMN IF NOT EXISTS gstin_trade_name VARCHAR(200);
+        ALTER TABLE clients ADD COLUMN IF NOT EXISTS gst_registration_type VARCHAR(50);
+
+        ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS gstin VARCHAR(15);
+        ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS gstin_verified BOOLEAN DEFAULT FALSE;
+      `);
+    } catch (e) {
+      debugLogger.warn('DatabaseProvisioning', 'Failed to apply new ERP modules schema hardening', e);
+    }
+
+    try {
+      await db.query(`
         -- Phase 6: Soft Delete Consistency
         ALTER TABLE clients ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
         

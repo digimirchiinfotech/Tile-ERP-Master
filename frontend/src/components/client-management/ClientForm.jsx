@@ -61,8 +61,32 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
     portOfLoading: '',
     portOfDischarge: '',
     finalDestination: '',
+    finalDestination: '',
     currency: '',
+    gstin: '',
   });
+  const [gstinStatus, setGstinStatus] = useState(null);
+
+  const validateGstin = async () => {
+    if (!formData.gstin || formData.gstin.length !== 15) {
+      showError('Please enter a valid 15-character GSTIN');
+      return;
+    }
+    try {
+      setGstinStatus('loading');
+      const res = await api.get(`/gstin/validate?gstin=${formData.gstin}`);
+      if (res.data?.data?.valid) {
+        setGstinStatus('valid');
+        showSuccess('GSTIN is valid!');
+      } else {
+        setGstinStatus('invalid');
+        showError('Invalid GSTIN format');
+      }
+    } catch (error) {
+      setGstinStatus('error');
+      showError('Failed to validate GSTIN');
+    }
+  };
   const [errors, setErrors] = useState({});
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -99,10 +123,11 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
         creditLimit: client.creditLimit || client.credit_limit || 0,
         creditDays: client.creditDays || client.credit_days || 0,
         notes: client.notes || '',
-        portOfLoading: client.portOfLoading || '',
-        portOfDischarge: client.portOfDischarge || '',
-        finalDestination: client.finalDestination || '',
-        currency: client.currency || '',
+        portOfLoading: client.portOfLoading || client.port_of_loading || '',
+        portOfDischarge: client.portOfDischarge || client.port_of_discharge || '',
+        finalDestination: client.finalDestination || client.final_destination || '',
+        currency: client.currency || 'INR',
+        gstin: client.gstin || '',
       });
     }
   }, [client]);
@@ -316,6 +341,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
       port_of_discharge: formData.portOfDischarge || null,
       final_destination: formData.finalDestination || null,
       currency: formData.currency || 'INR',
+      gstin: formData.gstin || null,
     };
     
     try {
@@ -443,6 +469,30 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                           {businessTypes.map((type) => (<option key={type} value={type}>{type}</option>))}
                         </Form.Select>
                         <Form.Control.Feedback type="invalid">{errors.businessType}</Form.Control.Feedback>
+                      </Form.Group>
+                    </Col>
+                    <Col md={6} xs={12}>
+                      <Form.Group>
+                        <Form.Label>GSTIN</Form.Label>
+                        <div className="d-flex gap-2 align-items-center">
+                          <Form.Control 
+                            className="premium-input" 
+                            type="text" 
+                            maxLength={15}
+                            value={formData.gstin} 
+                            onChange={(e) => handleInputChange('gstin', e.target.value.toUpperCase())} 
+                            placeholder="15-digit GSTIN" 
+                          />
+                          <Button 
+                            variant="outline-primary" 
+                            onClick={validateGstin}
+                            disabled={!formData.gstin || formData.gstin.length !== 15 || gstinStatus === 'loading'}
+                          >
+                            {gstinStatus === 'loading' ? 'Checking...' : 'Validate'}
+                          </Button>
+                        </div>
+                        {gstinStatus === 'valid' && <div className="text-success small mt-1"><Check size={12} className="me-1" /> Valid GSTIN</div>}
+                        {gstinStatus === 'invalid' && <div className="text-danger small mt-1">Invalid GSTIN format</div>}
                       </Form.Group>
                     </Col>
                     <Col md={6} xs={12}>

@@ -13,7 +13,8 @@ import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Modal, Form, Row, Col, Card, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { Save, X, Info } from 'lucide-react';
+import { Save, X, Info, Check } from 'lucide-react';
+import api from '../../services/api.js';
 
 import Button from '../shared/Button.jsx';
 import { supplierSchema, defaultSupplierValues } from '../../utils/validation/supplierSchema.js';
@@ -43,6 +44,29 @@ function SupplierForm({ supplier, onSave, onCancel }) {
     lastOrderDate: null,
     createdDate: formatDisplayDate(new Date()),
   });
+  
+  const [gstinStatus, setGstinStatus] = useState(null);
+
+  const validateGstin = async (gstinValue) => {
+    if (!gstinValue || gstinValue.length !== 15) {
+      showError('Please enter a valid 15-character GSTIN');
+      return;
+    }
+    try {
+      setGstinStatus('loading');
+      const res = await api.get(`/gstin/validate?gstin=${gstinValue}`);
+      if (res.data?.data?.valid) {
+        setGstinStatus('valid');
+        showSuccess('GSTIN is valid!');
+      } else {
+        setGstinStatus('invalid');
+        showError('Invalid GSTIN format');
+      }
+    } catch (error) {
+      setGstinStatus('error');
+      showError('Failed to validate GSTIN');
+    }
+  };
 
   const watchCountry = watch('country');
 
@@ -361,7 +385,40 @@ function SupplierForm({ supplier, onSave, onCancel }) {
                     <Col md={12}>{renderInput('contactPersonName', 'Contact Person Name', FIELD_PLACEHOLDERS.contactPersonName.placeholder, true)}</Col>
                     <Col md={6}>{renderInput('emailId', 'Email ID', FIELD_PLACEHOLDERS.emailId.placeholder, true, false, true)}</Col>
                     <Col md={6}>{renderInput('contactNumber', 'Contact Number', FIELD_PLACEHOLDERS.contactNumber.placeholder, true)}</Col>
-                    <Col md={6}>{renderInput('gstn', 'GSTN', FIELD_PLACEHOLDERS.gstn.placeholder, false)}</Col>
+                    <Col md={6}>
+                      <Form.Group>
+                        <Form.Label>GSTIN</Form.Label>
+                        <Controller
+                          name="gstn"
+                          control={control}
+                          render={({ field }) => (
+                            <>
+                              <div className="d-flex gap-2 align-items-center">
+                                <Form.Control 
+                                  className="premium-input" 
+                                  type="text" 
+                                  maxLength={15}
+                                  {...field}
+                                  onChange={(e) => field.onChange(e.target.value.toUpperCase())} 
+                                  placeholder="15-digit GSTIN" 
+                                  isInvalid={!!errors.gstn}
+                                />
+                                <Button 
+                                  variant="outline-primary" 
+                                  onClick={() => validateGstin(field.value)}
+                                  disabled={!field.value || field.value.length !== 15 || gstinStatus === 'loading'}
+                                >
+                                  {gstinStatus === 'loading' ? 'Checking...' : 'Validate'}
+                                </Button>
+                              </div>
+                              {errors.gstn && <Form.Control.Feedback type="invalid">{errors.gstn.message}</Form.Control.Feedback>}
+                              {gstinStatus === 'valid' && <div className="text-success small mt-1"><Check size={12} className="me-1" /> Valid GSTIN</div>}
+                              {gstinStatus === 'invalid' && <div className="text-danger small mt-1">Invalid GSTIN format</div>}
+                            </>
+                          )}
+                        />
+                      </Form.Group>
+                    </Col>
                     <Col md={6}>{renderInput('pan', 'PAN', FIELD_PLACEHOLDERS.pan.placeholder, false)}</Col>
                     <Col md={6}>{renderInput('leadTime', 'Lead Time', 'e.g., 15-20 Days', false)}</Col>
                     <Col md={6}>{renderInput('paymentTerms', 'Payment Terms', 'e.g., 30% Advance, 70% LC', false)}</Col>

@@ -418,6 +418,17 @@ export const create = async (req, res, next) => {
     const finalPallets = m_pallets !== undefined && m_pallets !== null && m_pallets !== '' ? m_pallets : calculatedPallets;
     const finalSqm = m_total_sqm !== undefined && m_total_sqm !== null && m_total_sqm !== '' ? m_total_sqm : calculatedSqm;
 
+    let invoice_currency = req.body.invoice_currency || m_currency || 'USD';
+    let forex_rate = parseFloat(req.body.forex_rate) || 83.50;
+    let total_amount_fcy = parseFloat(req.body.total_amount_fcy) || 0;
+    let total_amount_inr = parseFloat(req.body.total_amount_inr) || 0;
+
+    if (invoice_currency !== 'INR' && total_amount_fcy > 0) {
+      total_amount_inr = total_amount_fcy * forex_rate;
+    } else if (invoice_currency === 'INR') {
+      total_amount_inr = total_amount_fcy || m_total_amount;
+    }
+
     const client = await req.db.getClient();
     try {
       await client.query('BEGIN');
@@ -432,8 +443,8 @@ export const create = async (req, res, next) => {
           port_of_discharge, final_destination, consignee_details, buyer_details, validity_days, notes, product_lines, tariff_code, supplier_details, pallet_type, tiles_back, boxes_marking, box_type, fumigation, legalisation, other_instructions, currency, 
           pre_carriage_by, place_of_receipt, bl_no, bl_date, vessel_flight_no, sb_no, sb_date, exchange_rate,
           lc_number, lc_date, epcg_no,
-          created_by, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          created_by, created_at, updated_at, invoice_currency, forex_rate, total_amount_fcy, total_amount_inr)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, $46, $47, $48, $49)
         RETURNING *`,
         [
           companyId || null, documentNumber.baseNumber, effectiveDate, (m_client_id && m_client_id !== '' ? m_client_id : null), effectiveClientName, country || null, m_subtotal,
@@ -450,7 +461,11 @@ export const create = async (req, res, next) => {
           lc_number || req.body.lcNumber || null,
           lc_date || req.body.lcDate || null,
           epcg_no || req.body.epcgNo || null,
-          req.user.id
+          req.user.id,
+          invoice_currency,
+          forex_rate,
+          total_amount_fcy,
+          total_amount_inr
         ]
       );
 
@@ -663,6 +678,17 @@ export const update = async (req, res, next) => {
     const newRevNo = `${baseDocNo}-R${nextRevisionCount}`;
     const effectiveRevisionReason = revision_reason || req.body.revision_reason || 'Updated document details';
 
+    let m_total_amount_inr = parseFloat(req.body.total_amount_inr) || 0;
+    const m_total_amount_fcy = parseFloat(req.body.total_amount_fcy) || 0;
+    const m_forex_rate = parseFloat(req.body.forex_rate) || 83.50;
+    const m_invoice_currency = req.body.invoice_currency || m_currency || 'USD';
+
+    if (m_invoice_currency !== 'INR' && m_total_amount_fcy > 0) {
+      m_total_amount_inr = m_total_amount_fcy * m_forex_rate;
+    } else if (m_invoice_currency === 'INR') {
+      m_total_amount_inr = m_total_amount_fcy || m_total_amount;
+    }
+
     const updates = [];
     const values = [];
     let paramCount = 1;
@@ -678,6 +704,8 @@ export const update = async (req, res, next) => {
       pre_carriage_by: m_pre_carriage_by, place_of_receipt: m_place_of_receipt, bl_no: m_bl_no, bl_date: m_bl_date,
       vessel_flight_no: m_vessel_flight_no, sb_no: m_sb_no, sb_date: m_sb_date, exchange_rate: m_exchange_rate,
       lc_number: m_lc_number, lc_date: m_lc_date, epcg_no: m_epcg_no,
+      invoice_currency: m_invoice_currency, forex_rate: m_forex_rate,
+      total_amount_fcy: m_total_amount_fcy, total_amount_inr: m_total_amount_inr,
       invoice_no: newRevNo,
       revision_no: newRevNo,
       original_invoice_no: baseDocNo,
@@ -725,6 +753,7 @@ export const update = async (req, res, next) => {
           port_of_discharge, final_destination, consignee_details, buyer_details, validity_days, notes, product_lines, tariff_code, supplier_details, pallet_type, tiles_back, boxes_marking, box_type, fumigation, legalisation, other_instructions, currency, 
           pre_carriage_by, place_of_receipt, bl_no, bl_date, vessel_flight_no, sb_no, sb_date, exchange_rate,
           lc_number, lc_date, epcg_no,
+          invoice_currency, forex_rate, total_amount_fcy, total_amount_inr,
           created_by, updated_by, original_invoice_no, revision_no, revision_count, revised_from_id, revision_reason, created_at, updated_at
         )
         SELECT 
@@ -733,6 +762,7 @@ export const update = async (req, res, next) => {
           port_of_discharge, final_destination, consignee_details, buyer_details, validity_days, notes, product_lines, tariff_code, supplier_details, pallet_type, tiles_back, boxes_marking, box_type, fumigation, legalisation, other_instructions, currency, 
           pre_carriage_by, place_of_receipt, bl_no, bl_date, vessel_flight_no, sb_no, sb_date, exchange_rate,
           lc_number, lc_date, epcg_no,
+          invoice_currency, forex_rate, total_amount_fcy, total_amount_inr,
           created_by, updated_by, COALESCE(original_invoice_no, REPLACE(invoice_no, '-TEMP', '')), COALESCE(revision_no, REPLACE(invoice_no, '-TEMP', '')), COALESCE(revision_count, 0), revised_from_id, revision_reason, created_at, updated_at
         FROM proforma_invoices
         WHERE id = $1

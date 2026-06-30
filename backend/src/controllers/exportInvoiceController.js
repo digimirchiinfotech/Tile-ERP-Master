@@ -878,6 +878,45 @@ export const create = async (req, res, next) => {
       return next(new AppError(`Generated Export Invoice number ${documentNumber.baseNumber} already exists.`, 409));
     }
 
+    const overrideStockCheck = req.body.override_stock_check === true && req.user?.role === 'company_admin';
+    
+    // Inventory Check
+    if (product_lines && product_lines.length > 0 && !overrideStockCheck) {
+      for (const line of product_lines) {
+        const prodId = line.product_id || line.productId;
+        const requiredQty = parseFloat(line.totalBoxes || line.total_boxes || line.boxes || line.pieces || 0) || 0;
+        
+        if (prodId && requiredQty > 0) {
+          try {
+            const stockCheckRes = await req.db.query(
+              `SELECT SUM(boxes_available) as total_available 
+               FROM stock_balances 
+               WHERE company_id = $1 AND product_id = $2`,
+              [companyId, prodId]
+            );
+            const available = parseFloat(stockCheckRes.rows[0]?.total_available || 0);
+            if (available < requiredQty) {
+              return next(new AppError(`Insufficient stock for product ${line.product || line.product_name || 'Unknown'}. Required: ${requiredQty}, Available: ${available}`, 400));
+            }
+          } catch (e) {
+            // Ignore if view doesn't exist yet for backwards compatibility during migration
+          }
+        }
+      }
+    }
+
+    let invoice_currency = req.body.invoice_currency || 'USD';
+    let forex_rate = parseFloat(req.body.forex_rate) || 83.50;
+    let total_amount_fcy = parseFloat(req.body.total_amount_fcy) || 0;
+    let total_amount_inr = parseFloat(req.body.total_amount_inr) || 0;
+    let customs_assessable_value = parseFloat(req.body.customs_assessable_value) || 0;
+
+    if (invoice_currency !== 'INR' && total_amount_fcy > 0) {
+      total_amount_inr = total_amount_fcy * forex_rate;
+    } else if (invoice_currency === 'INR') {
+      total_amount_inr = total_amount_fcy || total_amount;
+    }
+
     const client = await req.db.getClient();
     try {
       await client.query('BEGIN');
@@ -894,64 +933,71 @@ export const create = async (req, res, next) => {
           vessel_flight_no, place_of_receipt, net_weight, gross_weight,
           buyers_order_no, buyers_order_date, status, created_by, created_at, updated_at,
           currency, exchange_rate, is_locked, lut_date, country_of_origin,
-          supply_declaration, ftp_incentive_declaration, lc_number, lc_date, epcg_no)
+          supply_declaration, ftp_incentive_declaration, lc_number, lc_date, epcg_no,
+          invoice_currency, forex_rate, total_amount_fcy, total_amount_inr, customs_assessable_value)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
                 $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
                 $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP,
-                $42, $43, $44, $45, $46, $47, $48, $49, $50, $51)
+                $42, $43, $44, $45, $46, $47, $48, $49, $50, $51,
+                $52, $53, $54, $55, $56)
         RETURNING *`,
         [
-          companyId,                                    // $1  = company_id
-          proforma_invoice_id || null,                  // $2  = proforma_invoice_id
-          documentNumber.baseNumber,                    // $3  = invoice_no
-          invoice_date,                                 // $4  = invoice_date
-          client_name,                                  // $5  = client_name
-          client_id || null,                            // $6  = client_id
-          country || null,                              // $7  = country
-          consignee_details || null,                    // $8  = consignee_details
-          buyer_details || null,                        // $9  = buyer_details
-          payment_terms || null,                        // $10 = payment_terms
-          delivery_terms || null,                       // $11 = delivery_terms
-          port_of_loading || null,                      // $12 = port_of_loading
-          port_of_discharge || null,                    // $13 = port_of_discharge
-          final_destination || null,                    // $14 = final_destination
-          tariff_code || null,                          // $15 = tariff_code
-          JSON.stringify(product_lines || []),          // $16 = product_lines
-          pallets || 0,                                 // $17 = pallets
-          total_sqm || 0,                               // $18 = total_sqm
-          total_amount || 0,                            // $19 = total_amount
-          pallet_type || 'Normal Wooden Pallet',        // $20 = pallet_type
-          tiles_back || 'WITH MADE IN INDIA',           // $21 = tiles_back
-          boxes_marking || 'WITH',                      // $22 = boxes_marking
-          box_type || 'NON BRANDED BOXES',              // $23 = box_type
-          fumigation || 'YES',                          // $24 = fumigation
-          legalisation || 'NO',                         // $25 = legalisation
-          other_instructions || null,                   // $26 = other_instructions
-          bl_no || null,                                // $27 = bl_no
-          bl_date || null,                              // $28 = bl_date
-          booking_no || null,                           // $29 = booking_no
-          shipping_bill_no || null,                     // $30 = shipping_bill_no
-          shipping_bill_date || null,                   // $31 = shipping_bill_date
-          lut_bond_ref || null,                         // $32 = lut_bond_ref
-          pre_carriage_by || null,                      // $33 = pre_carriage_by
-          vessel_flight_no || null,                     // $34 = vessel_flight_no
-          place_of_receipt || null,                     // $35 = place_of_receipt
-          net_weight || 0,                              // $36 = net_weight
-          gross_weight || 0,                            // $37 = gross_weight
-          buyers_order_no || null,                      // $38 = buyers_order_no
-          buyers_order_date || null,                    // $39 = buyers_order_date
-          req.body.status || 'Draft',                   // $40 = status
-          req.user?.id || null,                         // $41 = created_by
-          req.body.currency || 'USD',                   // $42 = currency
-          req.body.exchange_rate || 1,                  // $43 = exchange_rate
-          req.body.is_locked || false,                  // $44 = is_locked
-          lut_date || null,                             // $45 = lut_date
-          country_of_origin || 'INDIA',                  // $46 = country_of_origin
-          supply_declaration || 'SUPPLY MEANT FOR EXPORT WITHOUT PAYMENT OF INTEGRATED TAX UNDER LUT BOND', // $47 = supply_declaration
-          ftp_incentive_declaration || '"I/WE SHALL CLAIM UNDER CHAPTER 3 INCENTIVE OF FTP AS ADMISSIBLE AT TIME POLICY IN FORCE I.E. RODTEP"', // $48 = ftp_incentive_declaration
-          lc_number || null,                            // $49 = lc_number
-          lc_date || null,                              // $50 = lc_date
-          epcg_no || null                               // $51 = epcg_no
+          companyId,                                    // $1
+          proforma_invoice_id || null,                  // $2
+          documentNumber.baseNumber,                    // $3
+          invoice_date,                                 // $4
+          client_name,                                  // $5
+          client_id || null,                            // $6
+          country || null,                              // $7
+          consignee_details || null,                    // $8
+          buyer_details || null,                        // $9
+          payment_terms || null,                        // $10
+          delivery_terms || null,                       // $11
+          port_of_loading || null,                      // $12
+          port_of_discharge || null,                    // $13
+          final_destination || null,                    // $14
+          tariff_code || null,                          // $15
+          JSON.stringify(product_lines || []),          // $16
+          pallets || 0,                                 // $17
+          total_sqm || 0,                               // $18
+          total_amount || 0,                            // $19
+          pallet_type || 'Normal Wooden Pallet',        // $20
+          tiles_back || 'WITH MADE IN INDIA',           // $21
+          boxes_marking || 'WITH',                      // $22
+          box_type || 'NON BRANDED BOXES',              // $23
+          fumigation || 'YES',                          // $24
+          legalisation || 'NO',                         // $25
+          other_instructions || null,                   // $26
+          bl_no || null,                                // $27
+          bl_date || null,                              // $28
+          booking_no || null,                           // $29
+          shipping_bill_no || null,                     // $30
+          shipping_bill_date || null,                   // $31
+          lut_bond_ref || null,                         // $32
+          pre_carriage_by || null,                      // $33
+          vessel_flight_no || null,                     // $34
+          place_of_receipt || null,                     // $35
+          net_weight || 0,                              // $36
+          gross_weight || 0,                            // $37
+          buyers_order_no || null,                      // $38
+          buyers_order_date || null,                    // $39
+          req.body.status || 'Draft',                   // $40
+          req.user?.id || null,                         // $41
+          req.body.currency || 'USD',                   // $42
+          req.body.exchange_rate || 1,                  // $43
+          req.body.is_locked || false,                  // $44
+          lut_date || null,                             // $45
+          country_of_origin || 'INDIA',                 // $46
+          supply_declaration || 'SUPPLY MEANT FOR EXPORT WITHOUT PAYMENT OF INTEGRATED TAX UNDER LUT BOND', // $47
+          ftp_incentive_declaration || '"I/WE SHALL CLAIM UNDER CHAPTER 3 INCENTIVE OF FTP AS ADMISSIBLE AT TIME POLICY IN FORCE I.E. RODTEP"', // $48
+          lc_number || null,                            // $49
+          lc_date || null,                              // $50
+          epcg_no || null,                              // $51
+          invoice_currency,                             // $52
+          forex_rate,                                   // $53
+          total_amount_fcy,                             // $54
+          total_amount_inr,                             // $55
+          customs_assessable_value                      // $56
         ]
       );
 
@@ -1030,6 +1076,34 @@ export const create = async (req, res, next) => {
           VALUES ${itemValueStrings.join(', ')}
         `;
         await client.query(itemQuery, itemQueryParams);
+
+        // Deduct inventory
+        if (!overrideStockCheck) {
+          const txValueStrings = [];
+          const txQueryParams = [];
+          let txParamCounter = 1;
+          for (const line of product_lines) {
+            const prodId = line.product_id || line.productId;
+            const requiredQty = parseFloat(line.totalBoxes || line.total_boxes || line.boxes || line.pieces || 0) || 0;
+            const requiredSqm = parseFloat(line.sqmAuto || line.sqm_auto || line.sqm || 0) || 0;
+            
+            if (prodId && requiredQty > 0) {
+              txValueStrings.push(`($${txParamCounter++}, $${txParamCounter++}, $${txParamCounter++}, $${txParamCounter++}, $${txParamCounter++}, $${txParamCounter++}, $${txParamCounter++}, $${txParamCounter++}, CURRENT_DATE)`);
+              txQueryParams.push(companyId, prodId, 'GDN', 'Export Invoice', exportId, documentNumber.baseNumber, requiredQty, requiredSqm);
+            }
+          }
+          if (txValueStrings.length > 0) {
+            try {
+              await client.query(`
+                INSERT INTO stock_transactions 
+                (company_id, product_id, transaction_type, reference_type, reference_id, reference_number, boxes_quantity, sqm_quantity, transaction_date)
+                VALUES ${txValueStrings.join(', ')}
+              `, txQueryParams);
+            } catch (e) {
+              // Ignore if table doesn't exist
+            }
+          }
+        }
       }
 
       if (req.body.proforma_invoice_ids && Array.isArray(req.body.proforma_invoice_ids) && req.body.proforma_invoice_ids.length > 0) {

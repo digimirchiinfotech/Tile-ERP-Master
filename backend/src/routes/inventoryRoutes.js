@@ -8,13 +8,9 @@ import {
   createReservation,
   releaseReservation,
   getMovements,
+  getReservations,
   getWarehouses,
-  createWarehouse,
-  getStockBalance,
-  getStockBalanceByProduct,
-  createStockTransaction,
-  getStockLedger,
-  getLowStockAlerts
+  getStockBalance
 } from '../controllers/inventoryController.js';
 
 const router = express.Router();
@@ -29,13 +25,8 @@ router.post('/movements', requirePermission('inventory_management', 'product_man
 router.post('/reservations', requirePermission('inventory_management', 'product_management', 'all'), createReservation);
 router.post('/reservations/:id/release', requirePermission('inventory_management', 'product_management', 'all'), releaseReservation);
 
-// NEW INVENTORY MODULE ROUTES
+// MODULE DASHBOARD ROUTES
 router.get('/warehouses', requirePermission('inventory_management', 'all'), getWarehouses);
-router.post('/warehouse', requirePermission('inventory_management', 'all'), createWarehouse);
 router.get('/stock-balance', requirePermission('inventory_management', 'all'), getStockBalance);
-router.get('/stock-balance/:product_id', requirePermission('inventory_management', 'all'), getStockBalanceByProduct);
-router.post('/stock-transaction', requirePermission('inventory_management', 'all'), createStockTransaction);
-router.get('/stock-ledger/:product_id', requirePermission('inventory_management', 'all'), getStockLedger);
-router.get('/low-stock-alerts', requirePermission('inventory_management', 'all'), getLowStockAlerts);
 
 export default router;

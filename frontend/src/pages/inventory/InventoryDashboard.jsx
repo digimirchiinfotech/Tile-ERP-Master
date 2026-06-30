@@ -27,7 +27,7 @@ const InventoryDashboard = () => {
       ]);
       setWarehouses(whRes.data?.data || []);
       setStockBalances(stockRes.data?.data || []);
-      setTransactions(transRes.data?.data?.data || []); // Paginated response
+      setTransactions(transRes.data?.data || []);
     } catch (error) {
       showError('Failed to fetch inventory data');
     } finally {

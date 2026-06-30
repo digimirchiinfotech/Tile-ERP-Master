@@ -1,5 +1,5 @@
 /**
- * Inventory controller — stock register, movements, reservations.
+ * Inventory controller â€” stock register, movements, reservations.
  */
 
 import { AppError } from '../middleware/errorHandler.js';
@@ -142,7 +142,7 @@ export const recordStockMovement = async (req, res, next) => {
 
     if (stockRes.rows.length === 0 && ['OUT', 'DISPATCH', 'TRANSFER'].includes(movement_type)) {
       await client.query('ROLLBACK');
-      return next(new AppError('Insufficient stock — no stock record exists for this product/warehouse', 400));
+      return next(new AppError('Insufficient stock â€” no stock record exists for this product/warehouse', 400));
     }
 
     if (stockRes.rows.length === 0) {
@@ -349,6 +349,35 @@ export const getReservations = async (req, res, next) => {
       [companyId]
     );
     res.json({ success: true, data: result.rows });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getWarehouses = async (req, res, next) => {
+  try {
+    await ensureInventorySchema(req.db);
+    const companyId = req.companyFilter || req.user.companyId;
+    const result = await req.db.query(
+      'SELECT * FROM warehouse_locations WHERE company_id = $1 ORDER BY name ASC',
+      [companyId]
+    );
+    res.json({ success: true, data: result.rows });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getStockBalance = async (req, res, next) => {
+  try {
+    await ensureInventorySchema(req.db);
+    const companyId = req.companyFilter || req.user.companyId;
+    const result = await req.db.query(
+      'SELECT sr.*, p.name AS product_name, p.sku FROM stock_register sr LEFT JOIN products p ON p.id = sr.product_id WHERE sr.company_id = $1 ORDER BY p.name ASC',
+      [companyId]
+    );
+    const items = result.rows.map(r => ({ ...r, boxes_available: getAvailableBoxes(r) }));
+    res.json({ success: true, data: items });
   } catch (error) {
     next(error);
   }

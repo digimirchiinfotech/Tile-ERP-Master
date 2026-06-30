@@ -74,7 +74,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
     try {
       setGstinStatus('loading');
       const res = await api.post('/gstin/validate', { gstin: formData.gstin });
-      if (res.data?.data?.is_valid) {
+      if (res.data?.data?.isValid) {
         setGstinStatus('valid');
         showSuccess('GSTIN is valid!');
       } else {

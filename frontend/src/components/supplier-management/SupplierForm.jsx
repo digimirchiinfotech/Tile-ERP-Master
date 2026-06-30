@@ -55,7 +55,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
     try {
       setGstinStatus('loading');
       const res = await api.post('/gstin/validate', { gstin: gstinValue });
-      if (res.data?.data?.is_valid) {
+      if (res.data?.data?.isValid) {
         setGstinStatus('valid');
         showSuccess('GSTIN is valid!');
       } else {

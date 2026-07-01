@@ -87,18 +87,19 @@ router.get(
   getById
 );
 
+import { zodInterceptor } from '../middleware/inputValidation.js';
+import { ExportInvoiceSchema } from '../validators/zodSchemas.js';
+
 router.post(
   '/',
   authenticate,
   filterByCompany,
   createExportInvoiceValidator,
   validateRequest,
+  zodInterceptor(ExportInvoiceSchema),
   createAuditMiddleware('export_invoice', 'CREATE'),
   create
 );
-
-
-
 
 router.put(
   '/:id',
@@ -107,6 +108,7 @@ router.put(
   checkDocumentLock('EXPORT_INVOICE'),
   updateExportInvoiceValidator,
   validateRequest,
+  zodInterceptor(ExportInvoiceSchema),
   createAuditMiddleware('export_invoice', 'UPDATE'),
   update
 );

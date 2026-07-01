@@ -736,7 +736,7 @@ export const createOrUpdate = async (req, res, next) => {
 
     // Notify about the new annexure
     if (existing.rows.length === 0) {
-      notificationService.notifyAnnexureCreated(companyId, result.rows[0], req.db).catch(() => {});
+      notificationService.notifyAnnexureCreated(companyId, result.rows[0], req.db).catch(err => debugLogger.warn('Notification', err.message));
     }
 
     return successResponse(res, result.rows[0], 'Annexure saved');

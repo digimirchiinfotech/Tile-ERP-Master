@@ -69,16 +69,37 @@ export const generatePDF = async (element, filename, options = {}) => {
       </html>
     `;
 
-    // Send to backend Puppeteer service
+    // Send to backend Puppeteer service asynchronously
     const response = await api.post('/pdf/generate', {
       html: fullHtml,
       filename: filename,
       format: format
-    }, {
-      responseType: 'blob' // We expect a PDF file back
     });
 
-    return response.data; // This is a Blob
+    if (response.status === 202 && response.data.taskId) {
+      const { taskId } = response.data;
+      
+      // Poll the backend until the PDF is ready
+      while (true) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        const statusRes = await api.get(`/pdf/status/${taskId}`);
+        if (statusRes.data.status === 'completed') {
+          // Now fetch the actual PDF blob
+          const pdfRes = await api.get(`/pdf/download/${taskId}`, { responseType: 'blob' });
+          return pdfRes.data;
+        } else if (statusRes.data.status === 'failed') {
+          throw new Error(statusRes.data.error || 'PDF generation failed on server');
+        }
+      }
+    }
+
+    // Fallback for older backend if any
+    if (response.data instanceof Blob) {
+       return response.data;
+    }
+    
+    throw new Error('Unexpected response format from PDF service');
   } catch (error) {
     console.error('Error generating PDF via backend:', error);
     throw new Error('Failed to generate PDF: ' + (error.response?.data?.message || error.message));

@@ -70,6 +70,9 @@ router.get(
   getRevisionHistory
 );
 
+import { zodInterceptor } from '../middleware/inputValidation.js';
+import { ProformaInvoiceSchema } from '../validators/zodSchemas.js';
+
 router.post(
   '/',
   authenticate,
@@ -77,6 +80,7 @@ router.post(
   requirePermission('proforma_invoice', 'all'),
   createProformaInvoiceValidator,
   validateRequest,
+  zodInterceptor(ProformaInvoiceSchema),
   createAuditMiddleware('proforma_invoice', 'CREATE'),
   create
 );
@@ -89,6 +93,7 @@ router.put(
   checkDocumentLock('PI'),
   updateProformaInvoiceValidator,
   validateRequest,
+  zodInterceptor(ProformaInvoiceSchema),
   createAuditMiddleware('proforma_invoice', 'UPDATE'),
   update
 );

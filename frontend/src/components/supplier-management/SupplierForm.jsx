@@ -44,7 +44,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
     lastOrderDate: null,
     createdDate: formatDisplayDate(new Date()),
   });
-  
+
   const [gstinStatus, setGstinStatus] = useState(null);
 
   const validateGstin = async (gstinValue) => {
@@ -131,7 +131,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
     const fetchCities = async () => {
       if (watchCountry) {
         try {
-          const selectedCountry = countries.find(c => 
+          const selectedCountry = countries.find(c =>
             String(c.countryName || c.name || c).trim().toLowerCase() === String(watchCountry).trim().toLowerCase()
           );
           if (selectedCountry && selectedCountry.countryCode) {
@@ -166,7 +166,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
 
   const handleControlledChange = (field, value, onChange, isBankDetail = false) => {
     let formattedValue = value;
-    
+
     // Formatting logic
     if (['contactPersonName'].includes(field)) {
       formattedValue = restrictToLetters(formattedValue, true);
@@ -177,7 +177,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
     if (typeof formattedValue === 'string' && uppercaseFields.includes(field)) {
       formattedValue = formattedValue.toUpperCase();
     }
-    
+
     onChange(formattedValue);
   };
 
@@ -209,7 +209,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
       lead_time: data.leadTime || null,
       payment_terms: data.paymentTerms || null,
     };
-    
+
     try {
       await onSave(dataToSubmit);
     } catch (error) {
@@ -235,7 +235,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
     <Form.Group>
       {isRequired ? (
         <OverlayTrigger placement="top" overlay={<Tooltip>{label} is mandatory.</Tooltip>}>
-          <Form.Label className="text-danger" style={{cursor: 'help'}}>
+          <Form.Label className="text-danger" style={{ cursor: 'help' }}>
             {label} * <Info size={12} className="ms-1" />
           </Form.Label>
         </OverlayTrigger>
@@ -264,7 +264,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
   return (
     <Modal contentClassName="glass-modal" show={true} onHide={onCancel} size="xl" backdrop="static">
       <Modal.Header closeButton>
-        <Modal.Title>{supplier ? 'Edit Supplier' : 'Create Supplier'} <small className="text-muted ms-2" style={{fontSize: '0.6em'}}>(Press Ctrl+S to save)</small></Modal.Title>
+        <Modal.Title>{supplier ? 'Edit Supplier' : 'Create Supplier'} <small className="text-muted ms-2" style={{ fontSize: '0.6em' }}>(Press Ctrl+S to save)</small></Modal.Title>
       </Modal.Header>
       <Modal.Body className="p-4" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
         <Form onSubmit={handleSubmit(onSubmit, onError)}>
@@ -277,7 +277,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
                     <Col md={12}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>Official registered supplier business name</Tooltip>}>
-                          <Form.Label className="text-danger" style={{cursor: 'help'}}>Supplier Factory Name * <Info size={12} className="ms-1" /></Form.Label>
+                          <Form.Label className="text-danger" style={{ cursor: 'help' }}>Supplier Factory Name * <Info size={12} className="ms-1" /></Form.Label>
                         </OverlayTrigger>
                         <Controller name="name" control={control} render={({ field }) => (
                           <AddableDropdown
@@ -297,7 +297,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
                     <Col md={6}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>Country is mandatory.</Tooltip>}>
-                          <Form.Label className="text-danger" style={{cursor: 'help'}}>Country * <Info size={12} className="ms-1" /></Form.Label>
+                          <Form.Label className="text-danger" style={{ cursor: 'help' }}>Country * <Info size={12} className="ms-1" /></Form.Label>
                         </OverlayTrigger>
                         <Controller name="country" control={control} render={({ field }) => (
                           <AddableDropdown
@@ -316,7 +316,7 @@ function SupplierForm({ supplier, onSave, onCancel }) {
                     <Col md={6}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>City is mandatory.</Tooltip>}>
-                          <Form.Label className="text-danger" style={{cursor: 'help'}}>City * <Info size={12} className="ms-1" /></Form.Label>
+                          <Form.Label className="text-danger" style={{ cursor: 'help' }}>City * <Info size={12} className="ms-1" /></Form.Label>
                         </OverlayTrigger>
                         <Controller name="city" control={control} render={({ field }) => (
                           <AddableDropdown
@@ -394,20 +394,17 @@ function SupplierForm({ supplier, onSave, onCancel }) {
                           render={({ field }) => (
                             <>
                               <div className="d-flex gap-2 align-items-center">
-                                <Form.Control 
-                                  className="premium-input" 
-                                  type="text" 
+                                <Form.Control
+                                  className="premium-input"
+                                  type="text"
                                   maxLength={15}
                                   {...field}
-                                  onChange={(e) => {
-                                    field.onChange(e.target.value.toUpperCase());
-                                    setGstinStatus(null);
-                                  }} 
-                                  placeholder="15-digit GSTIN" 
+                                  onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                                  placeholder="15-digit GSTIN"
                                   isInvalid={!!errors.gstn}
                                 />
-                                <Button 
-                                  variant="outline-primary" 
+                                <Button
+                                  variant="outline-primary"
                                   onClick={() => validateGstin(field.value)}
                                   disabled={!field.value || field.value.length !== 15 || gstinStatus === 'loading'}
                                 >

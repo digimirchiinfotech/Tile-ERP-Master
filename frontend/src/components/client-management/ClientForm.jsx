@@ -147,7 +147,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
     const fetchCities = async () => {
       if (formData.country) {
         try {
-          const selectedCountry = countries.find(c => 
+          const selectedCountry = countries.find(c =>
             String(c.countryName || c.name || c).trim().toLowerCase() === String(formData.country).trim().toLowerCase()
           );
           if (selectedCountry && selectedCountry.countryCode) {
@@ -235,10 +235,6 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
       ...prev,
       [field]: filteredValue,
     }));
-
-    if (field === 'gstin') {
-      setGstinStatus(null);
-    }
 
     if (errors[field]) {
       setErrors((prev) => ({
@@ -346,7 +342,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
       currency: formData.currency || 'INR',
       gstin: formData.gstin || null,
     };
-    
+
     try {
       setIsSubmitting(true);
       await onSave(dataToSubmit);
@@ -372,22 +368,22 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                   <Row className="g-3">
                     <Col md={6} xs={12}>
                       <Form.Group>
-                          <OverlayTrigger placement="top" overlay={<Tooltip>Official registered business name</Tooltip>}>
-                            <Form.Label className="text-danger" style={{cursor: 'help'}}>
-                              Client Firm Name * <Info size={12} className="ms-1" />
-                            </Form.Label>
-                          </OverlayTrigger>
+                        <OverlayTrigger placement="top" overlay={<Tooltip>Official registered business name</Tooltip>}>
+                          <Form.Label className="text-danger" style={{ cursor: 'help' }}>
+                            Client Firm Name * <Info size={12} className="ms-1" />
+                          </Form.Label>
+                        </OverlayTrigger>
                         <Form.Control className="premium-input" type="text" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} isInvalid={!!errors.name} placeholder={FIELD_PLACEHOLDERS.clientName.placeholder} />
                         <Form.Control.Feedback type="invalid">{errors.name}</Form.Control.Feedback>
                       </Form.Group>
                     </Col>
                     <Col md={6} xs={12}>
                       <Form.Group>
-                          <OverlayTrigger placement="top" overlay={<Tooltip>Contact Person Name is mandatory.</Tooltip>}>
-                            <Form.Label className="text-danger" style={{cursor: 'help'}}>
-                              Contact Person Name * <Info size={12} className="ms-1" />
-                            </Form.Label>
-                          </OverlayTrigger>
+                        <OverlayTrigger placement="top" overlay={<Tooltip>Contact Person Name is mandatory.</Tooltip>}>
+                          <Form.Label className="text-danger" style={{ cursor: 'help' }}>
+                            Contact Person Name * <Info size={12} className="ms-1" />
+                          </Form.Label>
+                        </OverlayTrigger>
                         <Form.Control className="premium-input" type="text" value={formData.contactPersonName} onChange={(e) => handleInputChange('contactPersonName', e.target.value)} isInvalid={!!errors.contactPersonName} placeholder={FIELD_PLACEHOLDERS.contactPersonName.placeholder} />
                         <Form.Control.Feedback type="invalid">{errors.contactPersonName}</Form.Control.Feedback>
                       </Form.Group>
@@ -395,7 +391,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                     <Col md={6} xs={12}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>Country is mandatory.</Tooltip>}>
-                          <Form.Label className="text-danger" style={{cursor: 'help'}}>
+                          <Form.Label className="text-danger" style={{ cursor: 'help' }}>
                             Country * <Info size={12} className="ms-1" />
                           </Form.Label>
                         </OverlayTrigger>
@@ -416,7 +412,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                     <Col md={6} xs={12}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>City is mandatory.</Tooltip>}>
-                          <Form.Label className="text-danger" style={{cursor: 'help'}}>
+                          <Form.Label className="text-danger" style={{ cursor: 'help' }}>
                             City * <Info size={12} className="ms-1" />
                           </Form.Label>
                         </OverlayTrigger>
@@ -431,7 +427,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                           disabled={!formData.country}
                           disableAutoFetch={true}
                           extraBodyData={{
-                            countryCode: countries.find(c => 
+                            countryCode: countries.find(c =>
                               String(c.countryName || c.name || c).trim().toLowerCase() === String(formData.country).trim().toLowerCase()
                             )?.countryCode
                           }}
@@ -441,7 +437,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                     <Col md={6} xs={12}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>Email ID is mandatory.</Tooltip>}>
-                          <Form.Label className="text-danger" style={{cursor: 'help'}}>
+                          <Form.Label className="text-danger" style={{ cursor: 'help' }}>
                             Email ID * <Info size={12} className="ms-1" />
                           </Form.Label>
                         </OverlayTrigger>
@@ -452,7 +448,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                     <Col md={6} xs={12}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>Contact Number is mandatory.</Tooltip>}>
-                          <Form.Label className="text-danger" style={{cursor: 'help'}}>
+                          <Form.Label className="text-danger" style={{ cursor: 'help' }}>
                             Contact Number * <Info size={12} className="ms-1" />
                           </Form.Label>
                         </OverlayTrigger>
@@ -463,7 +459,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                     <Col md={6} xs={12}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>Business Type is mandatory.</Tooltip>}>
-                          <Form.Label className="text-danger" style={{cursor: 'help'}}>
+                          <Form.Label className="text-danger" style={{ cursor: 'help' }}>
                             Business Type * <Info size={12} className="ms-1" />
                           </Form.Label>
                         </OverlayTrigger>
@@ -478,16 +474,16 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                       <Form.Group>
                         <Form.Label>GSTIN</Form.Label>
                         <div className="d-flex gap-2 align-items-center">
-                          <Form.Control 
-                            className="premium-input" 
-                            type="text" 
+                          <Form.Control
+                            className="premium-input"
+                            type="text"
                             maxLength={15}
-                            value={formData.gstin} 
-                            onChange={(e) => handleInputChange('gstin', e.target.value.toUpperCase())} 
-                            placeholder="15-digit GSTIN" 
+                            value={formData.gstin}
+                            onChange={(e) => handleInputChange('gstin', e.target.value.toUpperCase())}
+                            placeholder="15-digit GSTIN"
                           />
-                          <Button 
-                            variant="outline-primary" 
+                          <Button
+                            variant="outline-primary"
                             onClick={validateGstin}
                             disabled={!formData.gstin || formData.gstin.length !== 15 || gstinStatus === 'loading'}
                           >
@@ -515,7 +511,7 @@ function ClientForm({ client, onSave, onCancel, salespersons = [] }) {
                     <Col md={12}>
                       <Form.Group>
                         <OverlayTrigger placement="top" overlay={<Tooltip>Address is mandatory.</Tooltip>}>
-                          <Form.Label className="text-danger" style={{cursor: 'help'}}>
+                          <Form.Label className="text-danger" style={{ cursor: 'help' }}>
                             Address * <Info size={12} className="ms-1" />
                           </Form.Label>
                         </OverlayTrigger>

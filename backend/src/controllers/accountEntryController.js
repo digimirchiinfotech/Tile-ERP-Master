@@ -286,7 +286,7 @@ export const create = async (req, res, next) => {
       201
     );
   } catch (error) {
-    await client.query('ROLLBACK').catch(() => {});
+    await client.query('ROLLBACK').catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
     next(error);
   } finally {
     client.release();

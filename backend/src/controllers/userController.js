@@ -220,7 +220,7 @@ export const create = async (req, res, next) => {
     }
 
     // Notify admins about the new user
-    notificationService.notifyUserCreated(companyId, newUser, req.user?.name || 'System', req.user?.id || null, req.db).catch(() => {});
+    notificationService.notifyUserCreated(companyId, newUser, req.user?.name || 'System', req.user?.id || null, req.db).catch(err => debugLogger.warn('Notification', err.message));
 
     return successResponse(
       res,

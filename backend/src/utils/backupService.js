@@ -281,7 +281,7 @@ export const restoreFullBackup = async (filename, backupPathOverride = null) => 
   } finally {
     // Cleanup
     if (fs.existsSync(tempExtractDir)) {
-      await fsPromises.rm(tempExtractDir, { recursive: true, force: true }).catch(() => {});
+      await fsPromises.rm(tempExtractDir, { recursive: true, force: true }).catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
     }
   }
 };
@@ -352,7 +352,7 @@ export const testRestore = async () => {
     } catch(e) {}
   } finally {
     if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath);
-    if (fs.existsSync(tempExtractDir)) await fsPromises.rm(tempExtractDir, { recursive: true, force: true }).catch(() => {});
+    if (fs.existsSync(tempExtractDir)) await fsPromises.rm(tempExtractDir, { recursive: true, force: true }).catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
   }
 };
 

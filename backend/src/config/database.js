@@ -81,7 +81,7 @@ export const query = async (text, params, companyId = 'super_admin_bypass') => {
     return res;
   } finally {
     // Reset session variable before returning to the pool to prevent context leakage
-    await client.query("RESET app.current_company_id").catch(() => {});
+    await client.query("RESET app.current_company_id").catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
     client.release();
   }
 };

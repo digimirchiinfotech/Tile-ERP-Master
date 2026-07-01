@@ -51,7 +51,7 @@ export const initFinanceSubscribers = () => {
       debugLogger.error('[FinanceSubscriber]', `Failed to post Journal Entry for invoice ${invoiceId}: ${error.message}`);
     } finally {
       if (companyId) {
-         await client.query(`RESET app.current_company_id`).catch(() => {});
+         await client.query(`RESET app.current_company_id`).catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
       }
       client.release();
     }

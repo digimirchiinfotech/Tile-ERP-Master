@@ -172,9 +172,6 @@ export const validateEnum = (field, allowedValues) => {
     .withMessage(`${field} must be one of: ${allowedValues.join(', ')}`);
 };
 
-/**
- * Prevent parameter pollution and other attacks
- */
 export const preventParameterPollution = (req, res, next) => {
   // Remove duplicate query parameters
   const seen = new Set();
@@ -187,4 +184,21 @@ export const preventParameterPollution = (req, res, next) => {
   next();
 };
 
-export default { sanitizeInput, preventParameterPollution };
+export const zodInterceptor = (schema) => (req, res, next) => {
+  try {
+    // Parse and coerce the data strictly before it reaches the DB layer
+    req.body = schema.parse(req.body);
+    next();
+  } catch (error) {
+    const errorMsg = error.errors ? error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ') : error.message;
+    debugLogger.error('Validation', 'Zod boundary validation failed', errorMsg);
+    return res.status(400).json({
+      success: false,
+      message: 'Strict Type Validation failed',
+      errors: error.errors
+    });
+  }
+};
+
+export default { sanitizeInput, preventParameterPollution, zodInterceptor };
+

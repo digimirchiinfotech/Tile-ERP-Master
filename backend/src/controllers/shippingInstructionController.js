@@ -435,7 +435,7 @@ export const createOrUpdate = async (req, res, next) => {
 
       // Notify on new SI creation
       if (existing.rows.length === 0) {
-        notificationService.notifyShippingInstructionsCreated(companyId, result.rows[0], req.db).catch(() => {});
+        notificationService.notifyShippingInstructionsCreated(companyId, result.rows[0], req.db).catch(err => debugLogger.warn('Notification', err.message));
       }
 
       return successResponse(res, normalizeRow(result.rows[0]), 'SI saved');

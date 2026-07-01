@@ -525,7 +525,7 @@ export const remove = async (req, res, next) => {
       'Supplier deleted successfully'
     );
   } catch (error) {
-    await client.query('ROLLBACK').catch(() => {});
+    await client.query('ROLLBACK').catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
     next(error);
   } finally {
     client.release();

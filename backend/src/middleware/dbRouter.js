@@ -46,7 +46,7 @@ export const dbRouter = (req, res, next) => {
       
       const originalRelease = client.release;
       client.release = async () => {
-        client.query(`RESET app.current_company_id`).catch(() => {});
+        client.query(`RESET app.current_company_id`).catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
         client.release = originalRelease;
         return originalRelease.apply(client);
       };
@@ -63,7 +63,7 @@ export const dbRouter = (req, res, next) => {
         
         const originalRelease = client.release;
         client.release = async () => {
-          client.query(`RESET app.current_company_id`).catch(() => {});
+          client.query(`RESET app.current_company_id`).catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
           client.release = originalRelease;
           return originalRelease.apply(client);
         };
@@ -80,7 +80,7 @@ export const dbRouter = (req, res, next) => {
         const originalRelease = client.release;
         client.release = async () => {
           // Fire-and-forget reset (doesn't block the actual release)
-          client.query(`RESET app.current_company_id`).catch(() => {});
+          client.query(`RESET app.current_company_id`).catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
           
           client.release = originalRelease;
           return originalRelease.apply(client);

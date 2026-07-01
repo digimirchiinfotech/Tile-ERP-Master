@@ -888,7 +888,7 @@ export const update = async (req, res, next) => {
   // Trigger workflow updates
   const changedFields = Object.keys(fields).filter(k => fields[k] !== undefined);
   if (m_product_lines) changedFields.push('product_lines');
-  syncUpdatesAcrossStages(id, 'proforma_invoice', changedFields, effectiveCompanyId, req.db).catch(() => {});
+  syncUpdatesAcrossStages(id, 'proforma_invoice', changedFields, effectiveCompanyId, req.db).catch(err => debugLogger.warn('Sync', err.message));
 
   // Notification (best-effort)
   notificationService.notifyRoles(effectiveCompanyId, ['company_admin', 'admin', 'sales_manager', 'export_documents'], {

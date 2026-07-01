@@ -10,11 +10,14 @@
  */
 
 import express from 'express';
-import { generatePdf } from '../controllers/pdfController.js';
+import { generatePdf, getPdfStatus, downloadPdfTask } from '../controllers/pdfController.js';
 import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
 router.post('/generate', authenticate, generatePdf);
+router.get('/status/:taskId', authenticate, getPdfStatus);
+router.get('/download/:taskId', authenticate, downloadPdfTask);
 
 export default router;
+

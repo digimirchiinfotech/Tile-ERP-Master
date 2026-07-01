@@ -164,7 +164,7 @@ export const lockDocument = async (req, res, next) => {
       documentId, 
       req.user?.name || req.user?.email_id || 'Admin', 
       req.db
-    ).catch(() => {});
+    ).catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
 
     if (documentType === 'EXPORT_INVOICE' || documentType === 'PROFORMA_INVOICE') {
       const totalAmount = currentDoc.rows[0].total_amount || 0;
@@ -180,7 +180,7 @@ export const lockDocument = async (req, res, next) => {
 
     res.json({ success: true, message: 'Document locked successfully' });
   } catch (error) {
-    if (client) await client.query('ROLLBACK').catch(() => {});
+    if (client) await client.query('ROLLBACK').catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
     next(error);
   } finally {
     if (client) client.release();
@@ -291,7 +291,7 @@ export const unlockDocument = async (req, res, next) => {
     await client.query('COMMIT');
     res.json({ success: true, message: 'Document unlocked successfully' });
   } catch (error) {
-    if (client) await client.query('ROLLBACK').catch(() => {});
+    if (client) await client.query('ROLLBACK').catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
     next(error);
   } finally {
     if (client) client.release();

@@ -31,7 +31,7 @@ export const createTenantBackup = async (req, res, next) => {
       `INSERT INTO tenant_backups (company_id, filename, file_size, backup_type, created_by)
        VALUES ($1, $2, $3, 'manual', $4)`,
       [companyId, filename, fs.statSync(path.join(getCompanyBackupDir(companyId), filename)).size, req.user.id]
-    ).catch(() => {});
+    ).catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
 
     insertAuditLog({
       userId: req.user.id,

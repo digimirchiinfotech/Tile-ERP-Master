@@ -601,7 +601,7 @@ export const createOrUpdate = async (req, res, next) => {
 
     // Notify on new VGM creation
     if (!isUpdate) {
-      notificationService.notifyVGMCreated(companyId, result.rows[0], req.db).catch(() => {});
+      notificationService.notifyVGMCreated(companyId, result.rows[0], req.db).catch(err => debugLogger.warn('Notification', err.message));
     }
 
     return successResponse(res, result.rows[0], 'VGM saved');

@@ -15,6 +15,8 @@ import { requirePermission } from '../middleware/rbac.js';
 import * as packingListController from '../controllers/packingListController.js';
 import { createAuditMiddleware } from '../middleware/auditLog.js';
 import { checkDocumentLock } from '../middleware/lockManager.js';
+import { zodInterceptor } from '../middleware/inputValidation.js';
+import { PackingListSchema } from '../validators/zodSchemas.js';
 
 const router = express.Router();
 
@@ -24,20 +26,18 @@ router.use(filterByCompany);
 router.get('/next-number', requirePermission('packing_list_management', 'all'), packingListController.getNextNumber);
 
 router.get('/', requirePermission('packing_list_management', 'all'), packingListController.getAll);
-router.post('/export-invoice/:exportInvoiceId', requirePermission('packing_list_management', 'all'), checkDocumentLock('PACKING_LIST', { idParam: 'exportInvoiceId', idField: 'export_invoice_id' }), createAuditMiddleware('packing_list', 'UPDATE'), packingListController.createOrUpdate);
-router.put('/export-invoice/:exportInvoiceId', requirePermission('packing_list_management', 'all'), checkDocumentLock('PACKING_LIST', { idParam: 'exportInvoiceId', idField: 'export_invoice_id' }), createAuditMiddleware('packing_list', 'UPDATE'), packingListController.createOrUpdate);
+router.post('/export-invoice/:exportInvoiceId', requirePermission('packing_list_management', 'all'), checkDocumentLock('PACKING_LIST', { idParam: 'exportInvoiceId', idField: 'export_invoice_id' }), zodInterceptor(PackingListSchema), createAuditMiddleware('packing_list', 'UPDATE'), packingListController.createOrUpdate);
+router.put('/export-invoice/:exportInvoiceId', requirePermission('packing_list_management', 'all'), checkDocumentLock('PACKING_LIST', { idParam: 'exportInvoiceId', idField: 'export_invoice_id' }), zodInterceptor(PackingListSchema), createAuditMiddleware('packing_list', 'UPDATE'), packingListController.createOrUpdate);
 
-router.post('/', requirePermission('packing_list_management', 'all'), createAuditMiddleware('packing_list', 'CREATE'), packingListController.create);
+router.post('/', requirePermission('packing_list_management', 'all'), zodInterceptor(PackingListSchema), createAuditMiddleware('packing_list', 'CREATE'), packingListController.create);
 
 router.get('/export-invoice/:exportInvoiceId', requirePermission('packing_list_management', 'all'), packingListController.getByExportInvoiceId);
 
 router.get('/:id', requirePermission('packing_list_management', 'all'), packingListController.getById);
-router.put('/:id', requirePermission('packing_list_management', 'all'), checkDocumentLock('PACKING_LIST'), createAuditMiddleware('packing_list', 'UPDATE'), packingListController.updateById);
+router.put('/:id', requirePermission('packing_list_management', 'all'), checkDocumentLock('PACKING_LIST'), zodInterceptor(PackingListSchema), createAuditMiddleware('packing_list', 'UPDATE'), packingListController.updateById);
 router.delete('/:id/hard-delete', requirePermission('packing_list_management', 'all'), checkDocumentLock('PACKING_LIST'), packingListController.hardDelete);
 router.delete('/:id', requirePermission('packing_list_management', 'all'), checkDocumentLock('PACKING_LIST'), createAuditMiddleware('packing_list', 'DELETE'), packingListController.remove);
 router.patch('/:id/toggle-status', requirePermission('packing_list_management', 'all'), checkDocumentLock('PACKING_LIST'), createAuditMiddleware('packing_list', 'STATUS_CHANGE'), packingListController.toggleStatus);
 
-
 router.patch('/:id/status', requirePermission('packing_list_management', 'all'), checkDocumentLock('PACKING_LIST'), packingListController.updateStatus);
 export default router;
-

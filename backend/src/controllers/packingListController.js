@@ -632,12 +632,12 @@ export const createOrUpdate = async (req, res, next) => {
 
     // Notify relevant roles about the new packing list
     if (!existing || existing.rows.length === 0) {
-      notificationService.notifyPackingListCreated(companyId, result.rows[0], req.db).catch(() => {});
+      notificationService.notifyPackingListCreated(companyId, result.rows[0], req.db).catch(err => debugLogger.warn('Notification', err.message));
     }
 
     return successResponse(res, result.rows[0], 'Packing List saved successfully');
   } catch (error) { 
-    if (client) await client.query('ROLLBACK').catch(() => {});
+    if (client) await client.query('ROLLBACK').catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
     next(error); 
   } finally {
     if (client) client.release();
@@ -716,7 +716,7 @@ export const updateById = async (req, res, next) => {
 
     return successResponse(res, result.rows[0], 'Packing List updated successfully');
   } catch (error) {
-    if (client) await client.query('ROLLBACK').catch(() => {});
+    if (client) await client.query('ROLLBACK').catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
     next(error);
   } finally {
     if (client) client.release();
@@ -800,7 +800,7 @@ export const create = async (req, res, next) => {
 
     return successResponse(res, result.rows[0], 'Packing List created successfully');
   } catch (error) {
-    if (client) await client.query('ROLLBACK').catch(() => {});
+    if (client) await client.query('ROLLBACK').catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
     next(error);
   } finally {
     if (client) client.release();

@@ -20,10 +20,14 @@ import {
 
 /**
  * Self-healing helper: ensures catalogue tables exist and are migrated correctly.
- * Adds product_type column and removes the FK on product_id so both tile and
- * sanitaryware products can be referenced without a FK violation.
+ * Caches successful migrations using a tenant-aware Set to prevent redundant DB queries.
  */
-const ensureCatalogueTablesExist = async (db) => {
+const healedTenants = new Set();
+
+const ensureCatalogueTablesExist = async (db, companyId) => {
+  const cacheKey = companyId || 'shared';
+  if (healedTenants.has(cacheKey)) return;
+
   try {
     // Step 0: Ensure catalogue_products table exists
     await db.query(`
@@ -59,6 +63,7 @@ const ensureCatalogueTablesExist = async (db) => {
         DROP CONSTRAINT catalogue_products_product_id_fkey;
       `);
     }
+    healedTenants.add(cacheKey);
   } catch (err) {
     // Non-fatal: log and continue (table may not exist yet, or migration already applied)
     if (err.code !== '42P01') { // 42P01 = undefined_table
@@ -70,7 +75,7 @@ const ensureCatalogueTablesExist = async (db) => {
 export const getAll = async (req, res, next) => {
   try {
     // Ensure tables exist before querying
-    await ensureCatalogueTablesExist(req.db);
+    await ensureCatalogueTablesExist(req.db, req.companyFilter);
 
     const { 
       page = 1, 
@@ -135,7 +140,7 @@ export const getAll = async (req, res, next) => {
 export const getById = async (req, res, next) => {
   try {
     // Ensure tables exist before querying
-    await ensureCatalogueTablesExist(req.db);
+    await ensureCatalogueTablesExist(req.db, req.companyFilter);
 
     const { id } = req.params;
     const { includeProducts = 'true' } = req.query;
@@ -216,7 +221,7 @@ export const getById = async (req, res, next) => {
 export const create = async (req, res, next) => {
   try {
     // Ensure tables exist before creation
-    await ensureCatalogueTablesExist(req.db);
+    await ensureCatalogueTablesExist(req.db, req.companyFilter);
 
     const {
       name, description, status = 'Draft', product_ids

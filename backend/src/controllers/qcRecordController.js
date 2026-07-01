@@ -482,7 +482,7 @@ export const create = async (req, res, next) => {
       201
     );
   } catch (error) {
-    if (client) await client.query('ROLLBACK').catch(() => {});
+    if (client) await client.query('ROLLBACK').catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
     next(error);
   } finally {
     if (client) client.release();
@@ -721,7 +721,7 @@ export const update = async (req, res, next) => {
       'QC record updated successfully'
     );
   } catch (error) {
-    if (client) await client.query('ROLLBACK').catch(() => {});
+    if (client) await client.query('ROLLBACK').catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
     next(error);
   } finally {
     if (client) client.release();
@@ -771,7 +771,7 @@ export const remove = async (req, res, next) => {
       'QC record deleted successfully'
     );
   } catch (error) {
-    if (client) await client.query('ROLLBACK').catch(() => {});
+    if (client) await client.query('ROLLBACK').catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
     next(error);
   } finally {
     if (client) client.release();
@@ -821,7 +821,7 @@ export const hardDelete = async (req, res, next) => {
       'QC Record permanently deleted'
     );
   } catch (error) {
-    if (client) await client.query('ROLLBACK').catch(() => {});
+    if (client) await client.query('ROLLBACK').catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
     next(error);
   } finally {
     if (client) client.release();
@@ -926,13 +926,13 @@ export const updateStatus = async (req, res, next) => {
         await req.db.query(
           `UPDATE order_sheets SET qc_status = $1, qc_date = CURRENT_TIMESTAMP WHERE id = $2 AND company_id = $3`,
           [dbStatus, sheetId, qcRecord.company_id]
-        ).catch(() => {});
+        ).catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
         
         // Master Order Sheet Lines
         await req.db.query(
           `UPDATE master_order_sheet_lines SET qc_status = $1, updated_at = CURRENT_TIMESTAMP WHERE master_order_sheet_id = $2 AND company_id = $3`,
           [dbStatus, sheetId, qcRecord.company_id]
-        ).catch(() => {});
+        ).catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
       } catch (err) {}
     }
 

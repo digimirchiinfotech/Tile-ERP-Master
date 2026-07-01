@@ -161,7 +161,7 @@ export const markAsRead = async (req, res, next) => {
     await req.db.query(`
       INSERT INTO audit_logs (company_id, resource_type, resource_id, action, user_id, ip_address)
       VALUES ($1, 'NOTIFICATION', $2, 'MARK_READ', $3, $4)
-    `, [companyId || null, id, userId, req.ip]).catch(() => {});
+    `, [companyId || null, id, userId, req.ip]).catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
 
     return successResponse(
       res,
@@ -232,7 +232,7 @@ export const deleteNotificationById = async (req, res, next) => {
     await req.db.query(`
       INSERT INTO audit_logs (company_id, resource_type, resource_id, action, user_id, ip_address)
       VALUES ($1, 'NOTIFICATION', $2, 'DELETE', $3, $4)
-    `, [companyId || null, id, userId, req.ip]).catch(() => {});
+    `, [companyId || null, id, userId, req.ip]).catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
 
     return successResponse(
       res,

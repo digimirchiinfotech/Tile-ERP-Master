@@ -198,7 +198,7 @@ export const recordStockMovement = async (req, res, next) => {
     await client.query('COMMIT');
     res.status(201).json({ success: true, data: movementRes.rows[0], message: 'Stock movement recorded' });
   } catch (error) {
-    await client.query('ROLLBACK').catch(() => {});
+    await client.query('ROLLBACK').catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
     next(error);
   } finally {
     client.release();
@@ -264,7 +264,7 @@ export const createReservation = async (req, res, next) => {
     await client.query('COMMIT');
     res.status(201).json({ success: true, data: resv.rows[0], message: 'Stock reserved' });
   } catch (error) {
-    await client.query('ROLLBACK').catch(() => {});
+    await client.query('ROLLBACK').catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
     next(error);
   } finally {
     client.release();
@@ -305,7 +305,7 @@ export const releaseReservation = async (req, res, next) => {
     await client.query('COMMIT');
     res.json({ success: true, message: 'Reservation released' });
   } catch (error) {
-    await client.query('ROLLBACK').catch(() => {});
+    await client.query('ROLLBACK').catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
     next(error);
   } finally {
     client.release();

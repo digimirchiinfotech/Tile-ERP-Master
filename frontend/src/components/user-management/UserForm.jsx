@@ -209,7 +209,7 @@ function UserForm({ user, onSave, onCancel }) {
                             Name * <Info size={12} className="ms-1" />
                           </Form.Label>
                         </OverlayTrigger>
-                        <Form.Control className="premium-input"
+                        <Form.Control 
                           type="text"
                           value={formData.name}
                           onChange={(e) => handleInputChange('name', e.target.value)}
@@ -231,7 +231,7 @@ function UserForm({ user, onSave, onCancel }) {
                             Email ID * <Info size={12} className="ms-1" />
                           </Form.Label>
                         </OverlayTrigger>
-                        <Form.Control className="premium-input"
+                        <Form.Control 
                           type="email"
                           value={formData.emailId}
                           onChange={(e) => handleInputChange('emailId', e.target.value)}
@@ -252,7 +252,7 @@ function UserForm({ user, onSave, onCancel }) {
                             Contact Number * <Info size={12} className="ms-1" />
                           </Form.Label>
                         </OverlayTrigger>
-                        <Form.Control className="premium-input"
+                        <Form.Control 
                           type="text"
                           value={formData.contactNumber}
                           onChange={(e) =>
@@ -283,7 +283,7 @@ function UserForm({ user, onSave, onCancel }) {
                     <Col xs={12} md={4}>
                       <Form.Group>
                         <Form.Label className="fw-bold">Employee ID</Form.Label>
-                        <Form.Control className="premium-input"
+                        <Form.Control 
                           type="text"
                           value={formData.employeeId}
                           onChange={(e) => handleInputChange('employeeId', e.target.value)}
@@ -295,7 +295,7 @@ function UserForm({ user, onSave, onCancel }) {
                     <Col xs={12} md={4}>
                       <Form.Group>
                         <Form.Label className="fw-bold">Department</Form.Label>
-                        <Form.Control className="premium-input"
+                        <Form.Control 
                           type="text"
                           value={formData.department}
                           onChange={(e) => handleInputChange('department', e.target.value)}
@@ -307,7 +307,7 @@ function UserForm({ user, onSave, onCancel }) {
                     <Col xs={12} md={4}>
                       <Form.Group>
                         <Form.Label className="fw-bold">Designation</Form.Label>
-                        <Form.Control className="premium-input"
+                        <Form.Control 
                           type="text"
                           value={formData.designation}
                           onChange={(e) => handleInputChange('designation', e.target.value)}
@@ -337,7 +337,7 @@ function UserForm({ user, onSave, onCancel }) {
                             Role * <Info size={12} className="ms-1" />
                           </Form.Label>
                         </OverlayTrigger>
-                        <Form.Select className="premium-input"
+                        <Form.Select 
                           value={formData.role}
                           onChange={(e) => handleInputChange('role', e.target.value)}
                           isInvalid={!!errors.role}
@@ -360,7 +360,7 @@ function UserForm({ user, onSave, onCancel }) {
                     <Col xs={12} md={6}>
                       <Form.Group>
                         <Form.Label className="fw-bold">Status</Form.Label>
-                        <Form.Select className="premium-input"
+                        <Form.Select 
                           value={formData.status}
                           onChange={(e) => handleInputChange('status', e.target.value)}
                           className="py-2"
@@ -395,7 +395,7 @@ function UserForm({ user, onSave, onCancel }) {
                           )}
                         </Form.Label>
                         <div className="position-relative">
-                          <Form.Control className="premium-input"
+                          <Form.Control 
                             type={showPassword ? 'text' : 'password'}
                             value={formData.password}
                             onChange={(e) =>
@@ -427,7 +427,7 @@ function UserForm({ user, onSave, onCancel }) {
                           Confirm Password {!user && '*'}
                         </Form.Label>
                         <div className="position-relative">
-                          <Form.Control className="premium-input"
+                          <Form.Control 
                             type={showConfirmPassword ? 'text' : 'password'}
                             value={formData.confirmPassword}
                             onChange={(e) =>

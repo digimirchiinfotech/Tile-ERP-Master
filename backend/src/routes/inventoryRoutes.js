@@ -10,7 +10,12 @@ import {
   getMovements,
   getReservations,
   getWarehouses,
-  getStockBalance
+  getStockBalance,
+  createGRN,
+  getGRNs,
+  getStockLedger,
+  createWarehouse,
+  updateWarehouse
 } from '../controllers/inventoryController.js';
 
 const router = express.Router();
@@ -27,6 +32,14 @@ router.post('/reservations/:id/release', requirePermission('inventory_management
 
 // MODULE DASHBOARD ROUTES
 router.get('/warehouses', requirePermission('inventory_management', 'all'), getWarehouses);
+router.post('/warehouses', requirePermission('inventory_management', 'all'), createWarehouse);
+router.put('/warehouses/:id', requirePermission('inventory_management', 'all'), updateWarehouse);
+
 router.get('/stock-balance', requirePermission('inventory_management', 'all'), getStockBalance);
+
+// NEW MODULES
+router.post('/grn', requirePermission('inventory_management', 'all'), createGRN);
+router.get('/grn', requirePermission('inventory_management', 'all'), getGRNs);
+router.get('/ledger', requirePermission('inventory_management', 'all'), getStockLedger);
 
 export default router;

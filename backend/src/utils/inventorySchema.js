@@ -57,6 +57,23 @@ export const ensureInventorySchema = async (db) => {
     CREATE INDEX IF NOT EXISTS idx_stock_register_company ON stock_register(company_id);
     CREATE INDEX IF NOT EXISTS idx_stock_movements_company ON stock_movements(company_id);
     CREATE INDEX IF NOT EXISTS idx_stock_reservations_company ON stock_reservations(company_id);
+
+    CREATE TABLE IF NOT EXISTS grn_documents (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      company_id UUID NOT NULL,
+      grn_number VARCHAR(100) NOT NULL,
+      grn_date DATE NOT NULL DEFAULT CURRENT_DATE,
+      supplier_name VARCHAR(200),
+      vehicle_number VARCHAR(100),
+      inspector_name VARCHAR(100),
+      weighbridge_ticket VARCHAR(100),
+      notes TEXT,
+      total_boxes NUMERIC(15, 2) DEFAULT 0,
+      created_by UUID,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE INDEX IF NOT EXISTS idx_grn_documents_company ON grn_documents(company_id);
   `);
   
   ensuredDbs.add(db);

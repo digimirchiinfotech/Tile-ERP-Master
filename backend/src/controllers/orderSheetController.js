@@ -832,7 +832,14 @@ export const addProductionLog = async (req, res, next) => {
 
         if (productId) {
           const sqmDelta = boxesProducedNum * sqmPerBox;
-          const warehouseLocation = 'Main Warehouse'; // default location for auto-production
+          let warehouseLocation = 'Main Warehouse';
+          const whCheck = await client.query(
+            `SELECT name FROM warehouse_locations WHERE company_id = $1 AND is_active = true ORDER BY created_at ASC LIMIT 1`,
+            [companyId]
+          );
+          if (whCheck.rows.length > 0) {
+            warehouseLocation = whCheck.rows[0].name;
+          }
 
           let stockRes = await client.query(
             `SELECT * FROM stock_register WHERE company_id = $1 AND product_id = $2 AND warehouse_location = $3 FOR UPDATE`,

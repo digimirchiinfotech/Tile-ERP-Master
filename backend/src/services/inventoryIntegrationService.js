@@ -48,18 +48,41 @@ export const syncInventoryFromInvoice = async (invoice, lines, req) => {
 
       if (quantityBoxes <= 0) continue;
 
-      // Ensure a stock register entry exists
-      const registerCheck = await client.query(
-        `SELECT id FROM stock_register WHERE product_id = $1 AND company_id = $2 AND warehouse_location = 'Main Warehouse'`,
+      let warehouseLoc = 'Main Warehouse';
+
+      // 1. Find warehouse with highest stock for this product
+      const stockCheck = await client.query(
+        `SELECT warehouse_location FROM stock_register 
+         WHERE product_id = $1 AND company_id = $2 
+         ORDER BY quantity_boxes DESC LIMIT 1`,
         [line.product_id, invoice.company_id]
       );
 
+      if (stockCheck.rows.length > 0) {
+        warehouseLoc = stockCheck.rows[0].warehouse_location;
+      } else {
+        // 2. Fallback to first active warehouse if product not in stock yet
+        const whCheck = await client.query(
+          `SELECT name FROM warehouse_locations WHERE company_id = $1 AND is_active = true ORDER BY created_at ASC LIMIT 1`,
+          [invoice.company_id]
+        );
+        if (whCheck.rows.length > 0) {
+          warehouseLoc = whCheck.rows[0].name;
+        }
+      }
+
+      // Ensure a stock register entry exists for this dynamic warehouse
+      const registerCheck = await client.query(
+        `SELECT id FROM stock_register WHERE product_id = $1 AND company_id = $2 AND warehouse_location = $3`,
+        [line.product_id, invoice.company_id, warehouseLoc]
+      );
+
       if (registerCheck.rows.length === 0) {
-        // Create an empty register entry so we can deduct it (will go negative, which is standard for delayed reconciliation)
+        // Create an empty register entry so we can deduct it (will go negative)
         await client.query(
           `INSERT INTO stock_register (company_id, product_id, warehouse_location, quantity_boxes, quantity_sqm, updated_at)
-           VALUES ($1, $2, 'Main Warehouse', 0, 0, CURRENT_TIMESTAMP)`,
-          [invoice.company_id, line.product_id]
+           VALUES ($1, $2, $3, 0, 0, CURRENT_TIMESTAMP)`,
+          [invoice.company_id, line.product_id, warehouseLoc]
         );
       }
 
@@ -69,18 +92,19 @@ export const syncInventoryFromInvoice = async (invoice, lines, req) => {
          SET quantity_boxes = quantity_boxes - $1,
              quantity_sqm = quantity_sqm - $2,
              updated_at = CURRENT_TIMESTAMP
-         WHERE product_id = $3 AND company_id = $4 AND warehouse_location = 'Main Warehouse'`,
-        [quantityBoxes, quantitySqm, line.product_id, invoice.company_id]
+         WHERE product_id = $3 AND company_id = $4 AND warehouse_location = $5`,
+        [quantityBoxes, quantitySqm, line.product_id, invoice.company_id, warehouseLoc]
       );
 
       // Record the movement
       await client.query(
         `INSERT INTO stock_movements 
          (company_id, product_id, warehouse_location, movement_type, quantity_boxes, quantity_sqm, reference_type, reference_id, created_by, created_at)
-         VALUES ($1, $2, 'Main Warehouse', 'Dispatched', $3, $4, 'ExportInvoice', $5, $6, CURRENT_TIMESTAMP)`,
+         VALUES ($1, $2, $3, 'Dispatched', $4, $5, 'ExportInvoice', $6, $7, CURRENT_TIMESTAMP)`,
         [
           invoice.company_id, 
           line.product_id, 
+          warehouseLoc,
           quantityBoxes, 
           quantitySqm, 
           invoice.id, 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, Modal, Row, Col, Badge, InputGroup } from 'react-bootstrap';
 import { Plus, Search, Eye } from 'lucide-react';
-import { api } from '../../services/api';
+import api from '../../services/api';
 
 const GRNList = ({ showSuccess, showError, warehouses, products }) => {
   const [grns, setGrns] = useState([]);

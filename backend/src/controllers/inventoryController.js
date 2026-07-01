@@ -485,12 +485,12 @@ export const getStockLedger = async (req, res, next) => {
 
     if (!product_id) return next(new AppError('product_id is required for ledger', 400));
 
-    let sql = \`
+    let sql = `
       SELECT sm.*, p.name AS product_name 
       FROM stock_movements sm
       LEFT JOIN products p ON p.id = sm.product_id
       WHERE sm.company_id = $1 AND sm.product_id = $2
-    \`;
+    `;
     const params = [companyId, product_id];
 
     if (warehouse_location) {

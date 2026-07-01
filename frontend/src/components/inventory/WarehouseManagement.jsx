@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Form, Modal, Badge } from 'react-bootstrap';
 import { Edit, Plus } from 'lucide-react';
-import { api } from '../../services/api';
+import api from '../../services/api';
 
 const WarehouseManagement = ({ showSuccess, showError }) => {
   const [warehouses, setWarehouses] = useState([]);

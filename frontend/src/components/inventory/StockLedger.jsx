@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Table, Form, Row, Col, Badge } from 'react-bootstrap';
 import { FileText } from 'lucide-react';
-import { api } from '../../services/api';
+import api from '../../services/api';
 
 const StockLedger = ({ showError, products, warehouses }) => {
   const [ledger, setLedger] = useState([]);

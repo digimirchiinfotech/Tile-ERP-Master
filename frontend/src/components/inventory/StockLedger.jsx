@@ -35,7 +35,7 @@ const StockLedger = ({ showError, products, warehouses }) => {
               <Form.Label className="small text-muted mb-1">Select Product *</Form.Label>
               <Form.Select value={filters.product_id} onChange={e => setFilters({...filters, product_id: e.target.value})}>
                 <option value="">-- Choose Product --</option>
-                {products.map(p => <option key={p.id} value={p.id}>{p.name} {p.sku ? \`(\${p.sku})\` : ''}</option>)}
+                {products.map(p => <option key={p.id} value={p.id}>{p.name} {p.sku ? `(${p.sku})` : ''}</option>)}
               </Form.Select>
             </Form.Group>
           </Col>

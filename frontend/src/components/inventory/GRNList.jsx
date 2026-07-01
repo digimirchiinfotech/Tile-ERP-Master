@@ -100,7 +100,7 @@ const GRNList = ({ showSuccess, showError, warehouses, products }) => {
           </InputGroup>
           <Button variant="primary" onClick={() => {
             setForm({
-              grn_number: \`GRN-\${Date.now().toString().slice(-6)}\`,
+              grn_number: `GRN-${Date.now().toString().slice(-6)}`,
               grn_date: new Date().toISOString().split('T')[0],
               supplier_name: '', vehicle_number: '', inspector_name: '', weighbridge_ticket: '', notes: '',
               items: []
@@ -221,7 +221,7 @@ const GRNList = ({ showSuccess, showError, warehouses, products }) => {
                     <td>
                       <Form.Select required value={item.product_id} onChange={e => handleItemChange(index, 'product_id', e.target.value)}>
                         <option value="">Select Product...</option>
-                        {products.map(p => <option key={p.id} value={p.id}>{p.name} {p.sku ? \`(\${p.sku})\` : ''}</option>)}
+                        {products.map(p => <option key={p.id} value={p.id}>{p.name} {p.sku ? `(${p.sku})` : ''}</option>)}
                       </Form.Select>
                     </td>
                     <td>

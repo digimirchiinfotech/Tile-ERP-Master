@@ -10,6 +10,7 @@
  */
 
 import { debugLogger } from '../utils/debugLogger.js';
+import { logAction } from '../services/auditService.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { successResponse, getPagination, paginationResponse } from '../utils/helpers.js';
 import { validateUUID } from '../utils/validators.js';
@@ -635,6 +636,7 @@ export const createOrUpdate = async (req, res, next) => {
       notificationService.notifyPackingListCreated(companyId, result.rows[0], req.db).catch(err => debugLogger.warn('Notification', err.message));
     }
 
+    logAction({ userId: req.user?.id, companyId: req.companyFilter, action: isUpdate ? 'UPDATE' : 'CREATE', entityType: 'packing_list', entityId: result.rows[0].id, newValue: { packing_list_no: result.rows[0].packing_list_no }, ipAddress: req.ip, userAgent: req.get('User-Agent'), method: req.method, url: req.originalUrl }, req.db).catch(e => console.error('Audit fail', e));
     return successResponse(res, result.rows[0], 'Packing List saved successfully');
   } catch (error) { 
     if (client) await client.query('ROLLBACK').catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
@@ -714,6 +716,7 @@ export const updateById = async (req, res, next) => {
       });
     }
 
+    logAction({ userId: req.user?.id, companyId: req.companyFilter, action: 'UPDATE', entityType: 'packing_list', entityId: result.rows[0].id, newValue: { packing_list_no: result.rows[0].packing_list_no }, ipAddress: req.ip, userAgent: req.get('User-Agent'), method: req.method, url: req.originalUrl }, req.db).catch(e => console.error('Audit fail', e));
     return successResponse(res, result.rows[0], 'Packing List updated successfully');
   } catch (error) {
     if (client) await client.query('ROLLBACK').catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
@@ -798,6 +801,7 @@ export const create = async (req, res, next) => {
 
     await client.query('COMMIT');
 
+    logAction({ userId: req.user?.id, companyId: req.companyFilter, action: 'CREATE', entityType: 'packing_list', entityId: result.rows[0].id, newValue: { packing_list_no: result.rows[0].packing_list_no }, ipAddress: req.ip, userAgent: req.get('User-Agent'), method: req.method, url: req.originalUrl }, req.db).catch(e => console.error('Audit fail', e));
     return successResponse(res, result.rows[0], 'Packing List created successfully');
   } catch (error) {
     if (client) await client.query('ROLLBACK').catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
@@ -1013,6 +1017,7 @@ export const remove = async (req, res, next) => {
     const { id } = req.params;
     const result = await req.db.query(`UPDATE packing_lists SET deleted_at = NOW() WHERE id = $1 AND company_id = $2 RETURNING id`, [id, req.companyFilter]);
     if (result.rowCount === 0) return next(new AppError('Packing List not found', 404));
+    logAction({ userId: req.user?.id, companyId: req.companyFilter, action: 'DELETE', entityType: 'packing_list', entityId: id, ipAddress: req.ip, userAgent: req.get('User-Agent'), method: req.method, url: req.originalUrl }, req.db).catch(e => console.error('Audit fail', e));
     return successResponse(res, null, 'Packing List deleted successfully');
   } catch (error) { next(error); }
 };

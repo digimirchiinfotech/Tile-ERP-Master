@@ -10,6 +10,7 @@
  */
 
 import { AppError } from '../middleware/errorHandler.js';
+import { logAction } from '../services/auditService.js';
 import { 
   successResponse, 
   getPagination, 

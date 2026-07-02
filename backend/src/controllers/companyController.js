@@ -422,6 +422,41 @@ export const updateCompany = async (req, res, next) => {
       if (permission_no !== undefined) { updateFields.push(`permission_no = $${paramCount++}`); values.push(permission_no); }
 
       if (admin_email_id || admin_password || admin_username) {
+        // ── Pre-flight uniqueness checks ────────────────────────────────────────
+        // Get the current company admin's id so we can exclude them from the check
+        const currentAdminRes = await client.query(
+          `SELECT id FROM users WHERE company_id = $1 AND role = 'company_admin' LIMIT 1`,
+          [id]
+        );
+        const currentAdminId = currentAdminRes.rows[0]?.id;
+
+        if (admin_email_id && currentAdminId) {
+          // Check if this email is already taken by a DIFFERENT user
+          const emailConflict = await client.query(
+            `SELECT id FROM users WHERE email_id = $1 AND id != $2 LIMIT 1`,
+            [admin_email_id, currentAdminId]
+          );
+          if (emailConflict.rows.length > 0) {
+            await client.query('ROLLBACK');
+            client.release();
+            return next(new AppError('User with this admin email already exists', 400));
+          }
+        }
+
+        if (admin_username && currentAdminId) {
+          // Check if this username is already taken by a DIFFERENT user
+          const usernameConflict = await client.query(
+            `SELECT id FROM users WHERE username = $1 AND id != $2 LIMIT 1`,
+            [admin_username, currentAdminId]
+          );
+          if (usernameConflict.rows.length > 0) {
+            await client.query('ROLLBACK');
+            client.release();
+            return next(new AppError('User with this admin username already exists', 400));
+          }
+        }
+        // ────────────────────────────────────────────────────────────────────────
+
         const adminUpdateFields = [];
         const adminValues = [];
         let adminParamCount = 1;

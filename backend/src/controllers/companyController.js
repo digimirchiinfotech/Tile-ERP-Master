@@ -92,6 +92,7 @@ export const getAllCompanies = async (req, res, next) => {
        ) u_agg ON u_agg.company_id = c.id
        LEFT JOIN LATERAL (
          SELECT cs.amount as monthly_revenue,
+                cs.start_date as subscription_start_date,
                 cs.end_date as subscription_end_date,
                 (DATE(cs.end_date) - CURRENT_DATE) as days_until_expiry
          FROM company_subscriptions cs

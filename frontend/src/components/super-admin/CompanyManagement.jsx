@@ -34,6 +34,27 @@ const formatDate = (dateString) => {
   }
 };
 
+const formatSubDate = (dateString) => {
+  if (!dateString) return '-';
+  try {
+    return new Date(dateString).toLocaleDateString('en-GB', {
+      day: '2-digit', month: 'short', year: 'numeric'
+    });
+  } catch (e) {
+    return '-';
+  }
+};
+
+const getExpiryBadge = (endDate, daysLeft) => {
+  if (!endDate) return <Badge bg="secondary" className="ms-2">Expired ⚫</Badge>;
+  const days = daysLeft !== undefined ? daysLeft : Math.ceil((new Date(endDate) - new Date()) / (1000 * 60 * 60 * 24));
+  
+  if (days <= 0) return <Badge bg="secondary" className="ms-2">Expired ⚫</Badge>;
+  if (days <= 7) return <span className="ms-2" title="Less than 7 days remaining">🔴</span>;
+  if (days <= 30) return <span className="ms-2" title="7-30 days remaining">🟡</span>;
+  return <span className="ms-2" title="More than 30 days remaining">🟢</span>;
+};
+
 function CompanyManagement({ currentUser, onNavigate }) {
   const { setSelectedCompany } = useUserContext();
   
@@ -49,10 +70,18 @@ function CompanyManagement({ currentUser, onNavigate }) {
   const [saving, setSaving] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState(null);
   const [loginTargetCompany, setLoginTargetCompany] = useState(null);
-  const [filters, setFilters] = useState({ companyName: '', industry: '', subscriptionPlan: '', users: '', status: '' });
+  const [filters, setFilters] = useState({ companyName: '', industry: '', subscriptionPlan: '', users: '', status: '', expiryFilter: '' });
+  const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
 
   const industries = [...new Set((companies || []).map(c => c.industry).filter(Boolean))].sort();
   const companyNames = [...new Set((companies || []).map(c => c.name).filter(Boolean))].sort();
+
+  const handleSort = (key) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
 
   useEffect(() => {
     let filtered = companies || [];
@@ -61,8 +90,42 @@ function CompanyManagement({ currentUser, onNavigate }) {
     if (filters.subscriptionPlan) filtered = filtered.filter(c => c.subscriptionPlan === filters.subscriptionPlan);
     if (filters.status) filtered = filtered.filter(c => c.status === filters.status);
     if (filters.users) filtered = filtered.filter(c => (c.totalUsers || 0).toString() === filters.users);
-    setFilteredCompanies(filtered);
-  }, [filters, companies]);
+    
+    if (filters.expiryFilter) {
+      filtered = filtered.filter(c => {
+        if (!c.subscriptionEndDate) return filters.expiryFilter === 'Expired';
+        const daysLeft = c.daysUntilExpiry !== undefined ? c.daysUntilExpiry : Math.ceil((new Date(c.subscriptionEndDate) - new Date()) / (1000 * 60 * 60 * 24));
+        if (filters.expiryFilter === 'Expiring 7 Days') return daysLeft > 0 && daysLeft <= 7;
+        if (filters.expiryFilter === 'Expiring 30 Days') return daysLeft > 0 && daysLeft <= 30;
+        if (filters.expiryFilter === 'Expired') return daysLeft <= 0;
+        if (filters.expiryFilter === 'Active Subscription') return daysLeft > 0;
+        if (filters.expiryFilter === 'Free Trial') return c.subscriptionPlan === 'Free Trial';
+        if (filters.expiryFilter === 'Paid Subscription') return c.subscriptionPlan !== 'Free Trial' && daysLeft > 0;
+        return true;
+      });
+    }
+
+    if (sortConfig.key) {
+      filtered.sort((a, b) => {
+        let aValue, bValue;
+        if (sortConfig.key === 'subscriptionStartDate') {
+          aValue = new Date(a.subscriptionStartDate || a.createdAt).getTime();
+          bValue = new Date(b.subscriptionStartDate || b.createdAt).getTime();
+        } else if (sortConfig.key === 'subscriptionEndDate') {
+          aValue = new Date(a.subscriptionEndDate || 0).getTime();
+          bValue = new Date(b.subscriptionEndDate || 0).getTime();
+        } else {
+          aValue = a[sortConfig.key];
+          bValue = b[sortConfig.key];
+        }
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    setFilteredCompanies([...filtered]);
+  }, [filters, sortConfig, companies]);
 
   const handleEditCompany = async (company) => {
     try {
@@ -206,7 +269,7 @@ function CompanyManagement({ currentUser, onNavigate }) {
       </Row>
 
       {/* Filters */}
-      <FilterPanel onClear={() => setFilters({ companyName: '', industry: '', subscriptionPlan: '', users: '', status: '' })} title="Search & Filters">
+      <FilterPanel onClear={() => setFilters({ companyName: '', industry: '', subscriptionPlan: '', users: '', status: '', expiryFilter: '' })} title="Search & Filters">
         <Form>
           <Row className="g-3 align-items-end">
             <Col lg={3} md={6}>
@@ -245,7 +308,21 @@ function CompanyManagement({ currentUser, onNavigate }) {
                 </Form.Select>
               </Form.Group>
             </Col>
-            <Col lg={3} md={6}>
+            <Col lg={2} md={6}>
+              <Form.Group>
+                <Form.Label className="fw-bold small text-muted text-uppercase">Expiry Status</Form.Label>
+                <Form.Select className="py-2 border-primary-subtle" style={{ borderRadius: '10px' }} value={filters.expiryFilter} onChange={e => handleFilterChange('expiryFilter', e.target.value)}>
+                  <option value="">All</option>
+                  <option value="Expiring 7 Days">Expiring in 7 Days</option>
+                  <option value="Expiring 30 Days">Expiring in 30 Days</option>
+                  <option value="Expired">Expired</option>
+                  <option value="Active Subscription">Active Subscription</option>
+                  <option value="Free Trial">Free Trial</option>
+                  <option value="Paid Subscription">Paid Subscription</option>
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col lg={2} md={6}>
               <Form.Group>
                 <Form.Label className="fw-bold small text-muted text-uppercase">Status</Form.Label>
                 <Form.Select className="py-2 border-primary-subtle" style={{ borderRadius: '10px' }} value={filters.status} onChange={e => handleFilterChange('status', e.target.value)}>
@@ -292,6 +369,12 @@ function CompanyManagement({ currentUser, onNavigate }) {
                     <th>Contact Person</th>
                     <th>Industry</th>
                     <th>Subscription</th>
+                    <th style={{ cursor: 'pointer', userSelect: 'none' }} onClick={() => handleSort('subscriptionStartDate')}>
+                      Start Date {sortConfig.key === 'subscriptionStartDate' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </th>
+                    <th style={{ cursor: 'pointer', userSelect: 'none' }} onClick={() => handleSort('subscriptionEndDate')}>
+                      Expiry Date {sortConfig.key === 'subscriptionEndDate' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </th>
                     <th>Revenue</th>
                     <th>Users</th>
                     <th>Last Login</th>
@@ -314,6 +397,13 @@ function CompanyManagement({ currentUser, onNavigate }) {
                       <td>{company.contactPersonName || '-'}</td>
                       <td><small className="text-muted">{company.industry}</small></td>
                       <td>{getPlanBadge(company.subscriptionPlan)}</td>
+                      <td><small className="text-muted fw-semibold">{formatSubDate(company.subscriptionStartDate || company.createdAt)}</small></td>
+                      <td>
+                        <div className="d-flex align-items-center">
+                          <small className="fw-bold">{formatSubDate(company.subscriptionEndDate)}</small>
+                          {getExpiryBadge(company.subscriptionEndDate, company.daysUntilExpiry)}
+                        </div>
+                      </td>
                       <td><span className="text-muted">₹{company.monthlyRevenue || 0}</span></td>
                       <td><Badge bg="light" text="dark" className="border">{company.totalUsers || 0}</Badge></td>
                       <td><small className="text-muted">{formatDate(company.lastLogin)}</small></td>

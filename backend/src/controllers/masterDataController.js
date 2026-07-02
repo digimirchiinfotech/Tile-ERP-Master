@@ -67,9 +67,11 @@ const transformRowsToCamelCase = (rows) => rows.map(row => {
 
 const ensuredTables = new Set();
 
-const ensureTableExists = async (queryFn, config) => {
+const ensureTableExists = async (queryFn, config, req) => {
   if (config.global) return;
-  if (ensuredTables.has(config.table)) return;
+  
+  const cacheKey = `${req.companyFilter || 'shared'}_${config.table}`;
+  if (ensuredTables.has(cacheKey)) return;
   try {
     const checkQuery = `SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '${config.table}')`;
     const { rows } = await queryFn(checkQuery);
@@ -91,7 +93,7 @@ const ensureTableExists = async (queryFn, config) => {
       // Removed runtime ALTER TABLE statements to prevent locking issues.
       // Schema updates must be done via databaseProvisioning.js or migrations.
     }
-    ensuredTables.add(config.table);
+    ensuredTables.add(cacheKey);
   } catch (err) {
     debugLogger.error(`[MasterData] Error ensuring table ${config.table} exists:`, err.message);
   }
@@ -127,7 +129,7 @@ export const getAllMasterData = async (req, res, next) => {
         }
         try {
           const queryExecutor = config.global ? (req.db.globalQuery || req.db.query) : req.db.query;
-          await ensureTableExists(queryExecutor, config);
+          await ensureTableExists(queryExecutor, config, req);
           const { rows } = await queryExecutor(query, params);
           results[key] = transformRowsToCamelCase(rows);
         } catch (err) {
@@ -178,7 +180,7 @@ export const getMasterDataByType = async (req, res, next) => {
       }
 
       const queryExecutor = config.global ? (req.db.globalQuery || req.db.query) : req.db.query;
-      await ensureTableExists(queryExecutor, config);
+      await ensureTableExists(queryExecutor, config, req);
       const { rows } = await queryExecutor(query, params);
       return transformRowsToCamelCase(rows);
     });
@@ -195,7 +197,7 @@ export const getMasterDataById = async (req, res, next) => {
     const config = TABLE_MAPPING[type];
     if (!config) return res.status(404).json({ success: false, message: `Not found` });
     const queryExecutor = config.global ? (req.db.globalQuery || req.db.query) : req.db.query;
-    await ensureTableExists(queryExecutor, config);
+    await ensureTableExists(queryExecutor, config, req);
     const { rows } = await queryExecutor(`SELECT *, ${config.column} as value FROM ${config.table} WHERE id = $1`, [id]);
     if (rows.length === 0) return res.status(404).json({ success: false, message: 'Not found' });
     res.json({ success: true, data: transformRowsToCamelCase(rows)[0] });

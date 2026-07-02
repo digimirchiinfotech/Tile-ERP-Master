@@ -140,6 +140,7 @@ api.interceptors.response.use(
       // If already retrying, queue the request
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
+          originalRequest._retry = true; // Prevents infinite refresh loops if the retry fails
           failedQueue.push({ resolve, reject });
         })
           .then(() => {

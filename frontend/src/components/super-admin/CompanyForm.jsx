@@ -211,10 +211,16 @@ function CompanyForm({ company, onSave, onCancel, saving = false }) {
     fetchCitiesData();
   }, [formData.country, countries]);
 
+  const uppercaseFields = ['name', 'gstn', 'pan', 'iecNo', 'contactPersonName'];
+
   const handleInputChange = (field, value) => {
+    let formattedValue = value;
+    if (typeof formattedValue === 'string' && uppercaseFields.includes(field)) {
+      formattedValue = formattedValue.toUpperCase();
+    }
     setFormData(prev => ({
       ...prev,
-      [field]: value,
+      [field]: formattedValue,
       ...(field === 'country' ? { city: '' } : {})
     }));
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
@@ -457,7 +463,7 @@ function CompanyForm({ company, onSave, onCancel, saving = false }) {
                               value={formData.bank_details?.accountName || ''}
                               onChange={(e) => setFormData({
                                 ...formData,
-                                bank_details: { ...formData.bank_details, accountName: e.target.value }
+                                bank_details: { ...formData.bank_details, accountName: e.target.value.toUpperCase() }
                               })}
                               placeholder="e.g. Acme Ceramics Pvt Ltd"
                             />
@@ -486,7 +492,7 @@ function CompanyForm({ company, onSave, onCancel, saving = false }) {
                               value={formData.bank_details?.bankName || ''}
                               onChange={(e) => setFormData({
                                 ...formData,
-                                bank_details: { ...formData.bank_details, bankName: e.target.value }
+                                bank_details: { ...formData.bank_details, bankName: e.target.value.toUpperCase() }
                               })}
                             />
                           </Form.Group>
@@ -500,7 +506,7 @@ function CompanyForm({ company, onSave, onCancel, saving = false }) {
                               value={formData.bank_details?.ifscCode || ''}
                               onChange={(e) => setFormData({
                                 ...formData,
-                                bank_details: { ...formData.bank_details, ifscCode: e.target.value }
+                                bank_details: { ...formData.bank_details, ifscCode: e.target.value.toUpperCase() }
                               })}
                             />
                           </Form.Group>
@@ -514,7 +520,7 @@ function CompanyForm({ company, onSave, onCancel, saving = false }) {
                               value={formData.bank_details?.swiftCode || ''}
                               onChange={(e) => setFormData({
                                 ...formData,
-                                bank_details: { ...formData.bank_details, swiftCode: e.target.value }
+                                bank_details: { ...formData.bank_details, swiftCode: e.target.value.toUpperCase() }
                               })}
                             />
                           </Form.Group>
@@ -529,7 +535,7 @@ function CompanyForm({ company, onSave, onCancel, saving = false }) {
                               value={formData.bank_details?.bankAddress || ''}
                               onChange={(e) => setFormData({
                                 ...formData,
-                                bank_details: { ...formData.bank_details, bankAddress: e.target.value }
+                                bank_details: { ...formData.bank_details, bankAddress: e.target.value.toUpperCase() }
                               })}
                             />
                           </Form.Group>
@@ -783,6 +789,7 @@ function CompanyForm({ company, onSave, onCancel, saving = false }) {
                               value={formData.adminUsername}
                               onChange={(e) => handleInputChange('adminUsername', e.target.value)}
                               isInvalid={!!errors.adminUsername}
+                              autoComplete="off"
                             />
                           </Form.Group>
                         </Col>
@@ -799,6 +806,7 @@ function CompanyForm({ company, onSave, onCancel, saving = false }) {
                               value={formData.adminEmailId}
                               onChange={(e) => handleInputChange('adminEmailId', e.target.value)}
                               isInvalid={!!errors.adminEmailId}
+                              autoComplete="off"
                             />
                           </Form.Group>
                         </Col>
@@ -812,6 +820,7 @@ function CompanyForm({ company, onSave, onCancel, saving = false }) {
                                 value={formData.adminPassword}
                                 onChange={(e) => handleInputChange('adminPassword', e.target.value)}
                                 isInvalid={!!errors.adminPassword}
+                                autoComplete="new-password"
                               />
                               <button
                                 type="button"
@@ -833,6 +842,7 @@ function CompanyForm({ company, onSave, onCancel, saving = false }) {
                                 value={formData.adminConfirmPassword}
                                 onChange={(e) => handleInputChange('adminConfirmPassword', e.target.value)}
                                 isInvalid={!!errors.adminConfirmPassword}
+                                autoComplete="new-password"
                               />
                               <button
                                 type="button"

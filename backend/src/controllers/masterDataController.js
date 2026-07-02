@@ -65,8 +65,11 @@ const transformRowsToCamelCase = (rows) => rows.map(row => {
   return camelCaseRow;
 });
 
+const ensuredTables = new Set();
+
 const ensureTableExists = async (queryFn, config) => {
   if (config.global) return;
+  if (ensuredTables.has(config.table)) return;
   try {
     const checkQuery = `SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '${config.table}')`;
     const { rows } = await queryFn(checkQuery);
@@ -88,6 +91,7 @@ const ensureTableExists = async (queryFn, config) => {
       // Removed runtime ALTER TABLE statements to prevent locking issues.
       // Schema updates must be done via databaseProvisioning.js or migrations.
     }
+    ensuredTables.add(config.table);
   } catch (err) {
     debugLogger.error(`[MasterData] Error ensuring table ${config.table} exists:`, err.message);
   }

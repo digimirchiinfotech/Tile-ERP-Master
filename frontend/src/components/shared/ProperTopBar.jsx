@@ -245,8 +245,8 @@ function ProperTopBar({ currentUser, currentView, onToggleSidebar, onLogout, onN
           </form>
 
           {/* Multi-Tenant Switcher */}
-          <CompanySwitcher onNavigate={onNavigate} />
-
+          {/* <CompanySwitcher onNavigate={onNavigate} /> */}
+          
           {/* Notifications Beside Search */}
           <div className="notification-dropdown-wrapper">
             <NotificationDropdown onNavigate={onNavigate} />

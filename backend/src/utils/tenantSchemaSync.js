@@ -239,6 +239,163 @@ export const syncTenantSchema = async (pool, companyId) => {
       `);
     }
 
+    // 5. Inventory tables (warehouse_locations, stock_register, etc.)
+    // Create all inventory tables if they don't exist — they are tenant-isolated
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS warehouse_locations (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        company_id UUID NOT NULL,
+        name VARCHAR(255),
+        code VARCHAR(100),
+        type VARCHAR(50) DEFAULT 'Warehouse',
+        address TEXT,
+        is_active BOOLEAN DEFAULT true,
+        status VARCHAR(20) DEFAULT 'Active',
+        deleted_at TIMESTAMP,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_warehouse_locations_company ON warehouse_locations(company_id);
+    `);
+
+    // Migrate warehouse_locations: rename 'location' column to 'name' if it exists
+    // and add any missing columns added in phase-7 migration
+    await pool.query(`
+      DO $$
+      BEGIN
+        -- Rename old 'location' column to 'name' if it hasn't been renamed yet
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'warehouse_locations' AND column_name = 'location'
+        ) AND NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'warehouse_locations' AND column_name = 'name'
+        ) THEN
+          ALTER TABLE warehouse_locations RENAME COLUMN location TO name;
+        END IF;
+
+        -- Add 'name' column if both 'location' and 'name' are missing
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'warehouse_locations' AND column_name = 'name'
+        ) AND NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'warehouse_locations' AND column_name = 'location'
+        ) THEN
+          ALTER TABLE warehouse_locations ADD COLUMN name VARCHAR(255);
+        END IF;
+
+        -- Drop the old unique constraint on 'location' if it exists
+        IF EXISTS (
+          SELECT 1 FROM pg_constraint WHERE conname = 'warehouse_locations_location_key'
+        ) THEN
+          ALTER TABLE warehouse_locations DROP CONSTRAINT warehouse_locations_location_key;
+        END IF;
+
+        -- Add missing columns from phase-7 migration
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'warehouse_locations' AND column_name = 'code') THEN
+          ALTER TABLE warehouse_locations ADD COLUMN code VARCHAR(100);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'warehouse_locations' AND column_name = 'type') THEN
+          ALTER TABLE warehouse_locations ADD COLUMN type VARCHAR(50) DEFAULT 'Warehouse';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'warehouse_locations' AND column_name = 'address') THEN
+          ALTER TABLE warehouse_locations ADD COLUMN address TEXT;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'warehouse_locations' AND column_name = 'is_active') THEN
+          ALTER TABLE warehouse_locations ADD COLUMN is_active BOOLEAN DEFAULT true;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'warehouse_locations' AND column_name = 'status') THEN
+          ALTER TABLE warehouse_locations ADD COLUMN status VARCHAR(20) DEFAULT 'Active';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'warehouse_locations' AND column_name = 'deleted_at') THEN
+          ALTER TABLE warehouse_locations ADD COLUMN deleted_at TIMESTAMP;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'warehouse_locations' AND column_name = 'updated_at') THEN
+          ALTER TABLE warehouse_locations ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
+        END IF;
+
+        -- Set NOT NULL on name now that it exists and is populated
+        UPDATE warehouse_locations SET name = COALESCE(name, 'Main Warehouse') WHERE name IS NULL;
+        ALTER TABLE warehouse_locations ALTER COLUMN name SET NOT NULL;
+
+        -- Add unique constraint on (company_id, name) if not already present
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint WHERE conname = 'warehouse_locations_company_id_name_key'
+        ) THEN
+          ALTER TABLE warehouse_locations ADD CONSTRAINT warehouse_locations_company_id_name_key UNIQUE (company_id, name);
+        END IF;
+      END
+      $$;
+
+      CREATE TABLE IF NOT EXISTS stock_register (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        company_id UUID NOT NULL,
+        product_id UUID NOT NULL,
+        warehouse_location VARCHAR(255) NOT NULL DEFAULT 'Main Warehouse',
+        quantity_boxes NUMERIC(15, 2) NOT NULL DEFAULT 0,
+        quantity_sqm NUMERIC(15, 4) NOT NULL DEFAULT 0,
+        reserved_boxes NUMERIC(15, 2) NOT NULL DEFAULT 0,
+        last_movement_at TIMESTAMP WITH TIME ZONE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(company_id, product_id, warehouse_location)
+      );
+      CREATE INDEX IF NOT EXISTS idx_stock_register_company ON stock_register(company_id);
+
+      CREATE TABLE IF NOT EXISTS stock_movements (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        company_id UUID NOT NULL,
+        stock_register_id UUID,
+        product_id UUID NOT NULL,
+        warehouse_location VARCHAR(255) NOT NULL DEFAULT 'Main Warehouse',
+        movement_type VARCHAR(20) NOT NULL,
+        quantity_boxes NUMERIC(15, 2) NOT NULL,
+        quantity_sqm NUMERIC(15, 4) DEFAULT 0,
+        reference_type VARCHAR(50),
+        reference_id UUID,
+        reference_no VARCHAR(100),
+        notes TEXT,
+        created_by UUID,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_stock_movements_company ON stock_movements(company_id);
+
+      CREATE TABLE IF NOT EXISTS stock_reservations (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        company_id UUID NOT NULL,
+        stock_register_id UUID NOT NULL,
+        product_id UUID NOT NULL,
+        reserved_boxes NUMERIC(15, 2) NOT NULL,
+        reserved_sqm NUMERIC(15, 4) DEFAULT 0,
+        reference_type VARCHAR(50) NOT NULL,
+        reference_id UUID,
+        reference_no VARCHAR(100),
+        status VARCHAR(20) NOT NULL DEFAULT 'Active',
+        created_by UUID,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        released_at TIMESTAMP WITH TIME ZONE
+      );
+      CREATE INDEX IF NOT EXISTS idx_stock_reservations_company ON stock_reservations(company_id);
+
+      CREATE TABLE IF NOT EXISTS grn_documents (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        company_id UUID NOT NULL,
+        grn_number VARCHAR(100) NOT NULL,
+        grn_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        supplier_name VARCHAR(200),
+        vehicle_number VARCHAR(100),
+        inspector_name VARCHAR(100),
+        weighbridge_ticket VARCHAR(100),
+        notes TEXT,
+        total_boxes NUMERIC(15, 2) DEFAULT 0,
+        created_by UUID,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_grn_documents_company ON grn_documents(company_id);
+    `);
+
     debugLogger.info('Router', `${label} ✅ Dynamic schema synchronization complete.`);
   } catch (err) {
     debugLogger.error('Router', `${label} ❌ Error during dynamic schema synchronization: ${err.message}`, err);

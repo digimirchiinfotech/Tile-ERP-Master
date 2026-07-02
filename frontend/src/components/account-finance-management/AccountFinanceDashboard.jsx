@@ -16,7 +16,7 @@ import Button from '../shared/Button.jsx';
 import { Plus, Search, Edit, Trash2, Eye, Download, Upload, RotateCcw, Power, Printer, Check } from 'lucide-react';
 import { useAccountEntries } from '../../hooks/useAccountEntries';
 import { accountEntryService } from '../../services/accountEntryService';
-import { authAPI } from '../../services/authAPI';
+import api from '../../services/api';
 import AccountEntryForm from './AccountEntryForm.jsx';
 import ImportModal from '../shared/ImportModal.jsx';
 import AccountPrintView from './AccountPrintView.jsx';
@@ -273,7 +273,7 @@ function AccountFinanceDashboard({ currentUser }) {
       const start = filters.dateRange?.start || '2020-01-01';
       const end = filters.dateRange?.end || new Date().toISOString().split('T')[0];
       
-      const response = await authAPI.get(`/tally/export-sales?from_date=${start}&to_date=${end}`, { responseType: 'blob' });
+      const response = await api.get(`/tally/export-sales?from_date=${start}&to_date=${end}`, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;

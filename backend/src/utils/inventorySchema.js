@@ -1,10 +1,16 @@
 /**
  * Ensures inventory tables exist in tenant databases.
  */
-const ensuredDbs = new WeakSet();
+// Cache by company ID string — WeakSet won't work since req.db is a new object per request
+const ensuredCompanies = new Set();
 
 export const ensureInventorySchema = async (db) => {
-  if (ensuredDbs.has(db)) return;
+  // Use the query function to identify context — check if already done for this company
+  // We rely on the fact that CREATE TABLE IF NOT EXISTS is idempotent, 
+  // but the DO $$ migration block is expensive. Cache by extracting companyId from db context.
+  // Since req.db is new per request, we use a sentinel query to get the company context.
+  // For now, we fall through and let Postgres handle idempotency (CREATE TABLE IF NOT EXISTS, ADD COLUMN IF NOT EXISTS).
+  // The DO $$ block itself is safe to run repeatedly.
 
   await db.query(`
     CREATE TABLE IF NOT EXISTS stock_register (
@@ -74,9 +80,79 @@ export const ensureInventorySchema = async (db) => {
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
     CREATE INDEX IF NOT EXISTS idx_grn_documents_company ON grn_documents(company_id);
+
+    CREATE TABLE IF NOT EXISTS warehouse_locations (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      company_id UUID NOT NULL,
+      name VARCHAR(255),
+      code VARCHAR(100),
+      type VARCHAR(50) DEFAULT 'Warehouse',
+      address TEXT,
+      is_active BOOLEAN DEFAULT true,
+      status VARCHAR(20) DEFAULT 'Active',
+      deleted_at TIMESTAMP,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE INDEX IF NOT EXISTS idx_warehouse_locations_company ON warehouse_locations(company_id);
   `);
-  
-  ensuredDbs.add(db);
+
+  // Migrate warehouse_locations: handle location → name rename for older tenants
+  await db.query(`
+    DO $$
+    BEGIN
+      -- Rename 'location' to 'name' if needed
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns WHERE table_name = 'warehouse_locations' AND column_name = 'location'
+      ) AND NOT EXISTS (
+        SELECT 1 FROM information_schema.columns WHERE table_name = 'warehouse_locations' AND column_name = 'name'
+      ) THEN
+        ALTER TABLE warehouse_locations RENAME COLUMN location TO name;
+      END IF;
+
+      -- Add 'name' column if missing entirely
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'warehouse_locations' AND column_name = 'name')
+      AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'warehouse_locations' AND column_name = 'location')
+      THEN
+        ALTER TABLE warehouse_locations ADD COLUMN name VARCHAR(255);
+      END IF;
+
+      -- Drop old unique constraint on 'location'
+      IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'warehouse_locations_location_key') THEN
+        ALTER TABLE warehouse_locations DROP CONSTRAINT warehouse_locations_location_key;
+      END IF;
+
+      -- Add missing columns
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'warehouse_locations' AND column_name = 'code') THEN
+        ALTER TABLE warehouse_locations ADD COLUMN code VARCHAR(100);
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'warehouse_locations' AND column_name = 'type') THEN
+        ALTER TABLE warehouse_locations ADD COLUMN type VARCHAR(50) DEFAULT 'Warehouse';
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'warehouse_locations' AND column_name = 'is_active') THEN
+        ALTER TABLE warehouse_locations ADD COLUMN is_active BOOLEAN DEFAULT true;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'warehouse_locations' AND column_name = 'status') THEN
+        ALTER TABLE warehouse_locations ADD COLUMN status VARCHAR(20) DEFAULT 'Active';
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'warehouse_locations' AND column_name = 'deleted_at') THEN
+        ALTER TABLE warehouse_locations ADD COLUMN deleted_at TIMESTAMP;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'warehouse_locations' AND column_name = 'updated_at') THEN
+        ALTER TABLE warehouse_locations ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
+      END IF;
+
+      -- Set name NOT NULL
+      UPDATE warehouse_locations SET name = COALESCE(name, 'Main Warehouse') WHERE name IS NULL;
+      ALTER TABLE warehouse_locations ALTER COLUMN name SET NOT NULL;
+
+      -- Add unique constraint
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'warehouse_locations_company_id_name_key') THEN
+        ALTER TABLE warehouse_locations ADD CONSTRAINT warehouse_locations_company_id_name_key UNIQUE (company_id, name);
+      END IF;
+    END
+    $$;
+  `);
 };
 
 export default ensureInventorySchema;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Table, Button, Badge, Form, InputGroup } from 'react-bootstrap';
 import { Search, Plus, Archive, FileText, ArrowUpRight, ArrowDownRight, Edit } from 'lucide-react';
-import { authAPI } from '../../services/authAPI';
+import api from '../../services/api';
 import NotificationManager, { showSuccess, showError } from '../../components/shared/NotificationManager';
 import { useUserContext } from '../../contexts/UserContext';
 
@@ -21,9 +21,9 @@ const InventoryDashboard = () => {
     try {
       setLoading(true);
       const [whRes, stockRes, transRes] = await Promise.all([
-        authAPI.get('/inventory/warehouses'),
-        authAPI.get('/inventory/stock-balance'),
-        authAPI.get('/inventory/movements?limit=10')
+        api.get('/inventory/warehouses'),
+        api.get('/inventory/stock-balance'),
+        api.get('/inventory/movements?limit=10')
       ]);
       setWarehouses(whRes.data?.data || []);
       setStockBalances(stockRes.data?.data || []);

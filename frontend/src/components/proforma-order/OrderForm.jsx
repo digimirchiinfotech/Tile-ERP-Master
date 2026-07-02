@@ -2144,9 +2144,23 @@ function OrderForm({ order, onBack = () => { }, currentUser, ordersData, product
 
         .print-modal-body {
           flex: 1;
-          overflow-y: auto;
+          overflow: auto;
           padding: 2rem;
           background: #f1f5f9;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        @media (max-width: 768px) {
+          .print-modal-body {
+            padding: 0.5rem;
+          }
+          .print-modal-overlay {
+            padding: 0;
+          }
+          .print-modal-content {
+            height: 100vh;
+            border-radius: 0;
+          }
         }
 
         @media print {

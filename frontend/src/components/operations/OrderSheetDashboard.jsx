@@ -986,8 +986,8 @@ const OrderSheetDashboard = () => {
           <Modal.Title className="h5 fw-bold mb-0">View Master Order Sheet</Modal.Title>
         </Modal.Header>
         <Modal.Body className="p-0 bg-light">
-          <div className="shadow-sm m-4 rounded overflow-hidden" style={{ overflowX: 'auto' }}>
-            <div style={{ minWidth: '800px', backgroundColor: '#fff' }}>
+          <div className="shadow-sm m-0 m-md-4 p-2 p-md-0 rounded bg-white overflow-auto w-100" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div style={{ minWidth: '800px', backgroundColor: '#fff', margin: '0 auto' }}>
               <OrderSheetPrintView sheet={selectedSheet} />
             </div>
           </div>

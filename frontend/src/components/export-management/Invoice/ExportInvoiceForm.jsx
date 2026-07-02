@@ -2325,7 +2325,7 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
                       type="text"
                       placeholder="Enter LC Number"
                       value={formData.lcNumber || ''}
-                      disabled={true}
+                      onChange={(e) => handleInputChange('lcNumber', e.target.value)}
                       className="bg-light border-0 py-2 px-3 fw-bold"
                       style={{ borderRadius: '10px' }}
                     />
@@ -2339,7 +2339,7 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
                     <Form.Control
                       type="date"
                       value={formData.lcDate || ''}
-                      disabled={true}
+                      onChange={(e) => handleInputChange('lcDate', e.target.value)}
                       className="bg-light border-0 py-2 px-3 fw-bold"
                       style={{ borderRadius: '10px' }}
                     />
@@ -2354,7 +2354,7 @@ function ExportInvoiceForm({ invoice, invoiceId, onSave, onCancel, onBack, profo
                       type="text"
                       placeholder="Enter EPCG No."
                       value={formData.epcgNo || ''}
-                      disabled={true}
+                      onChange={(e) => handleInputChange('epcgNo', e.target.value)}
                       className="bg-light border-0 py-2 px-3 fw-bold"
                       style={{ borderRadius: '10px' }}
                     />

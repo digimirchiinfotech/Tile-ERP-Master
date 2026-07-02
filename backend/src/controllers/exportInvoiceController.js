@@ -990,9 +990,9 @@ export const create = async (req, res, next) => {
           country_of_origin || 'INDIA',                 // $46
           supply_declaration || 'SUPPLY MEANT FOR EXPORT WITHOUT PAYMENT OF INTEGRATED TAX UNDER LUT BOND', // $47
           ftp_incentive_declaration || '"I/WE SHALL CLAIM UNDER CHAPTER 3 INCENTIVE OF FTP AS ADMISSIBLE AT TIME POLICY IN FORCE I.E. RODTEP"', // $48
-          lc_number || null,                            // $49
-          lc_date || null,                              // $50
-          epcg_no || null,                              // $51
+          (lc_number !== undefined ? lc_number : req.body.lcNumber) || null,                            // $49
+          (lc_date !== undefined ? lc_date : req.body.lcDate) || null,                                  // $50
+          (epcg_no !== undefined ? epcg_no : req.body.epcgNo) || null,                                  // $51
           invoice_currency,                             // $52
           forex_rate,                                   // $53
           total_amount_fcy,                             // $54
@@ -1306,6 +1306,32 @@ export const update = async (req, res, next) => {
     if (result.rows.length === 0) {
       await client.query('ROLLBACK');
       return next(new AppError('Export invoice not found or unauthorized', 404));
+    }
+
+    // Auto-update IGST invoice declarations if they were updated here
+    if (req.body.supply_declaration !== undefined || req.body.ftp_incentive_declaration !== undefined) {
+      let igstUpdates = [];
+      let igstValues = [];
+      let igstParamCount = 1;
+      
+      if (req.body.supply_declaration !== undefined) {
+        igstUpdates.push(`supply_declaration = ${igstParamCount++}`);
+        igstValues.push(req.body.supply_declaration);
+      }
+      if (req.body.ftp_incentive_declaration !== undefined) {
+        igstUpdates.push(`ftp_incentive_declaration = ${igstParamCount++}`);
+        igstValues.push(req.body.ftp_incentive_declaration);
+      }
+      
+      if (igstUpdates.length > 0) {
+        igstValues.push(id);
+        let igstWhere = `WHERE export_invoice_id = ${igstParamCount++}`;
+        if (companyId) {
+          igstValues.push(companyId);
+          igstWhere += ` AND company_id = ${igstParamCount}`;
+        }
+        await client.query(`UPDATE igst_invoices SET ${igstUpdates.join(', ')} ${igstWhere}`, igstValues);
+      }
     }
 
     // Handle separate lines table if product_lines provided

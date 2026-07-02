@@ -28,6 +28,7 @@ import ActivityTimeline from '../shared/ActivityTimeline.jsx';
 import PaginationControls from '../common/PaginationControls.jsx';
 import LockDocumentButton from '../shared/LockDocumentButton.jsx';
 import SkeletonTable from '../shared/SkeletonTable.jsx';
+import TableErrorBoundary from '../shared/TableErrorBoundary.jsx';
 import api from '../../services/api.js';
 import { Modal } from 'react-bootstrap';
 import QCPrintView from './QCPrintView.jsx';
@@ -294,6 +295,7 @@ function QCDashboard({ currentUser, onNavigate, navigationData }) {
             <div className="text-center py-5 text-muted">No QC records found</div>
           ) : (
             <>
+              <TableErrorBoundary>
               {/* Desktop Table View */}
               <div className="table-responsive d-none d-md-block">
                 <Table hover className="mb-0 align-middle bg-white">
@@ -459,6 +461,7 @@ function QCDashboard({ currentUser, onNavigate, navigationData }) {
                   );
                 })}
               </div>
+              </TableErrorBoundary>
             </>
           )}
           <PaginationControls

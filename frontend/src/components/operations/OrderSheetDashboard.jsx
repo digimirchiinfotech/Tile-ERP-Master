@@ -27,6 +27,7 @@ import { downloadPDF } from '../../utils/pdfGenerator.js';
 import DashboardStatusDropdown from '../shared/DashboardStatusDropdown.jsx';
 import { useUserContext } from '../../contexts/UserContext.jsx';
 import SkeletonTable from '../shared/SkeletonTable.jsx';
+import TableErrorBoundary from '../shared/TableErrorBoundary.jsx';
 
 const OrderSheetDashboard = () => {
   const { user: currentUser } = useUserContext();
@@ -574,7 +575,8 @@ const OrderSheetDashboard = () => {
         </div>
         
         <Card.Body className="p-0">
-          <div className="table-responsive">
+          <TableErrorBoundary>
+          <div className="table-responsive d-none d-lg-block">
             <Table hover className="align-middle mb-0" style={{ fontSize: '0.9rem' }}>
               <thead className="bg-light text-secondary">
                 <tr>
@@ -931,6 +933,7 @@ const OrderSheetDashboard = () => {
               })
             )}
           </div>
+          </TableErrorBoundary>
         </Card.Body>
       </Card>
 

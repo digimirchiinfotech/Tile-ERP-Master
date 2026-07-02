@@ -23,6 +23,8 @@ import { formatDisplayDate } from '../../utils/formatters.js';
 import { useMultiSelect } from '../../hooks/useMultiSelect.js';
 import StatusBadge from '../common/StatusBadge';
 import ActivityTimeline from '../shared/ActivityTimeline.jsx';
+import SkeletonTable from '../shared/SkeletonTable.jsx';
+import TableErrorBoundary from '../shared/TableErrorBoundary.jsx';
 
 function PackingListDashboard({ currentUser, onNavigate }) {
   const [packingLists, setPackingLists] = useState([]);
@@ -372,6 +374,7 @@ function PackingListDashboard({ currentUser, onNavigate }) {
           </div>
         </Card.Header>
         <Card.Body className="p-0">
+          <TableErrorBoundary>
           {/* Desktop Table View */}
           <div className="table-responsive d-none d-lg-block">
             <Table hover className="mb-0 align-middle">
@@ -397,7 +400,7 @@ function PackingListDashboard({ currentUser, onNavigate }) {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="8" className="text-center py-5"><Spinner animation="border" variant="primary" /></td></tr>
+                  <tr><td colSpan="10" className="p-3"><SkeletonTable columns={10} rows={5} /></td></tr>
                 ) : paginatedPackingLists.length === 0 ? (
                   <tr><td colSpan="9" className="text-center py-5 text-muted">No packing lists found</td></tr>
                 ) : paginatedPackingLists.map((pl, index) => (
@@ -478,7 +481,9 @@ function PackingListDashboard({ currentUser, onNavigate }) {
 
           {/* Mobile Card View */}
           <div className="d-lg-none bg-light-subtle p-3">
-            {paginatedPackingLists.length > 0 ? (
+            {loading ? (
+              <div className="p-3"><SkeletonTable columns={4} rows={3} /></div>
+            ) : paginatedPackingLists.length > 0 ? (
               paginatedPackingLists.map((pl, index) => (
                 <Card key={pl.id} className="mb-3 border-0 shadow-sm pl-mobile-card">
                   <Card.Body className="p-4">
@@ -581,6 +586,7 @@ function PackingListDashboard({ currentUser, onNavigate }) {
               </div>
             )}
           </div>
+          </TableErrorBoundary>
         </Card.Body>
         <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filteredPackingLists.length} pageSize={PAGE_SIZE} />
       </Card>

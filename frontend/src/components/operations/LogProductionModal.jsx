@@ -168,11 +168,11 @@ const LogProductionModal = ({ isOpen, onClose, sheetId, line }) => {
               <tbody>
                 {logs.map(log => (
                   <tr key={log.id}>
-                    <td className="fw-medium">{new Date(log.update_date || log.updateDate).toLocaleDateString()}</td>
-                    <td className="text-end fw-bold text-success">+{parseFloat(log.boxes_produced || log.boxesProduced).toLocaleString()}</td>
-                    <td className="text-muted">{log.remarks || '-'}</td>
-                    <td>{log.user_name || log.userName || 'System'}</td>
-                    <td className="text-end text-muted small">{new Date(log.created_at || log.createdAt).toLocaleString()}</td>
+                    <td data-label="Date" className="fw-medium text-start">{new Date(log.update_date || log.updateDate).toLocaleDateString()}</td>
+                    <td data-label="Boxes Produced" className="fw-bold text-success text-start">+{parseFloat(log.boxes_produced || log.boxesProduced).toLocaleString()}</td>
+                    <td data-label="Remarks" className="text-muted text-start">{log.remarks || '-'}</td>
+                    <td data-label="Updated By" className="text-start">{log.user_name || log.userName || 'System'}</td>
+                    <td data-label="Timestamp" className="text-muted small text-start">{new Date(log.created_at || log.createdAt).toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>

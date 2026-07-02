@@ -96,7 +96,7 @@ export const getAllCompanies = async (req, res, next) => {
                 cs.end_date as subscription_end_date,
                 (DATE(cs.end_date) - CURRENT_DATE) as days_until_expiry
          FROM company_subscriptions cs
-         WHERE cs.company_id = c.id AND cs.status = 'Active'
+         WHERE cs.company_id = c.id
          ORDER BY cs.created_at DESC
          LIMIT 1
        ) cs_agg ON true

@@ -141,6 +141,7 @@ export const normalizeCompanyData = (company) => {
     totalQCRecords: company.total_qc_records || company.totalQCRecords || 0,
     healthStatus: company.health_status || company.healthStatus || 'Healthy',
     daysUntilExpiry: company.days_until_expiry || company.daysUntilExpiry || 0,
+    subscriptionStartDate: company.subscription_start_date || company.subscriptionStartDate || null,
     subscriptionEndDate: company.subscription_end_date || company.subscriptionEndDate || null,
     lastLogin: company.last_login || company.lastLogin,
     createdAt: company.created_at || company.createdAt,

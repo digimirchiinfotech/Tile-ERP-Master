@@ -14,6 +14,10 @@ const PORT = process.env.PORT || 8001;
 let globalBrowser = null;
 
 async function getBrowser() {
+  if (globalBrowser && !globalBrowser.isConnected()) {
+    console.log('[PDFService] Global browser disconnected. Re-initializing...');
+    globalBrowser = null;
+  }
   if (!globalBrowser) {
     console.log('[PDFService] Initializing global Puppeteer browser...');
     globalBrowser = await puppeteer.launch({

@@ -30,6 +30,7 @@ import {
  */
 
 let notificationSystemInstance = null;
+let preMountBuffer = [];
 
 const EnhancedNotificationSystem = ({ onRef, currentUser }) => {
   const [notifications, setNotifications] = useState([]);
@@ -66,6 +67,13 @@ const EnhancedNotificationSystem = ({ onRef, currentUser }) => {
       addStatusUpdate,
       addSystemAlert,
     };
+
+    if (preMountBuffer.length > 0) {
+      preMountBuffer.forEach(n => {
+        notificationSystemInstance.addNotification(n.message, n.type, n.category, n.options);
+      });
+      preMountBuffer = [];
+    }
   }, [onRef]);
 
   /**
@@ -503,6 +511,8 @@ const EnhancedNotificationSystem = ({ onRef, currentUser }) => {
 export const showNotification = (message, type = 'info', category = 'general', options = {}) => {
   if (notificationSystemInstance) {
     return notificationSystemInstance.addNotification(message, type, category, options);
+  } else {
+    preMountBuffer.push({ message, type, category, options });
   }
   return null;
 };

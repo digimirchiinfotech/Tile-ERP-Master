@@ -45,10 +45,14 @@ export const dbRouter = (req, res, next) => {
       await client.query("SELECT set_config('app.current_company_id', $1, false)", [companyId]);
       
       const originalRelease = client.release;
-      client.release = async () => {
-        client.query(`RESET app.current_company_id`).catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
+      client.release = async (err) => {
+        try {
+          await client.query(`RESET app.current_company_id`);
+        } catch (e) {
+          console.error('[SILENT_CATCH_FIXED]', e.message);
+        }
         client.release = originalRelease;
-        return originalRelease.apply(client);
+        return originalRelease.apply(client, [err]);
       };
       
       return client;
@@ -62,10 +66,14 @@ export const dbRouter = (req, res, next) => {
         await client.query("SELECT set_config('app.current_company_id', 'super_admin_bypass', false)");
         
         const originalRelease = client.release;
-        client.release = async () => {
-          client.query(`RESET app.current_company_id`).catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
+        client.release = async (err) => {
+          try {
+            await client.query(`RESET app.current_company_id`);
+          } catch(e) {
+            console.error('[SILENT_CATCH_FIXED]', e.message);
+          }
           client.release = originalRelease;
-          return originalRelease.apply(client);
+          return originalRelease.apply(client, [err]);
         };
         return client;
       }
@@ -78,12 +86,14 @@ export const dbRouter = (req, res, next) => {
         await client.query("SELECT set_config('app.current_company_id', $1, false)", [companyId]);
         
         const originalRelease = client.release;
-        client.release = async () => {
-          // Fire-and-forget reset (doesn't block the actual release)
-          client.query(`RESET app.current_company_id`).catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
-          
+        client.release = async (err) => {
+          try {
+            await client.query(`RESET app.current_company_id`);
+          } catch(e) {
+            console.error('[SILENT_CATCH_FIXED]', e.message);
+          }
           client.release = originalRelease;
-          return originalRelease.apply(client);
+          return originalRelease.apply(client, [err]);
         };
       }
       

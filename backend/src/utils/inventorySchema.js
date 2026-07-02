@@ -5,12 +5,17 @@
 const ensuredCompanies = new Set();
 
 export const ensureInventorySchema = async (db) => {
-  // Use the query function to identify context — check if already done for this company
-  // We rely on the fact that CREATE TABLE IF NOT EXISTS is idempotent, 
-  // but the DO $$ migration block is expensive. Cache by extracting companyId from db context.
-  // Since req.db is new per request, we use a sentinel query to get the company context.
-  // For now, we fall through and let Postgres handle idempotency (CREATE TABLE IF NOT EXISTS, ADD COLUMN IF NOT EXISTS).
-  // The DO $$ block itself is safe to run repeatedly.
+  let companyId = 'master';
+  try {
+    const res = await db.query("SHOW app.current_company_id");
+    companyId = res.rows[0].current_setting || 'master';
+  } catch (e) {
+    // If not set or isolated DB without RLS, we still need a cache key.
+    // Try to extract it from db config if available, otherwise just use 'unknown'
+    companyId = 'unknown';
+  }
+
+  if (ensuredCompanies.has(companyId)) return;
 
   await db.query(`
     CREATE TABLE IF NOT EXISTS stock_register (
@@ -153,6 +158,8 @@ export const ensureInventorySchema = async (db) => {
     END
     $$;
   `);
+
+  ensuredCompanies.add(companyId);
 };
 
 export default ensureInventorySchema;

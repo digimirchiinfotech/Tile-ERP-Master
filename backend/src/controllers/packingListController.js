@@ -636,7 +636,7 @@ export const createOrUpdate = async (req, res, next) => {
       notificationService.notifyPackingListCreated(companyId, result.rows[0], req.db).catch(err => debugLogger.warn('Notification', err.message));
     }
 
-    logAction({ userId: req.user?.id, companyId: req.companyFilter, action: isUpdate ? 'UPDATE' : 'CREATE', entityType: 'packing_list', entityId: result.rows[0].id, newValue: { packing_list_no: result.rows[0].packing_list_no }, ipAddress: req.ip, userAgent: req.get('User-Agent'), method: req.method, url: req.originalUrl }, req.db).catch(e => console.error('Audit fail', e));
+    logAction({ userId: req.user?.id, companyId: req.companyFilter, action: existing.rowCount > 0 ? 'UPDATE' : 'CREATE', entityType: 'packing_list', entityId: result.rows[0].id, newValue: { packing_list_no: result.rows[0].packing_list_no }, ipAddress: req.ip, userAgent: req.get('User-Agent'), method: req.method, url: req.originalUrl }, req.db).catch(e => console.error('Audit fail', e));
     return successResponse(res, result.rows[0], 'Packing List saved successfully');
   } catch (error) { 
     if (client) await client.query('ROLLBACK').catch(e => console.error('[SILENT_CATCH_FIXED]', e.message));
